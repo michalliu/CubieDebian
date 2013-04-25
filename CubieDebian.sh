@@ -37,7 +37,7 @@ ETH0_MODE="dhcp"
 ########################
 
 setupTools() {
-apt-get install build-essential u-boot-tools qemu-user-static debootstrap git binfmt-support libusb-1.0-0-dev pkg-config
+apt-get install build-essential u-boot-tools qemu-user-static debootstrap git binfmt-support libusb-1.0-0-dev pkg-config libncurses5-dev
 
 cat > /etc/apt/sources.list.d/emdebian.list <<END
 deb http://www.emdebian.org/debian/ wheezy main
