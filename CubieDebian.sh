@@ -5,7 +5,7 @@
 #################
 
 # This will be the hostname of the cubieboard
-DEB_HOSTNAME="CubieDebian"
+DEB_HOSTNAME="argon"
 
 # Not all packages can be install this way.
 DEB_EXTRAPACKAGES="nvi locales ntp ssh"
