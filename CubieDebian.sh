@@ -10,7 +10,7 @@ SCRIPT_VERSION="1.0"
 DEB_HOSTNAME="argon"
 
 # Not all packages can be install this way.
-DEB_EXTRAPACKAGES="nvi locales ntp ssh vim"
+DEB_EXTRAPACKAGES="nvi locales ntp ssh"
 
 # Not all packages can (or should be) reconfigured this way.
 DPKG_RECONFIG="locales tzdata"
@@ -31,6 +31,9 @@ ROOTFS_DIR="./rootfs/${DEB_HOSTNAME}-armfs/"
 # Rootfs backup
 ROOTFS_BACKUP="${DEB_HOSTNAME}.rootfs.cleanbackup.tar.gz"
 
+# Base system backup
+BASESYS_BACKUP="${DEB_HOSTNAME}.basesys.cleanbackup.tar.gz"
+
 # If you want a static IP, use the following
 #ETH0_MODE="static"
 #ETH0_IP="192.168.0.100"
@@ -45,7 +48,7 @@ ROOTFS_BACKUP="${DEB_HOSTNAME}.rootfs.cleanbackup.tar.gz"
 ########################
 
 setupTools() {
-apt-get install build-essential u-boot-tools qemu-user-static debootstrap git binfmt-support libusb-1.0-0-dev pkg-config libncurses5-dev
+apt-get install build-essential u-boot-tools qemu-user-static debootstrap git binfmt-support libusb-1.0-0-dev pkg-config libncurses5-dev debian-archive-keyring expect
 
 cat > /etc/apt/sources.list.d/emdebian.list <<END
 deb http://www.emdebian.org/debian/ wheezy main
@@ -82,44 +85,34 @@ make -C ./sunxi-tools/ clean
 make -C ./sunxi-tools/ all
 }
 
+cleanupSys() {
+rm ${ROOTFS_DIR}/usr/bin/qemu-arm-static
+rm ${ROOTFS_DIR}/etc/resolv.conf
+}
+
 downloadSys(){
 if [ -d ${ROOTFS_DIR} ];then
     rm -rf ${ROOTFS_DIR}
 fi
 mkdir --parents ${ROOTFS_DIR}
-debootstrap --foreign --arch armhf wheezy ${ROOTFS_DIR}/ http://mirrors.sohu.com/debian
+debootstrap --foreign --arch armhf wheezy ${ROOTFS_DIR}/ http://mirrors.sohu.com/debian/
+#debootstrap --foreign --arch armhf wheezy ${ROOTFS_DIR}/ http://http.debian.net/debian/
 }
 
-configSys(){
+installBaseSys(){
 cp /usr/bin/qemu-arm-static ${ROOTFS_DIR}/usr/bin
-LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR}/ /debootstrap/debootstrap --second-stage
-LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR}/ dpkg --configure -a
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} /debootstrap/debootstrap --second-stage
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} dpkg --configure -a
 echo ${DEB_HOSTNAME} > ${ROOTFS_DIR}/etc/hostname
 cp /etc/resolv.conf ${ROOTFS_DIR}/etc/
 cat > ${ROOTFS_DIR}/etc/apt/sources.list <<END
 deb http://http.debian.net/debian/ wheezy main contrib non-free
-deb http://mirrors.sohu.com/debian/ wheezy main contrib non-free
+#deb http://mirrors.sohu.com/debian/ wheezy main contrib non-free
 END
 echo deb http://security.debian.org/ wheezy/updates main contrib non-free >> ${ROOTFS_DIR}/etc/apt/sources.list
-LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR}/ apt-get update
-LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR}/ apt-get upgrade
-if [ -n "${DEB_EXTRAPACKAGES}" ]; then
-LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR}/ apt-get install ${DEB_EXTRAPACKAGES}
-fi
-
-if [ -n "${DPKG_RECONFIG}" ]; then
-LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR}/ dpkg-reconfigure ${DPKG_RECONFIG}
-fi
-
-echo ""
-echo "Please enter a new root password for ${DEB_HOSTNAME}"
-chroot ${ROOTFS_DIR}/ passwd 
-echo ""
-}
-
-cleanupSys() {
-rm ${ROOTFS_DIR}/usr/bin/qemu-arm-static
-rm ${ROOTFS_DIR}/etc/resolv.conf
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get update
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get upgrade
+cleanupSys
 }
 
 installKernel() {
@@ -130,6 +123,18 @@ cd ..
 }
 
 configModules() {
+if [ -n "${DEB_EXTRAPACKAGES}" ]; then
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get install ${DEB_EXTRAPACKAGES}
+fi
+
+if [ -n "${DPKG_RECONFIG}" ]; then
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} dpkg-reconfigure ${DPKG_RECONFIG}
+fi
+
+#echo ""
+#echo "Please enter a new root password for ${DEB_HOSTNAME}"
+#chroot ${ROOTFS_DIR} passwd 
+#echo ""
 echo T0:2345:respawn:/sbin/getty -L ttyS0 115200 vt100 >> ${ROOTFS_DIR}/etc/inittab
 
 cat > ${ROOTFS_DIR}/etc/fstab <<END
@@ -277,7 +282,7 @@ if [ -b ${SD_PATH} ]; then
     buildTools
     echoStage 6 "Installing BootStrap and Packages"
     downloadSys
-    configSys
+    installBaseSys
     cleanupSys
     echoStage 7 "Installing Kernel"
     installKernel
@@ -316,6 +321,7 @@ show_menu(){
     echo "${MENU}${NUMBER} 3)${MENU} Build tools ${NORMAL}"
     echo "${MENU}${NUMBER} 4)${MENU} Build Linux kernel ${NORMAL}"
     echo "${MENU}${NUMBER} 5)${MENU} Download rootfs ${NORMAL}"
+    echo "${MENU}${NUMBER} 6)${MENU} Install base system ${NORMAL}"
     echo ""
     echo "${ENTER_LINE}Please enter the option and enter or ${RED_TEXT}enter to exit. ${NORMAL}"
     if [ ! -z "$1" ]
@@ -401,7 +407,38 @@ do
                 if [ -f ${ROOTFS_BACKUP} ];then
                     rm ${ROOTFS_BACKUP}
                 fi
-                tar -czvf ${ROOTFS_BACKUP} ${ROOTFS_DIR}
+                tar -czf ${ROOTFS_BACKUP} ${ROOTFS_DIR}
+            fi
+            option_picked "Done";
+            show_menu
+            ;;
+        6) clear;
+            option_picked "Install base system";
+            if [ -f ${BASESYS_BACKUP} ];then
+               if promptyn "Found a backup of base system, restore from it?"; then
+                   if [ -d ${ROOTFS_DIR} ];then
+                       rm -rf ${ROOTFS_DIR}
+                   fi
+                   option_picked "Restore basesystem, please wait";
+                   tar -xzf ${BASESYS_BACKUP}
+                   option_picked "Base System Restored";
+                   show_menu
+                   continue
+               fi
+            fi
+            if [ -d ${ROOTFS_DIR} ];then
+                if promptyn "Are you sure to install the base system?"; then
+                   option_picked "Installing base system, it may take a while";
+                   installBaseSys
+                   option_picked "Base system installed";
+                fi
+                option_picked "Make a backup of the clean base system";
+                if [ -f ${BASESYS_BACKUP} ];then
+                    rm ${BASESYS_BACKUP}
+                fi
+                tar -czf ${BASESYS_BACKUP} ${ROOTFS_DIR}
+            else
+                echo "Stop config rootfs, rootfs is not existed at ${ROOTFS_DIR}"
             fi
             option_picked "Done";
             show_menu
