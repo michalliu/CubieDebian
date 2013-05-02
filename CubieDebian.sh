@@ -76,13 +76,16 @@ make -C ./sunxi-tools/
 bootStrap(){
 rm -rf ${DEB_HOSTNAME}-armfs
 mkdir ${DEB_HOSTNAME}-armfs
-debootstrap --foreign --arch armhf wheezy ./${DEB_HOSTNAME}-armfs/
+debootstrap --foreign --arch armhf wheezy ./${DEB_HOSTNAME}-armfs/ http://mirrors.sohu.com/debian
 cp /usr/bin/qemu-arm-static ./${DEB_HOSTNAME}-armfs/usr/bin
 LC_ALL=C LANGUAGE=C LANG=C chroot ./${DEB_HOSTNAME}-armfs/ /debootstrap/debootstrap --second-stage
 LC_ALL=C LANGUAGE=C LANG=C chroot ./${DEB_HOSTNAME}-armfs/ dpkg --configure -a
 echo ${DEB_HOSTNAME} > ./${DEB_HOSTNAME}-armfs/etc/hostname
 cp /etc/resolv.conf ./${DEB_HOSTNAME}-armfs/etc/
-echo deb http://http.debian.net/debian/ wheezy main contrib non-free > ./${DEB_HOSTNAME}-armfs/etc/apt/sources.list
+cat > ./${DEB_HOSTNAME}-armfs/etc/apt/sources.list <<END
+deb http://http.debian.net/debian/ wheezy main contrib non-free
+deb http://mirrors.sohu.com/debian/ wheezy main contrib non-free
+END
 echo deb http://security.debian.org/ wheezy/updates main contrib non-free >> ./${DEB_HOSTNAME}-armfs/etc/apt/sources.list
 LC_ALL=C LANGUAGE=C LANG=C chroot ./${DEB_HOSTNAME}-armfs/ apt-get update
 LC_ALL=C LANGUAGE=C LANG=C chroot ./${DEB_HOSTNAME}-armfs/ apt-get upgrade
