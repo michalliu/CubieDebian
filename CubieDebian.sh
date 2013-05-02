@@ -66,7 +66,7 @@ make -C ./u-boot-sunxi/ cubieboard CROSS_COMPILE=arm-linux-gnueabihf-
 buildKernel() {
 cp linux-sunxi/arch/arm/configs/sun4i_defconfig linux-sunxi/.config
 make -C ./linux-sunxi/ ARCH=arm menuconfig
-make -C ./linux-sunxi/ ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- uImage modules
+make -j4 -C ./linux-sunxi/ ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- uImage modules
 }
 
 buildTools() {
