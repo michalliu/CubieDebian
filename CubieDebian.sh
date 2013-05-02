@@ -26,7 +26,7 @@ MAC_ADDRESS="008010EDDF01"
 ETH0_MODE="dhcp"
 
 # Rootfs Dir
-ROOTFS_DIR="${DEB_HOSTNAME}-armfs"
+ROOTFS_DIR="./${DEB_HOSTNAME}-armfs/"
 
 # Rootfs backup
 ROOTFS_BACKUP="${DEB_HOSTNAME}-armfs.rootfs.tar.gz"
@@ -83,54 +83,54 @@ make -C ./sunxi-tools/ all
 }
 
 bootStrap(){
-rm -rf ${DEB_HOSTNAME}-armfs
-mkdir ${DEB_HOSTNAME}-armfs
-debootstrap --foreign --arch armhf wheezy ./${DEB_HOSTNAME}-armfs/ http://mirrors.sohu.com/debian
-cp /usr/bin/qemu-arm-static ./${DEB_HOSTNAME}-armfs/usr/bin
-LC_ALL=C LANGUAGE=C LANG=C chroot ./${DEB_HOSTNAME}-armfs/ /debootstrap/debootstrap --second-stage
-LC_ALL=C LANGUAGE=C LANG=C chroot ./${DEB_HOSTNAME}-armfs/ dpkg --configure -a
-echo ${DEB_HOSTNAME} > ./${DEB_HOSTNAME}-armfs/etc/hostname
-cp /etc/resolv.conf ./${DEB_HOSTNAME}-armfs/etc/
-cat > ./${DEB_HOSTNAME}-armfs/etc/apt/sources.list <<END
+rm -rf ${ROOTFS_DIR}
+mkdir ${ROOTFS_DIR}
+debootstrap --foreign --arch armhf wheezy ${ROOTFS_DIR}/ http://mirrors.sohu.com/debian
+cp /usr/bin/qemu-arm-static ${ROOTFS_DIR}/usr/bin
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR}/ /debootstrap/debootstrap --second-stage
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR}/ dpkg --configure -a
+echo ${DEB_HOSTNAME} > ${ROOTFS_DIR}/etc/hostname
+cp /etc/resolv.conf ${ROOTFS_DIR}/etc/
+cat > ${ROOTFS_DIR}/etc/apt/sources.list <<END
 deb http://http.debian.net/debian/ wheezy main contrib non-free
 deb http://mirrors.sohu.com/debian/ wheezy main contrib non-free
 END
-echo deb http://security.debian.org/ wheezy/updates main contrib non-free >> ./${DEB_HOSTNAME}-armfs/etc/apt/sources.list
-LC_ALL=C LANGUAGE=C LANG=C chroot ./${DEB_HOSTNAME}-armfs/ apt-get update
-LC_ALL=C LANGUAGE=C LANG=C chroot ./${DEB_HOSTNAME}-armfs/ apt-get upgrade
+echo deb http://security.debian.org/ wheezy/updates main contrib non-free >> ${ROOTFS_DIR}/etc/apt/sources.list
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR}/ apt-get update
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR}/ apt-get upgrade
 if [ -n "${DEB_EXTRAPACKAGES}" ]; then
-LC_ALL=C LANGUAGE=C LANG=C chroot ./${DEB_HOSTNAME}-armfs/ apt-get install ${DEB_EXTRAPACKAGES}
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR}/ apt-get install ${DEB_EXTRAPACKAGES}
 fi
 
 if [ -n "${DPKG_RECONFIG}" ]; then
-LC_ALL=C LANGUAGE=C LANG=C chroot ./${DEB_HOSTNAME}-armfs/ dpkg-reconfigure ${DPKG_RECONFIG}
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR}/ dpkg-reconfigure ${DPKG_RECONFIG}
 fi
 
 echo ""
 echo "Please enter a new root password for ${DEB_HOSTNAME}"
-chroot ./${DEB_HOSTNAME}-armfs/ passwd 
+chroot ${ROOTFS_DIR}/ passwd 
 echo ""
 
-rm ./${DEB_HOSTNAME}-armfs/usr/bin/qemu-arm-static
-rm ./${DEB_HOSTNAME}-armfs/etc/resolv.conf
+rm ${ROOTFS_DIR}/usr/bin/qemu-arm-static
+rm ${ROOTFS_DIR}/etc/resolv.conf
 }
 
 installKernel() {
-cd ./${DEB_HOSTNAME}-armfs/
+cd ${ROOTFS_DIR}
 cp ../linux-sunxi/arch/arm/boot/uImage boot
 make -C ../linux-sunxi INSTALL_MOD_PATH=`pwd` ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- modules_install
 cd ..
 }
 
 configModules() {
-echo T0:2345:respawn:/sbin/getty -L ttyS0 115200 vt100 >> ./${DEB_HOSTNAME}-armfs/etc/inittab
+echo T0:2345:respawn:/sbin/getty -L ttyS0 115200 vt100 >> ${ROOTFS_DIR}/etc/inittab
 
-cat > ./${DEB_HOSTNAME}-armfs/etc/fstab <<END
+cat > ${ROOTFS_DIR}/etc/fstab <<END
 #<file system>	<mount point>	<type>	<options>	<dump>	<pass>
 /dev/root	/		ext4	defaults	0	1
 END
 
-cat >> ./${DEB_HOSTNAME}-armfs/etc/modules <<END
+cat >> ${ROOTFS_DIR}/etc/modules <<END
 
 #For SATA Support
 sw_ahci_platform
@@ -147,38 +147,38 @@ END
 }
 
 configUBoot() {
-cat > ./${DEB_HOSTNAME}-armfs/boot/boot.cmd <<END
+cat > ${ROOTFS_DIR}/boot/boot.cmd <<END
 setenv bootargs console=tty0 console=ttyS0,115200 hdmi.audio=EDID:0 disp.screen0_output_mode=EDID:1280x800p60 root=/dev/mmcblk0p1 rootwait panic=10 ${extra}
 ext2load mmc 0 0x43000000 boot/script.bin
 ext2load mmc 0 0x48000000 boot/uImage
 bootm 0x48000000
 END
-mkimage -C none -A arm -T script -d ./${DEB_HOSTNAME}-armfs/boot/boot.cmd ./${DEB_HOSTNAME}-armfs/boot/boot.scr
+mkimage -C none -A arm -T script -d ${ROOTFS_DIR}/boot/boot.cmd ${ROOTFS_DIR}/boot/boot.scr
 
-cp ./sunxi-boards/sys_config/a10/cubieboard.fex ./${DEB_HOSTNAME}-armfs/boot/
-cat >> ./${DEB_HOSTNAME}-armfs/boot/cubieboard.fex <<END
+cp ./sunxi-boards/sys_config/a10/cubieboard.fex ${ROOTFS_DIR}/boot/
+cat >> ${ROOTFS_DIR}/boot/cubieboard.fex <<END
 
 [dynamic]
 MAC = "${MAC_ADDRESS}"
 END
 
-./sunxi-tools/fex2bin ./${DEB_HOSTNAME}-armfs/boot/cubieboard.fex ./${DEB_HOSTNAME}-armfs/boot/script.bin
+./sunxi-tools/fex2bin ${ROOTFS_DIR}/boot/cubieboard.fex ${ROOTFS_DIR}/boot/script.bin
 }
 
 configNetwork() {
-cat >> ./${DEB_HOSTNAME}-armfs/etc/network/interfaces <<END
+cat >> ${ROOTFS_DIR}/etc/network/interfaces <<END
 auto eth0
 allow-hotplug eth0
 iface eth0 inet ${ETH0_MODE}
 END
 
 if [ "${ETH0_MODE}" != "dhcp" ]; then 
-cat >> ./${DEB_HOSTNAME}-armfs/etc/network/interfaces <<END
+cat >> ${ROOTFS_DIR}/etc/network/interfaces <<END
 address ${ETH0_IP}
 netmask ${ETH0_MASK}
 gateway ${ETH0_GW}
 END
-cat > ./${DEB_HOSTNAME}-armfs/etc/resolv.conf <<END
+cat > ${ROOTFS_DIR}/etc/resolv.conf <<END
 search ${DNS_SEARCH}
 nameserver ${DNS1}
 nameserver ${DNS2}
@@ -201,7 +201,7 @@ dd if=./u-boot-sunxi/u-boot.bin of=${SD_PATH} bs=1024 seek=32
 installSD() {
 mkdir mnt
 mount ${SD_PATH}1 ./mnt/
-cd ./${DEB_HOSTNAME}-armfs/
+cd ${ROOTFS_DIR}
 tar -cf - . | tar -C ../mnt -xvf -
 cd ..
 sync
