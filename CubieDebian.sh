@@ -14,7 +14,7 @@ DEB_EXTRAPACKAGES="nvi locales ntp ssh"
 DPKG_RECONFIG="locales tzdata"
 
 # Make sure this is valid and is really your SD..
-SD_PATH="/dev/sdc"
+SD_PATH="/dev/sdb"
 
 # MAC will be encoded in script.bin
 #MAC_ADDRESS="0DEADBEEFBAD"
