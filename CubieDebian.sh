@@ -25,6 +25,12 @@ MAC_ADDRESS="008010EDDF01"
 # If you want to use DHCP, use the following
 ETH0_MODE="dhcp"
 
+# Rootfs Dir
+ROOTFS_DIR="${DEB_HOSTNAME}-armfs"
+
+# Rootfs backup
+ROOTFS_BACKUP="${DEB_HOSTNAME}-armfs.rootfs.tar.gz"
+
 # If you want a static IP, use the following
 #ETH0_MODE="static"
 #ETH0_IP="192.168.0.100"
@@ -300,6 +306,7 @@ show_menu(){
     echo "${MENU}${NUMBER} 2)${MENU} Download or Update Linux source ${NORMAL}"
     echo "${MENU}${NUMBER} 3)${MENU} Build tools ${NORMAL}"
     echo "${MENU}${NUMBER} 4)${MENU} Build Linux kernel ${NORMAL}"
+    echo "${MENU}${NUMBER} 5)${MENU} Download rootfs ${NORMAL}"
     echo ""
     echo "${ENTER_LINE}Please enter the option and enter or ${RED_TEXT}enter to exit. ${NORMAL}"
     if [ ! -z "$1" ]
@@ -356,6 +363,37 @@ do
                 make -C ./linux-sunxi/ ARCH=arm menuconfig
             fi
             make -j4 -C ./linux-sunxi/ ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- uImage modules
+            option_picked "Done";
+            show_menu
+            ;;
+        5) clear;
+            option_picked "Download rootfs";
+            if [ -d ${ROOTFS_DIR} ];then
+               if promptyn "The rootfs exists, do you want delete it?"; then
+                   rm -rf ${ROOTFS_DIR}
+               fi
+            fi
+            if [ -f ${ROOTFS_BACKUP} ];then
+               if promptyn "Found a backup of rootfs, restore from it?"; then
+                   if [ -d ${ROOTFS_DIR} ];then
+                       rm -rf ${ROOTFS_DIR}
+                   fi
+                   option_picked "Restore from rootfs";
+                   tar -xzvf ${ROOTFS_BACKUP}
+                   option_picked "Done";
+                   show_menu
+                   continue
+               fi
+            fi
+            if promptyn "Download rootfs, it may take a few minutes, continue?"; then
+                option_picked "Start download rootfs";
+                mkdir ${ROOTFS_DIR}
+                option_picked "Make a backup of rootfs";
+                if [ -f ${ROOTFS_BACKUP} ];then
+                    rm ${ROOTFS_BACKUP}
+                fi
+                tar -czvf ${ROOTFS_BACKUP} ${ROOTFS_DIR}
+            fi
             option_picked "Done";
             show_menu
             ;;
