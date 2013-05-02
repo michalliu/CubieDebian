@@ -133,6 +133,7 @@ ump
 disp
 mali
 mali_drm
+8188eu
 END
 }
 
