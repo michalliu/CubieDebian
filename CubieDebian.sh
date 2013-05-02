@@ -3,6 +3,8 @@
 #################
 # CONFIGURATION #
 #################
+# This is the script verion
+SCRIPT_VERSION="1.0"
 
 # This will be the hostname of the cubieboard
 DEB_HOSTNAME="argon"
@@ -70,7 +72,8 @@ make -j4 -C ./linux-sunxi/ ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- uImage mo
 }
 
 buildTools() {
-make -C ./sunxi-tools/
+make -C ./sunxi-tools/ clean
+make -C ./sunxi-tools/ all
 }
 
 bootStrap(){
@@ -284,3 +287,82 @@ else
   echo "SD_PATH to the device path of your SD card."
 fi
 }
+
+show_menu(){
+    NORMAL=`echo "\033[m"`
+    MENU=`echo "\033[36m"` #Blue
+    NUMBER=`echo "\033[33m"` #yellow
+    FGRED=`echo "\033[41m"`
+    RED_TEXT=`echo "\033[31m"`
+    ENTER_LINE=`echo "\033[33m"`
+    echo "${MENU}    Debian Builder ${SCRIPT_VERSION}     ${NORMAL}"
+    echo "${MENU}${NUMBER} 1)${MENU} Setup enviroment ${NORMAL}"
+    echo "${MENU}${NUMBER} 2)${MENU} Download or Update Linux source ${NORMAL}"
+    echo "${MENU}${NUMBER} 3)${MENU} Build tools ${NORMAL}"
+    echo "${MENU}${NUMBER} 4)${MENU} Build Linux kernel ${NORMAL}"
+    echo ""
+    echo "${ENTER_LINE}Please enter the option and enter or ${RED_TEXT}enter to exit. ${NORMAL}"
+    if [ ! -z "$1" ]
+    then
+        echo $1;
+    fi
+    read opt
+}
+option_picked(){
+    COLOR='\033[01;31m' # bold red
+    RESET='\033[00;00m' # normal white
+    MESSAGE=${@:-"${RESET}Error: No message passed"}
+    echo "${COLOR}${MESSAGE}${RESET}"
+}
+
+clear
+show_menu
+while [ ! -z "$opt" ]
+do
+    if [ -z "$opt" ]
+    then
+        exit;
+    else
+        case $opt in
+        1) clear;
+            option_picked "Set up your enviroment";
+            if promptyn "Install essential building tools to `uname -v`?"; then
+                setupTools
+            fi
+            option_picked "Done";
+            show_menu
+            ;;
+        2) clear;
+            option_picked "Clone repository uBoot,kernel,tools,boards from github";
+            gitClone
+            if promptyn "Do you want update these repositories?"; then
+                git submodule foreach git pull
+            fi
+            option_picked "Done";
+            show_menu
+            ;;
+        3) clear;
+            option_picked "Start build uBoot";
+            buildUBoot
+            option_picked "Done";
+            option_picked "Start build sunxi-tools";
+            buildTools
+            option_picked "Done";
+            show_menu
+            ;;
+        4) clear;
+            option_picked "Build Linux kernel";
+            if promptyn "Reconfigure kernel?"; then
+                make -C ./linux-sunxi/ ARCH=arm menuconfig
+            fi
+            make -j4 -C ./linux-sunxi/ ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- uImage modules
+            option_picked "Done";
+            show_menu
+            ;;
+        *) clear;
+            show_menu "$opt is invalid. please enter a number from menu."
+            ;;
+        esac
+    fi
+done
+
