@@ -26,10 +26,10 @@ MAC_ADDRESS="008010EDDF01"
 ETH0_MODE="dhcp"
 
 # Rootfs Dir
-ROOTFS_DIR="./${DEB_HOSTNAME}-armfs/"
+ROOTFS_DIR="./rootfs/${DEB_HOSTNAME}-armfs/"
 
 # Rootfs backup
-ROOTFS_BACKUP="${DEB_HOSTNAME}-armfs.rootfs.tar.gz"
+ROOTFS_BACKUP="${DEB_HOSTNAME}.rootfs.cleanbackup.tar.gz"
 
 # If you want a static IP, use the following
 #ETH0_MODE="static"
@@ -82,10 +82,15 @@ make -C ./sunxi-tools/ clean
 make -C ./sunxi-tools/ all
 }
 
-bootStrap(){
-rm -rf ${ROOTFS_DIR}
-mkdir ${ROOTFS_DIR}
+downloadSys(){
+if [ -d ${ROOTFS_DIR} ];then
+    rm -rf ${ROOTFS_DIR}
+fi
+mkdir --parents ${ROOTFS_DIR}
 debootstrap --foreign --arch armhf wheezy ${ROOTFS_DIR}/ http://mirrors.sohu.com/debian
+}
+
+configSys(){
 cp /usr/bin/qemu-arm-static ${ROOTFS_DIR}/usr/bin
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR}/ /debootstrap/debootstrap --second-stage
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR}/ dpkg --configure -a
@@ -110,7 +115,9 @@ echo ""
 echo "Please enter a new root password for ${DEB_HOSTNAME}"
 chroot ${ROOTFS_DIR}/ passwd 
 echo ""
+}
 
+cleanupSys() {
 rm ${ROOTFS_DIR}/usr/bin/qemu-arm-static
 rm ${ROOTFS_DIR}/etc/resolv.conf
 }
@@ -269,7 +276,9 @@ if [ -b ${SD_PATH} ]; then
     echoStage 5 "Building Tools"
     buildTools
     echoStage 6 "Installing BootStrap and Packages"
-    bootStrap
+    downloadSys
+    configSys
+    cleanupSys
     echoStage 7 "Installing Kernel"
     installKernel
     echoStage 8 "Configuring Kernel Modules"
@@ -387,8 +396,8 @@ do
             fi
             if promptyn "Download rootfs, it may take a few minutes, continue?"; then
                 option_picked "Start download rootfs";
-                mkdir ${ROOTFS_DIR}
-                option_picked "Make a backup of rootfs";
+                downloadSys
+                option_picked "Make a backup of the clean rootfs";
                 if [ -f ${ROOTFS_BACKUP} ];then
                     rm ${ROOTFS_BACKUP}
                 fi
