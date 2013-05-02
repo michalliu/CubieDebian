@@ -219,6 +219,7 @@ echo "----------------------------------------------------------------------"
 echo ""
 }
 
+automaticBuild () {
 if [ -b ${SD_PATH} ]; then
   echo ""
   echo "CubieDebian SD Creator by Hywkar"
@@ -282,3 +283,4 @@ else
   echo "Please edit the configuration section of this script and set"
   echo "SD_PATH to the device path of your SD card."
 fi
+}
