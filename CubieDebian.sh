@@ -10,7 +10,7 @@ SCRIPT_VERSION="1.0"
 DEB_HOSTNAME="argon"
 
 # Not all packages can be install this way.
-DEB_EXTRAPACKAGES="nvi locales ntp ssh"
+DEB_EXTRAPACKAGES="nvi locales ntp ssh vim"
 
 # Not all packages can (or should be) reconfigured this way.
 DPKG_RECONFIG="locales tzdata"
