@@ -110,7 +110,7 @@ debootstrap --foreign --arch armhf wheezy ${ROOTFS_DIR}/ http://http.debian.net/
 }
 
 installBaseSys(){
-if [! -f ${ROOTFS_DIR}/usr/bin/qemu-arm-static ];then
+if [ ! -f ${ROOTFS_DIR}/usr/bin/qemu-arm-static ];then
     cp -f /usr/bin/qemu-arm-static ${ROOTFS_DIR}/usr/bin
 fi
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} /debootstrap/debootstrap --second-stage
@@ -173,14 +173,18 @@ fi
 }
 
 configModules() {
-if [! -f ${ROOTFS_DIR}/usr/bin/qemu-arm-static ];then
+# install qemu
+if [ ! -f ${ROOTFS_DIR}/usr/bin/qemu-arm-static ];then
     cp -f /usr/bin/qemu-arm-static ${ROOTFS_DIR}/usr/bin
 fi
+
+# install extra modules
 if [ -n "${DEB_EXTRAPACKAGES}" ]; then
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get install ${DEB_EXTRAPACKAGES}
 fi
 
-if [ ! -z $1 ]; then
+# prompt to config local and timezone
+if promptyn "Configure locale and timezone data?"; then
     if [ -n "${DPKG_RECONFIG}" ]; then
     LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} dpkg-reconfigure ${DPKG_RECONFIG}
     fi
@@ -188,6 +192,7 @@ fi
 }
 
 configSys(){
+
 #echo ""
 #echo "Please enter a new root password for ${DEB_HOSTNAME}"
 #chroot ${ROOTFS_DIR} passwd 
@@ -369,7 +374,7 @@ show_menu(){
     echo "${MENU}${NUMBER} 4)${MENU} Build Linux kernel ${NORMAL}"
     echo "${MENU}${NUMBER} 5)${MENU} Download rootfs ${NORMAL}"
     echo "${MENU}${NUMBER} 6)${MENU} Install base system ${NORMAL}"
-    echo "${MENU}${NUMBER} 7)${MENU} Install modules ${NORMAL}"
+    echo "${MENU}${NUMBER} 7)${MENU} Install modules & Config system ${NORMAL}"
     echo ""
     echo "${ENTER_LINE}Please enter the option and enter or ${RED_TEXT}enter to exit. ${NORMAL}"
     if [ ! -z "$1" ]
@@ -442,7 +447,7 @@ do
                        rm -rf ${ROOTFS_DIR}
                    fi
                    option_picked "Restore from rootfs";
-                   tar -xzvf ${ROOTFS_BACKUP}
+                   tar -xzPf ${ROOTFS_BACKUP}
                    option_picked "Done";
                    show_menu
                    continue
@@ -450,12 +455,12 @@ do
             fi
             if promptyn "Download rootfs, it may take a few minutes, continue?"; then
                 option_picked "Start download rootfs";
-                downloadSys
+                #downloadSys
                 option_picked "Make a backup of the clean rootfs";
                 if [ -f ${ROOTFS_BACKUP} ];then
                     rm ${ROOTFS_BACKUP}
                 fi
-                tar -czf ${ROOTFS_BACKUP} ${ROOTFS_DIR}
+                tar -czPf ${ROOTFS_BACKUP} ${ROOTFS_DIR}
             fi
             option_picked "Done";
             show_menu
@@ -468,7 +473,7 @@ do
                        rm -rf ${ROOTFS_DIR}
                    fi
                    option_picked "Restore basesystem, please wait";
-                   tar -xzf ${BASESYS_BACKUP}
+                   tar -xzPf ${BASESYS_BACKUP}
                    option_picked "Base System Restored";
                    show_menu
                    continue
@@ -484,7 +489,7 @@ do
                 if [ -f ${BASESYS_BACKUP} ];then
                     rm ${BASESYS_BACKUP}
                 fi
-                tar -czf ${BASESYS_BACKUP} ${ROOTFS_DIR}
+                tar -czPf ${BASESYS_BACKUP} ${ROOTFS_DIR}
             else
                 echo "Stop config rootfs, rootfs is not existed at ${ROOTFS_DIR}"
             fi
@@ -495,16 +500,17 @@ do
             option_picked "Install modules";
             option_picked "Install UBoot";
                 installUBoot
+            option_picked "Done";
             option_picked "Install linux kernel";
                 installKernel
+            option_picked "Done";
             option_picked "Config Network";
                 configNetwork
+            option_picked "Done";
             option_picked "Config Modules";
-               if promptyn "Reconfigure locale and timezone data?"; then
-                   configModules 1
-               else
-                   configModules
-               fi
+            option_picked "Download Modules";
+                configModules
+            option_picked "Done";
             option_picked "Config System";
                 configSys
             option_picked "Done";
