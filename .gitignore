@@ -3,3 +3,4 @@ argon.rootfs.cleanbackup.tar.gz
 rootfs/
 
 argon.basesys.cleanbackup.tar.gz
+boot
