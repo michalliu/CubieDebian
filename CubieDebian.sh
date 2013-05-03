@@ -97,8 +97,8 @@ if [ -d ${ROOTFS_DIR} ];then
     rm -rf ${ROOTFS_DIR}
 fi
 mkdir --parents ${ROOTFS_DIR}
-debootstrap --foreign --arch armhf wheezy ${ROOTFS_DIR}/ http://mirrors.sohu.com/debian/
-#debootstrap --foreign --arch armhf wheezy ${ROOTFS_DIR}/ http://http.debian.net/debian/
+#debootstrap --foreign --arch armhf wheezy ${ROOTFS_DIR}/ http://mirrors.sohu.com/debian/
+debootstrap --foreign --arch armhf wheezy ${ROOTFS_DIR}/ http://http.debian.net/debian/
 }
 
 installBaseSys(){
