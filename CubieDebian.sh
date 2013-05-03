@@ -15,7 +15,7 @@ RELEASE_NAME="${DEB_HOSTNAME}-server"
 # Not all packages can be install this way.
 # DEB_EXTRAPACKAGES="nvi locales ntp ssh expect"
 # Currently ntp module triggers an error when install
-DEB_EXTRAPACKAGES="nvi locales ssh expect sudo wireless-tools"
+DEB_EXTRAPACKAGES="nvi vim locales ssh expect sudo wireless-tools"
 
 # Not all packages can (or should be) reconfigured this way.
 DPKG_RECONFIG="locales tzdata"
@@ -241,6 +241,19 @@ fi
 # restore modules from backup
 cp ${ROOTFS_DIR}/etc/modules.bak ${ROOTFS_DIR}/etc/modules
 
+# backup hosts
+if [ ! -f ${ROOTFS_DIR}/etc/hosts.bak ];then
+    cp ${ROOTFS_DIR}/etc/hosts ${ROOTFS_DIR}/etc/hosts.bak
+fi
+
+# restore hosts from backup
+cp ${ROOTFS_DIR}/etc/hosts.bak ${ROOTFS_DIR}/etc/hosts
+
+# add hosts content
+cat >> ${ROOTFS_DIR}/etc/hosts <<END
+127.0.0.1 ${DEB_HOSTNAME}
+END
+
 # add modules content
 cat >> ${ROOTFS_DIR}/etc/modules <<END
 
@@ -276,8 +289,10 @@ sed -i 's/^PermitRootLogin yes$/PermitRootLogin no/' /etc/ssh/sshd_config
 
 # allow the default user has su privileges
 cat > /etc/sudoers.d/sudousers <<DNE
-${DEFAULT_USERNAME} ALL=(ALL:ALL) ALL
+${DEFAULT_USERNAME} ALL=(ALL) NOPASSWD:ALL # Admins can do anthing w/o a password
+%cubie ALL=(ALL) NOPASSWD:ALL # Cubie group can do anthing w/o a password
 DNE
+chmod 0440 /etc/sudoers.d/sudousers
 END
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} chmod +x /tmp/adduser.sh
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} /tmp/adduser.sh
@@ -559,8 +574,6 @@ do
             else
                 installKernel
             fi
-            #show_menu
-            #continue;
             option_picked "Done";
             option_picked "Config Network";
                 configNetwork
