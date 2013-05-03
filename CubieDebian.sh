@@ -10,7 +10,9 @@ SCRIPT_VERSION="1.0"
 DEB_HOSTNAME="argon"
 
 # Not all packages can be install this way.
-DEB_EXTRAPACKAGES="nvi locales ntp ssh"
+# DEB_EXTRAPACKAGES="nvi locales ntp ssh expect"
+# Currently ntp module triggers an error when install
+DEB_EXTRAPACKAGES="nvi locales ssh expect"
 
 # Not all packages can (or should be) reconfigured this way.
 DPKG_RECONFIG="locales tzdata"
@@ -26,7 +28,7 @@ MAC_ADDRESS="008010EDDF01"
 ETH0_MODE="dhcp"
 
 # Rootfs Dir
-ROOTFS_DIR="./rootfs/${DEB_HOSTNAME}-armfs/"
+ROOTFS_DIR="`pwd`/rootfs/${DEB_HOSTNAME}-armfs/"
 
 # Rootfs backup
 ROOTFS_BACKUP="${DEB_HOSTNAME}.rootfs.cleanbackup.tar.gz"
@@ -115,14 +117,53 @@ LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get upgrade
 cleanupSys
 }
 
+installUBoot() {
+cat > ${ROOTFS_DIR}/boot/boot.cmd <<END
+setenv bootargs console=tty0 console=ttyS0,115200 hdmi.audio=EDID:0 disp.screen0_output_mode=EDID:1280x800p60 root=/dev/mmcblk0p1 rootwait panic=10 ${extra}
+ext2load mmc 0 0x43000000 boot/script.bin
+ext2load mmc 0 0x48000000 boot/uImage
+bootm 0x48000000
+END
+mkimage -C none -A arm -T script -d ${ROOTFS_DIR}/boot/boot.cmd ${ROOTFS_DIR}/boot/boot.scr
+
+cp ./sunxi-boards/sys_config/a10/cubieboard.fex ${ROOTFS_DIR}/boot/
+cat >> ${ROOTFS_DIR}/boot/cubieboard.fex <<END
+
+[dynamic]
+MAC = "${MAC_ADDRESS}"
+END
+
+./sunxi-tools/fex2bin ${ROOTFS_DIR}/boot/cubieboard.fex ${ROOTFS_DIR}/boot/script.bin
+}
+
 installKernel() {
-cd ${ROOTFS_DIR}
-cp ../linux-sunxi/arch/arm/boot/uImage boot
-make -C ../linux-sunxi INSTALL_MOD_PATH=`pwd` ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- modules_install
-cd ..
+cp ./linux-sunxi/arch/arm/boot/uImage boot
+make -C ./linux-sunxi INSTALL_MOD_PATH=${ROOTFS_DIR} ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- modules_install
+}
+
+configNetwork() {
+cat > ${ROOTFS_DIR}/etc/network/interfaces <<END
+auto eth0
+allow-hotplug eth0
+iface eth0 inet ${ETH0_MODE}
+END
+
+if [ "${ETH0_MODE}" != "dhcp" ]; then 
+cat >> ${ROOTFS_DIR}/etc/network/interfaces <<END
+address ${ETH0_IP}
+netmask ${ETH0_MASK}
+gateway ${ETH0_GW}
+END
+cat > ${ROOTFS_DIR}/etc/resolv.conf <<END
+search ${DNS_SEARCH}
+nameserver ${DNS1}
+nameserver ${DNS2}
+END
+fi
 }
 
 configModules() {
+cp /usr/bin/qemu-arm-static ${ROOTFS_DIR}/usr/bin
 if [ -n "${DEB_EXTRAPACKAGES}" ]; then
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get install ${DEB_EXTRAPACKAGES}
 fi
@@ -130,7 +171,9 @@ fi
 if [ -n "${DPKG_RECONFIG}" ]; then
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} dpkg-reconfigure ${DPKG_RECONFIG}
 fi
+}
 
+configSys(){
 #echo ""
 #echo "Please enter a new root password for ${DEB_HOSTNAME}"
 #chroot ${ROOTFS_DIR} passwd 
@@ -156,46 +199,6 @@ mali
 mali_drm
 8188eu
 END
-}
-
-configUBoot() {
-cat > ${ROOTFS_DIR}/boot/boot.cmd <<END
-setenv bootargs console=tty0 console=ttyS0,115200 hdmi.audio=EDID:0 disp.screen0_output_mode=EDID:1280x800p60 root=/dev/mmcblk0p1 rootwait panic=10 ${extra}
-ext2load mmc 0 0x43000000 boot/script.bin
-ext2load mmc 0 0x48000000 boot/uImage
-bootm 0x48000000
-END
-mkimage -C none -A arm -T script -d ${ROOTFS_DIR}/boot/boot.cmd ${ROOTFS_DIR}/boot/boot.scr
-
-cp ./sunxi-boards/sys_config/a10/cubieboard.fex ${ROOTFS_DIR}/boot/
-cat >> ${ROOTFS_DIR}/boot/cubieboard.fex <<END
-
-[dynamic]
-MAC = "${MAC_ADDRESS}"
-END
-
-./sunxi-tools/fex2bin ${ROOTFS_DIR}/boot/cubieboard.fex ${ROOTFS_DIR}/boot/script.bin
-}
-
-configNetwork() {
-cat >> ${ROOTFS_DIR}/etc/network/interfaces <<END
-auto eth0
-allow-hotplug eth0
-iface eth0 inet ${ETH0_MODE}
-END
-
-if [ "${ETH0_MODE}" != "dhcp" ]; then 
-cat >> ${ROOTFS_DIR}/etc/network/interfaces <<END
-address ${ETH0_IP}
-netmask ${ETH0_MASK}
-gateway ${ETH0_GW}
-END
-cat > ${ROOTFS_DIR}/etc/resolv.conf <<END
-search ${DNS_SEARCH}
-nameserver ${DNS1}
-nameserver ${DNS2}
-END
-fi
 }
 
 formatSD() {
@@ -289,7 +292,7 @@ if [ -b ${SD_PATH} ]; then
     echoStage 8 "Configuring Kernel Modules"
     configModules
     echoStage 9 "Configuring U-Boot"
-    configUBoot
+    installUBoot
     echoStage 10 "Configuring Networking"
     configNetwork
     echoStage 11 "Formatting SD Card"
@@ -322,6 +325,7 @@ show_menu(){
     echo "${MENU}${NUMBER} 4)${MENU} Build Linux kernel ${NORMAL}"
     echo "${MENU}${NUMBER} 5)${MENU} Download rootfs ${NORMAL}"
     echo "${MENU}${NUMBER} 6)${MENU} Install base system ${NORMAL}"
+    echo "${MENU}${NUMBER} 7)${MENU} Install modules ${NORMAL}"
     echo ""
     echo "${ENTER_LINE}Please enter the option and enter or ${RED_TEXT}enter to exit. ${NORMAL}"
     if [ ! -z "$1" ]
@@ -440,6 +444,19 @@ do
             else
                 echo "Stop config rootfs, rootfs is not existed at ${ROOTFS_DIR}"
             fi
+            option_picked "Done";
+            show_menu
+            ;;
+        7) clear;
+            option_picked "Install modules";
+            option_picked "Install UBoot";
+                installUBoot
+            option_picked "Install linux kernel";
+                installKernel
+            option_picked "Config Network";
+                configNetwork
+            option_picked "Config Modules";
+                configModules
             option_picked "Done";
             show_menu
             ;;
