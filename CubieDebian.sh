@@ -65,10 +65,18 @@ for i in /usr/bin/arm-linux-gnueabi*-4.5 ; do ln -f -s $i ${i%%-4.5} ; done
 }
 
 gitClone() {
+if [ ! -d "`pwd`/u-boot-sunxi" ];then
 git clone https://github.com/linux-sunxi/u-boot-sunxi.git
+fi
+if [ ! -d "`pwd`/linux-sunxi" ];then
 git clone https://github.com/linux-sunxi/linux-sunxi.git -b sunxi-3.4
+fi
+if [ ! -d "`pwd`/sunxi-tools" ];then
 git clone https://github.com/linux-sunxi/sunxi-tools.git
+fi
+if [ ! -d "`pwd`/sunxi-boards" ];then
 git clone https://github.com/linux-sunxi/sunxi-boards.git
+fi
 }
 
 buildUBoot() {
