@@ -139,6 +139,12 @@ END
 echo deb http://security.debian.org/ wheezy/updates main contrib non-free >> ${ROOTFS_DIR}/etc/apt/sources.list
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get update
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get upgrade
+
+# install extra modules
+if [ -n "${DEB_EXTRAPACKAGES}" ]; then
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get install ${DEB_EXTRAPACKAGES}
+fi
+
 cleanupEnv
 }
 
@@ -190,12 +196,8 @@ END
 fi
 }
 
-configModules() {
+configSys(){
 prepareEnv
-# install extra modules
-if [ -n "${DEB_EXTRAPACKAGES}" ]; then
-LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get install ${DEB_EXTRAPACKAGES}
-fi
 
 # prompt to config local and timezone
 if promptyn "Configure locale and timezone data?"; then
@@ -203,11 +205,6 @@ if promptyn "Configure locale and timezone data?"; then
     LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} dpkg-reconfigure ${DPKG_RECONFIG}
     fi
 fi
-cleanupEnv
-}
-
-configSys(){
-prepareEnv
 # backup inittab
 if [ ! -f ${ROOTFS_DIR}/etc/inittab.bak ];then
     cp ${ROOTFS_DIR}/etc/inittab ${ROOTFS_DIR}/etc/inittab.bak
@@ -396,15 +393,13 @@ if [ -b ${SD_PATH} ]; then
     cleanupEnv
     echoStage 7 "Installing Kernel"
     installKernel
-    echoStage 8 "Configuring Kernel Modules"
-    configModules
-    echoStage 9 "Configuring U-Boot"
+    echoStage 8 "Configuring U-Boot"
     installUBoot
-    echoStage 10 "Configuring Networking"
+    echoStage 9 "Configuring Networking"
     configNetwork
-    echoStage 11 "Formatting SD Card"
+    echoStage 10 "Formatting SD Card"
     formatSD
-    echoStage 12 "Transfering Debian to SD Card"
+    echoStage 11 "Transfering Debian to SD Card"
     installSD  
     echo ""
     echo "All done"
@@ -577,10 +572,6 @@ do
             option_picked "Done";
             option_picked "Config Network";
                 configNetwork
-            option_picked "Done";
-            option_picked "Config Modules";
-            option_picked "Download Modules";
-                configModules
             option_picked "Done";
             option_picked "Config System";
                 configSys
