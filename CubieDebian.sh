@@ -9,10 +9,13 @@ SCRIPT_VERSION="1.0"
 # This will be the hostname of the cubieboard
 DEB_HOSTNAME="argon"
 
+# Release name
+RELEASE_NAME="${DEB_HOSTNAME}-server"
+
 # Not all packages can be install this way.
 # DEB_EXTRAPACKAGES="nvi locales ntp ssh expect"
 # Currently ntp module triggers an error when install
-DEB_EXTRAPACKAGES="nvi locales ssh expect"
+DEB_EXTRAPACKAGES="nvi locales ssh expect sudo wireless-tools"
 
 # Not all packages can (or should be) reconfigured this way.
 DPKG_RECONFIG="locales tzdata"
@@ -35,6 +38,10 @@ ROOTFS_BACKUP="${DEB_HOSTNAME}.rootfs.cleanbackup.tar.gz"
 
 # Base system backup
 BASESYS_BACKUP="${DEB_HOSTNAME}.basesys.cleanbackup.tar.gz"
+
+# Accounts
+DEFAULT_USERNAME="cubie"
+DEFAULT_PASSWD="cubie"
 
 # If you want a static IP, use the following
 #ETH0_MODE="static"
@@ -95,9 +102,19 @@ make -C ./sunxi-tools/ clean
 make -C ./sunxi-tools/ all
 }
 
-cleanupSys() {
+cleanupEnv() {
 rm -f ${ROOTFS_DIR}/usr/bin/qemu-arm-static
 rm -f ${ROOTFS_DIR}/etc/resolv.conf
+}
+
+prepareEnv() {
+# install qemu
+if [ ! -f ${ROOTFS_DIR}/usr/bin/qemu-arm-static ];then
+    cp -f /usr/bin/qemu-arm-static ${ROOTFS_DIR}/usr/bin
+fi
+if [ ! -f ${ROOTFS_DIR}/etc/resolv.conf ];then
+    cp /etc/resolv.conf ${ROOTFS_DIR}/etc/
+fi
 }
 
 downloadSys(){
@@ -110,9 +127,7 @@ debootstrap --foreign --arch armhf wheezy ${ROOTFS_DIR}/ http://http.debian.net/
 }
 
 installBaseSys(){
-if [ ! -f ${ROOTFS_DIR}/usr/bin/qemu-arm-static ];then
-    cp -f /usr/bin/qemu-arm-static ${ROOTFS_DIR}/usr/bin
-fi
+prepareEnv
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} /debootstrap/debootstrap --second-stage
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} dpkg --configure -a
 echo ${DEB_HOSTNAME} > ${ROOTFS_DIR}/etc/hostname
@@ -124,7 +139,7 @@ END
 echo deb http://security.debian.org/ wheezy/updates main contrib non-free >> ${ROOTFS_DIR}/etc/apt/sources.list
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get update
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get upgrade
-cleanupSys
+cleanupEnv
 }
 
 installUBoot() {
@@ -143,11 +158,14 @@ cat >> ${ROOTFS_DIR}/boot/cubieboard.fex <<END
 MAC = "${MAC_ADDRESS}"
 END
 
+# overlock memory
+sed -i 's/^dram_clk = 480$/dram_clk = 500/' ${ROOTFS_DIR}/boot/cubieboard.fex
+
 ./sunxi-tools/fex2bin ${ROOTFS_DIR}/boot/cubieboard.fex ${ROOTFS_DIR}/boot/script.bin
 }
 
 installKernel() {
-cp ./linux-sunxi/arch/arm/boot/uImage boot
+cp ./linux-sunxi/arch/arm/boot/uImage ${ROOTFS_DIR}/boot
 make -C ./linux-sunxi INSTALL_MOD_PATH=${ROOTFS_DIR} ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- modules_install
 }
 
@@ -173,11 +191,7 @@ fi
 }
 
 configModules() {
-# install qemu
-if [ ! -f ${ROOTFS_DIR}/usr/bin/qemu-arm-static ];then
-    cp -f /usr/bin/qemu-arm-static ${ROOTFS_DIR}/usr/bin
-fi
-
+prepareEnv
 # install extra modules
 if [ -n "${DEB_EXTRAPACKAGES}" ]; then
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get install ${DEB_EXTRAPACKAGES}
@@ -189,15 +203,11 @@ if promptyn "Configure locale and timezone data?"; then
     LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} dpkg-reconfigure ${DPKG_RECONFIG}
     fi
 fi
+cleanupEnv
 }
 
 configSys(){
-
-#echo ""
-#echo "Please enter a new root password for ${DEB_HOSTNAME}"
-#chroot ${ROOTFS_DIR} passwd 
-#echo ""
-
+prepareEnv
 # backup inittab
 if [ ! -f ${ROOTFS_DIR}/etc/inittab.bak ];then
     cp ${ROOTFS_DIR}/etc/inittab ${ROOTFS_DIR}/etc/inittab.bak
@@ -247,7 +257,39 @@ mali_drm
 8188eu
 END
 
-cleanupSys
+# config accounts
+cat > ${ROOTFS_DIR}/tmp/adduser.sh <<END
+#!/bin/bash
+# add default user
+if [ -z "\$(getent passwd ${DEFAULT_USERNAME})" ];then
+    useradd -m -s /bin/bash ${DEFAULT_USERNAME}
+fi
+
+# set user
+echo "${DEFAULT_USERNAME}:${DEFAULT_PASSWD}"|chpasswd
+
+# disable root user
+passwd -l root
+
+# prohibit root user ssh
+sed -i 's/^PermitRootLogin yes$/PermitRootLogin no/' /etc/ssh/sshd_config
+
+# allow the default user has su privileges
+cat > /etc/sudoers.d/sudousers <<DNE
+${DEFAULT_USERNAME} ALL=(ALL:ALL) ALL
+DNE
+END
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} chmod +x /tmp/adduser.sh
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} /tmp/adduser.sh
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} rm /tmp/adduser.sh
+cleanupEnv
+}
+umountSD() {
+for n in ${SD_PATH}*;do
+    if [ "${SD_PATH}" != "$n" ];then
+        umount $n
+    fi
+done
 }
 
 formatSD() {
@@ -263,14 +305,15 @@ dd if=./u-boot-sunxi/u-boot.bin of=${SD_PATH} bs=1024 seek=32
 }
 
 installSD() {
-mkdir mnt
-mount ${SD_PATH}1 ./mnt/
+mntpoint="`pwd`/mnt"
+mkdir ${mntpoint}
+mount ${SD_PATH}1 ${mntpoint}
 cd ${ROOTFS_DIR}
-tar -cf - . | tar -C ../mnt -xvf -
+tar -cf - . | tar -C ${mntpoint} -xf -
 cd ..
 sync
-umount ./mnt/
-rm -rf ./mnt
+umountSD
+rm -rf ${mntpoint}
 eject ${SD_PATH}
 }
 
@@ -335,7 +378,7 @@ if [ -b ${SD_PATH} ]; then
     echoStage 6 "Installing BootStrap and Packages"
     downloadSys
     installBaseSys
-    cleanupSys
+    cleanupEnv
     echoStage 7 "Installing Kernel"
     installKernel
     echoStage 8 "Configuring Kernel Modules"
@@ -375,6 +418,7 @@ show_menu(){
     echo "${MENU}${NUMBER} 5)${MENU} Download rootfs ${NORMAL}"
     echo "${MENU}${NUMBER} 6)${MENU} Install base system ${NORMAL}"
     echo "${MENU}${NUMBER} 7)${MENU} Install modules & Config system ${NORMAL}"
+    echo "${MENU}${NUMBER} 8)${MENU} Install to device ${NORMAL}"
     echo ""
     echo "${ENTER_LINE}Please enter the option and enter or ${RED_TEXT}enter to exit. ${NORMAL}"
     if [ ! -z "$1" ]
@@ -497,12 +541,26 @@ do
             show_menu
             ;;
         7) clear;
-            option_picked "Install modules";
+            option_picked "Install modules"
             option_picked "Install UBoot";
+            if [ -f "${ROOTFS_DIR}/boot/boot.scr" ] && [ -f "${ROOTFS_DIR}/boot/script.bin" ];then
+                if promptyn "UBoot has been installed, reinstall?"; then
+                    installUBoot
+                fi
+            else
                 installUBoot
+            fi
             option_picked "Done";
             option_picked "Install linux kernel";
+            if [ -f "${ROOTFS_DIR}/boot/uImage" ];then
+                if promptyn "Kernel has been installed, reinstall?"; then
+                    installKernel
+                fi
+            else
                 installKernel
+            fi
+            #show_menu
+            #continue;
             option_picked "Done";
             option_picked "Config Network";
                 configNetwork
@@ -516,10 +574,28 @@ do
             option_picked "Done";
             show_menu
             ;;
+        8) clear;
+            option_picked "Install to your device ${SD_PATH}"
+            option_picked "Device info"
+            fdisk -l | grep ${SD_PATH}
+            if promptyn "All the data on ${SD_PATH} will be destoried, continue?"; then
+                option_picked "umount ${SD_PATH}"
+                umountSD
+                option_picked "Done";
+                option_picked "Formating"
+                formatSD
+                option_picked "Done";
+                option_picked "Transferring data, it may take a while, please be patient, DO NOT UNPLUG YOUR DEVICE, it will be removed automaticlly when finished";
+                installSD
+                option_picked "Done";
+                option_picked "Congratulations,you can safely remove your sd card and enjoy your ${RELEASE_NAME}";
+                option_picked "Now press Enter to quit the program";
+            fi
+            show_menu
+            ;;
         *) clear;
             show_menu "$opt is invalid. please enter a number from menu."
             ;;
         esac
     fi
 done
-
