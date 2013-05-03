@@ -28,7 +28,7 @@ MAC_ADDRESS="008010EDDF01"
 ETH0_MODE="dhcp"
 
 # Rootfs Dir
-ROOTFS_DIR="`pwd`/rootfs/${DEB_HOSTNAME}-armfs/"
+ROOTFS_DIR="`pwd`/rootfs/${DEB_HOSTNAME}-armfs"
 
 # Rootfs backup
 ROOTFS_BACKUP="${DEB_HOSTNAME}.rootfs.cleanbackup.tar.gz"
@@ -88,8 +88,8 @@ make -C ./sunxi-tools/ all
 }
 
 cleanupSys() {
-rm ${ROOTFS_DIR}/usr/bin/qemu-arm-static
-rm ${ROOTFS_DIR}/etc/resolv.conf
+rm -f ${ROOTFS_DIR}/usr/bin/qemu-arm-static
+rm -f ${ROOTFS_DIR}/etc/resolv.conf
 }
 
 downloadSys(){
@@ -102,7 +102,9 @@ debootstrap --foreign --arch armhf wheezy ${ROOTFS_DIR}/ http://http.debian.net/
 }
 
 installBaseSys(){
-cp /usr/bin/qemu-arm-static ${ROOTFS_DIR}/usr/bin
+if [! -f ${ROOTFS_DIR}/usr/bin/qemu-arm-static ];then
+    cp -f /usr/bin/qemu-arm-static ${ROOTFS_DIR}/usr/bin
+fi
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} /debootstrap/debootstrap --second-stage
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} dpkg --configure -a
 echo ${DEB_HOSTNAME} > ${ROOTFS_DIR}/etc/hostname
@@ -163,13 +165,17 @@ fi
 }
 
 configModules() {
-cp /usr/bin/qemu-arm-static ${ROOTFS_DIR}/usr/bin
+if [! -f ${ROOTFS_DIR}/usr/bin/qemu-arm-static ];then
+    cp -f /usr/bin/qemu-arm-static ${ROOTFS_DIR}/usr/bin
+fi
 if [ -n "${DEB_EXTRAPACKAGES}" ]; then
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get install ${DEB_EXTRAPACKAGES}
 fi
 
-if [ -n "${DPKG_RECONFIG}" ]; then
-LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} dpkg-reconfigure ${DPKG_RECONFIG}
+if [ ! -z $1 ]; then
+    if [ -n "${DPKG_RECONFIG}" ]; then
+    LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} dpkg-reconfigure ${DPKG_RECONFIG}
+    fi
 fi
 }
 
@@ -178,13 +184,41 @@ configSys(){
 #echo "Please enter a new root password for ${DEB_HOSTNAME}"
 #chroot ${ROOTFS_DIR} passwd 
 #echo ""
+
+# backup inittab
+if [ ! -f ${ROOTFS_DIR}/etc/inittab.bak ];then
+    cp ${ROOTFS_DIR}/etc/inittab ${ROOTFS_DIR}/etc/inittab.bak
+fi
+
+# restore inittab from backup
+cp ${ROOTFS_DIR}/etc/inittab.bak ${ROOTFS_DIR}/etc/inittab
+
+# add initab content
 echo T0:2345:respawn:/sbin/getty -L ttyS0 115200 vt100 >> ${ROOTFS_DIR}/etc/inittab
 
-cat > ${ROOTFS_DIR}/etc/fstab <<END
+# backup fstab
+if [ ! -f ${ROOTFS_DIR}/etc/fstab.bak ];then
+    cp ${ROOTFS_DIR}/etc/fstab ${ROOTFS_DIR}/etc/fstab.bak
+fi
+
+# restore fstab from backup
+cp ${ROOTFS_DIR}/etc/fstab.bak ${ROOTFS_DIR}/etc/fstab
+
+# add fstab content
+cat >> ${ROOTFS_DIR}/etc/fstab <<END
 #<file system>	<mount point>	<type>	<options>	<dump>	<pass>
 /dev/root	/		ext4	defaults	0	1
 END
 
+# backup modules
+if [ ! -f ${ROOTFS_DIR}/etc/modules.bak ];then
+    cp ${ROOTFS_DIR}/etc/modules ${ROOTFS_DIR}/etc/modules.bak
+fi
+
+# restore modules from backup
+cp ${ROOTFS_DIR}/etc/modules.bak ${ROOTFS_DIR}/etc/modules
+
+# add modules content
 cat >> ${ROOTFS_DIR}/etc/modules <<END
 
 #For SATA Support
@@ -199,6 +233,8 @@ mali
 mali_drm
 8188eu
 END
+
+cleanupSys
 }
 
 formatSD() {
@@ -456,7 +492,13 @@ do
             option_picked "Config Network";
                 configNetwork
             option_picked "Config Modules";
-                configModules
+               if promptyn "Reconfigure locale and timezone data?"; then
+                   configModules 1
+               else
+                   configModules
+               fi
+            option_picked "Config System";
+                configSys
             option_picked "Done";
             show_menu
             ;;
