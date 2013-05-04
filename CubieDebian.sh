@@ -15,7 +15,10 @@ RELEASE_NAME="${DEB_HOSTNAME}-server"
 # Not all packages can be install this way.
 # DEB_EXTRAPACKAGES="nvi locales ntp ssh expect"
 # Currently ntp module triggers an error when install
-DEB_EXTRAPACKAGES="nvi vim locales ssh expect sudo wireless-tools"
+DEB_WIRELESS_TOOLS="wireless-tools wpasupplicant"
+DEB_TEXT_EDITORS="nvi vim"
+DEB_TEXT_UTILITIES="locales ssh expect sudo"
+DEB_EXTRAPACKAGES="${DEB_TEXT_EDITORS} ${DEB_TEXT_UTILITIES} ${DEB_WIRELESS_TOOLS}" 
 
 # Not all packages can (or should be) reconfigured this way.
 DPKG_RECONFIG="locales tzdata"
@@ -38,6 +41,9 @@ ROOTFS_BACKUP="${DEB_HOSTNAME}.rootfs.cleanbackup.tar.gz"
 
 # Base system backup
 BASESYS_BACKUP="${DEB_HOSTNAME}.basesys.cleanbackup.tar.gz"
+
+# Base system has package backup
+BASESYS_PKG_BACKUP="${DEB_HOSTNAME}.basesys.pkg.cleanbackup.tar.gz"
 
 # Accounts
 DEFAULT_USERNAME="cubie"
@@ -140,11 +146,15 @@ echo deb http://security.debian.org/ wheezy/updates main contrib non-free >> ${R
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get update
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get upgrade
 
+cleanupEnv
+}
+
+installPackages(){
+prepareEnv
 # install extra modules
 if [ -n "${DEB_EXTRAPACKAGES}" ]; then
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get install ${DEB_EXTRAPACKAGES}
 fi
-
 cleanupEnv
 }
 
@@ -427,8 +437,9 @@ show_menu(){
     echo "${MENU}${NUMBER} 4)${MENU} Build Linux kernel ${NORMAL}"
     echo "${MENU}${NUMBER} 5)${MENU} Download rootfs ${NORMAL}"
     echo "${MENU}${NUMBER} 6)${MENU} Install base system ${NORMAL}"
-    echo "${MENU}${NUMBER} 7)${MENU} Install modules & Config system ${NORMAL}"
-    echo "${MENU}${NUMBER} 8)${MENU} Install to device ${NORMAL}"
+    echo "${MENU}${NUMBER} 7)${MENU} Install packages ${NORMAL}"
+    echo "${MENU}${NUMBER} 8)${MENU} Install Boot & kernel & config system ${NORMAL}"
+    echo "${MENU}${NUMBER} 9)${MENU} Install to device ${NORMAL}"
     echo ""
     echo "${ENTER_LINE}Please enter the option and enter or ${RED_TEXT}enter to exit. ${NORMAL}"
     if [ ! -z "$1" ]
@@ -509,7 +520,7 @@ do
             fi
             if promptyn "Download rootfs, it may take a few minutes, continue?"; then
                 option_picked "Start download rootfs";
-                #downloadSys
+                downloadSys
                 option_picked "Make a backup of the clean rootfs";
                 if [ -f ${ROOTFS_BACKUP} ];then
                     rm ${ROOTFS_BACKUP}
@@ -551,6 +562,35 @@ do
             show_menu
             ;;
         7) clear;
+            option_picked "Install packages";
+            if [ -f ${BASESYS_PKG_BACKUP} ];then
+               if promptyn "Found a backup of base system with packages, restore from it?"; then
+                   if [ -d ${ROOTFS_DIR} ];then
+                       rm -rf ${ROOTFS_DIR}
+                   fi
+                   option_picked "Restore basesystem with packages, please wait";
+                   tar -xzPf ${BASESYS_PKG_BACKUP}
+                   option_picked "Base System with packages Restored";
+                   show_menu
+                   continue
+               fi
+            fi
+            if [ -d ${ROOTFS_DIR} ];then
+                option_picked "${DEB_EXTRAPACKAGES}";
+                installPackages
+                option_picked "Package ${DEB_EXTRAPACKAGES} installed to the system";
+                option_picked "Make a backup of the system";
+                if [ -f ${BASESYS_PKG_BACKUP} ];then
+                    rm ${BASESYS_PKG_BACKUP}
+                fi
+                tar -czPf ${BASESYS_PKG_BACKUP} ${ROOTFS_DIR}
+            else
+                echo "Stop config rootfs, rootfs is not existed at ${ROOTFS_DIR}"
+            fi
+            option_picked "Done";
+            show_menu
+            ;;
+        8) clear;
             option_picked "Install modules"
             option_picked "Install UBoot";
             if [ -f "${ROOTFS_DIR}/boot/boot.scr" ] && [ -f "${ROOTFS_DIR}/boot/script.bin" ];then
@@ -578,7 +618,7 @@ do
             option_picked "Done";
             show_menu
             ;;
-        8) clear;
+        9) clear;
             option_picked "Install to your device ${SD_PATH}"
             option_picked "Device info"
             fdisk -l | grep ${SD_PATH}
