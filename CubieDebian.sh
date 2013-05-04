@@ -48,6 +48,7 @@ BASESYS_PKG_BACKUP="${DEB_HOSTNAME}.basesys.pkg.cleanbackup.tar.gz"
 # Wireless configuration
 WIRELESS_SSID="TP-LINK_3300B6"
 WIRELESS_PSK="m i a n x i e"
+WIRELESS_IF="wlan0"
 
 # Accounts
 DEFAULT_USERNAME="cubie"
@@ -311,18 +312,38 @@ cleanupEnv
 }
 
 installPersonalStuff(){
-# add modules content
+prepareEnv
+
+# prevent double add content
+if [ ! -f ${ROOTFS_DIR}/etc/modules.2.bak ];then
+    cp ${ROOTFS_DIR}/etc/modules ${ROOTFS_DIR}/etc/modules.2.bak
+fi
+cp ${ROOTFS_DIR}/etc/modules.2.bak ${ROOTFS_DIR}/etc/modules
+
+# prevent double add content
+if [ ! -f ${ROOTFS_DIR}/etc/network/interfaces.2.bak ];then
+    cp ${ROOTFS_DIR}/etc/network/interfaces ${ROOTFS_DIR}/etc/network/interfaces.2.bak
+fi
+cp ${ROOTFS_DIR}/etc/network/interfaces.2.bak ${ROOTFS_DIR}/etc/network/interfaces
+
+# auto load 8188eu
 cat >> ${ROOTFS_DIR}/etc/modules <<END
 8188eu
 END
+
+# auto startup wireless
 if [ -n "${WIRELESS_SSID}" ] && [ -n "${WIRELESS_PSK}" ]; then
     WIRLESS_CONF="/etc/${WIRELESS_SSID}.conf"
     LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} wpa_passphrase ${WIRELESS_SSID} "${WIRELESS_PSK}">${ROOTFS_DIR}${WIRLESS_CONF}
     cat >> ${ROOTFS_DIR}/etc/network/interfaces <<END
 up wpa_supplicant -Dwext -iwlan0 -c${WIRLESS_CONF} -B
 down killall wpa_supplicant
+auto ${WIRELESS_IF}
+iface ${WIRELESS_IF} inet dhcp
 END
 fi
+
+cleanupEnv
 }
 
 umountSD() {
