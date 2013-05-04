@@ -45,6 +45,10 @@ BASESYS_BACKUP="${DEB_HOSTNAME}.basesys.cleanbackup.tar.gz"
 # Base system has package backup
 BASESYS_PKG_BACKUP="${DEB_HOSTNAME}.basesys.pkg.cleanbackup.tar.gz"
 
+# Wireless configuration
+WIRELESS_SSID="TP-LINK_3300B6"
+WIRELESS_PSK="m i a n x i e"
+
 # Accounts
 DEFAULT_USERNAME="cubie"
 DEFAULT_PASSWD="cubie"
@@ -274,7 +278,6 @@ ump
 disp
 mali
 mali_drm
-8188eu
 END
 
 # config accounts
@@ -306,6 +309,22 @@ LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} /tmp/adduser.sh
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} rm /tmp/adduser.sh
 cleanupEnv
 }
+
+installPersonalStuff(){
+# add modules content
+cat >> ${ROOTFS_DIR}/etc/modules <<END
+8188eu
+END
+if [ -n "${WIRELESS_SSID}" ] && [ -n "${WIRELESS_PSK}" ]; then
+    WIRLESS_CONF="/etc/${WIRELESS_SSID}.conf"
+    LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} wpa_passphrase ${WIRELESS_SSID} "${WIRELESS_PSK}">${ROOTFS_DIR}${WIRLESS_CONF}
+    cat >> ${ROOTFS_DIR}/etc/network/interfaces <<END
+up wpa_supplicant -Dwext -iwlan0 -c${WIRLESS_CONF} -B
+down killall wpa_supplicant
+END
+fi
+}
+
 umountSD() {
 for n in ${SD_PATH}*;do
     if [ "${SD_PATH}" != "$n" ];then
@@ -439,7 +458,8 @@ show_menu(){
     echo "${MENU}${NUMBER} 6)${MENU} Install base system ${NORMAL}"
     echo "${MENU}${NUMBER} 7)${MENU} Install packages ${NORMAL}"
     echo "${MENU}${NUMBER} 8)${MENU} Install Boot & kernel & config system ${NORMAL}"
-    echo "${MENU}${NUMBER} 9)${MENU} Install to device ${NORMAL}"
+    echo "${MENU}${NUMBER} 9)${MENU} Install personal stuff ${NORMAL}"
+    echo "${MENU}${NUMBER} 10)${MENU} Install to device ${NORMAL}"
     echo ""
     echo "${ENTER_LINE}Please enter the option and enter or ${RED_TEXT}enter to exit. ${NORMAL}"
     if [ ! -z "$1" ]
@@ -619,6 +639,12 @@ do
             show_menu
             ;;
         9) clear;
+            option_picked "Install personal stuff"
+            installPersonalStuff
+            option_picked "Done";
+            show_menu
+            ;;
+        10) clear;
             option_picked "Install to your device ${SD_PATH}"
             option_picked "Device info"
             fdisk -l | grep ${SD_PATH}
