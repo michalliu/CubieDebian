@@ -26,6 +26,9 @@ DPKG_RECONFIG="locales tzdata"
 # Make sure this is valid and is really your SD..
 SD_PATH="/dev/sdb"
 
+# SD Card mount point
+SD_MNT_POINT="`pwd`/mnt"
+
 # MAC will be encoded in script.bin
 #MAC_ADDRESS="0DEADBEEFBAD"
 MAC_ADDRESS="008010EDDF01"
@@ -346,12 +349,32 @@ fi
 cleanupEnv
 }
 
-umountSD() {
+umountSDSafe() {
+sync
 for n in ${SD_PATH}*;do
     if [ "${SD_PATH}" != "$n" ];then
-        umount $n
+        if mount|grep ${n};then
+            echo "umounting ${n}"
+            umount $n
+            sleep 5
+        fi
     fi
 done
+}
+
+mountSD() {
+umountSDSafe
+mkdir ${SD_MNT_POINT}
+sleep 1
+mount ${SD_PATH}1 ${SD_MNT_POINT}
+}
+
+removeSD() {
+if [ -b ${SD_PATH} ];then
+eject ${SD_PATH}
+else
+echo "device ${SD_PATH} doesn't exists"
+fi
 }
 
 formatSD() {
@@ -367,16 +390,12 @@ dd if=./u-boot-sunxi/u-boot.bin of=${SD_PATH} bs=1024 seek=32
 }
 
 installSD() {
-mntpoint="`pwd`/mnt"
-mkdir ${mntpoint}
-mount ${SD_PATH}1 ${mntpoint}
+mountSD
 cd ${ROOTFS_DIR}
-tar -cf - . | tar -C ${mntpoint} -xf -
+tar -cf - . | tar -C ${SD_MNT_POINT} -xf -
 cd ..
-sync
-umountSD
-rm -rf ${mntpoint}
-eject ${SD_PATH}
+umountSDSafe
+removeSD
 }
 
 promptyn () {
@@ -481,6 +500,10 @@ show_menu(){
     echo "${MENU}${NUMBER} 8)${MENU} Install Boot & kernel & config system ${NORMAL}"
     echo "${MENU}${NUMBER} 9)${MENU} Install personal stuff ${NORMAL}"
     echo "${MENU}${NUMBER} 10)${MENU} Install to device ${NORMAL}"
+    echo ""
+    echo "${NORMAL}    Test Commands (Use them only if you know what you are doing)${NORMAL}"
+    echo ""
+    echo "${MENU}${NUMBER} 11)${MENU} recompile cubieboard.fex to script.bin on ${SD_PATH}1 /boot ${NORMAL}"
     echo ""
     echo "${ENTER_LINE}Please enter the option and enter or ${RED_TEXT}enter to exit. ${NORMAL}"
     if [ ! -z "$1" ]
@@ -671,7 +694,7 @@ do
             fdisk -l | grep ${SD_PATH}
             if promptyn "All the data on ${SD_PATH} will be destoried, continue?"; then
                 option_picked "umount ${SD_PATH}"
-                umountSD
+                umountSDSafe
                 option_picked "Done";
                 option_picked "Formating"
                 formatSD
@@ -681,6 +704,35 @@ do
                 option_picked "Done";
                 option_picked "Congratulations,you can safely remove your sd card and enjoy your ${RELEASE_NAME}";
                 option_picked "Now press Enter to quit the program";
+            fi
+            show_menu
+            ;;
+        11) clear;
+            option_picked "recompile cubieboard.fex to script.bin on ${SD_PATH}1 /boot ${NORMAL}"
+            umountSDSafe
+            sleep 1
+            mountSD
+            if promptyn "start recompile?"; then
+                SD_BOOT_DIR="${SD_MNT_POINT}/boot"
+                SD_FEX_FILE="${SD_BOOT_DIR}/cubieboard.fex"
+                SD_SCRIPT_BIN_FILE="${SD_BOOT_DIR}/script.bin"
+
+                if [ -f ${SD_FEX_FILE} ];then
+                    option_picked "hash `md5sum ${SD_SCRIPT_BIN_FILE}`"
+                else
+                    option_picked "[W] script.bin not founded"
+                fi
+
+                # recompile cubieboard.fex to script.bin
+                ./sunxi-tools/fex2bin ${SD_FEX_FILE} ${SD_SCRIPT_BIN_FILE}
+                option_picked "hash `md5sum ${SD_SCRIPT_BIN_FILE}`"
+                option_picked "Done"
+            fi
+            if promptyn "remove ${SD_PATH}?"; then
+                umountSDSafe
+                sleep 1
+                removeSD
+                option_picked "Your disk removed"
             fi
             show_menu
             ;;
