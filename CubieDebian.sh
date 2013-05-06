@@ -364,8 +364,9 @@ done
 
 mountSD() {
 umountSDSafe
-mkdir ${SD_MNT_POINT}
-sleep 1
+if [ ! -d ${SD_MNT_POINT} ];then
+    mkdir ${SD_MNT_POINT}
+fi
 mount ${SD_PATH}1 ${SD_MNT_POINT}
 }
 
