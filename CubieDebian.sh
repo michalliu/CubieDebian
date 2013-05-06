@@ -356,7 +356,7 @@ for n in ${SD_PATH}*;do
         if mount|grep ${n};then
             echo "umounting ${n}"
             umount $n
-            sleep 5
+            sleep 1
         fi
     fi
 done
