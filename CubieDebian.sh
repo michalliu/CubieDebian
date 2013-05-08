@@ -90,13 +90,13 @@ if [ ! -d "`pwd`/u-boot-sunxi" ];then
 git clone https://github.com/linux-sunxi/u-boot-sunxi.git
 fi
 if [ ! -d "`pwd`/linux-sunxi" ];then
-git clone https://github.com/linux-sunxi/linux-sunxi.git -b sunxi-3.4
+git clone https://github.com/mmplayer/linux-sunxi.git -b sunxi-3.4
 fi
 if [ ! -d "`pwd`/sunxi-tools" ];then
 git clone https://github.com/linux-sunxi/sunxi-tools.git
 fi
 if [ ! -d "`pwd`/sunxi-boards" ];then
-git clone https://github.com/linux-sunxi/sunxi-boards.git
+git clone https://github.com/mmplayer/sunxi-boards.git 
 fi
 }
 
@@ -174,9 +174,9 @@ ext2load mmc 0 0x48000000 boot/uImage
 bootm 0x48000000
 END
 mkimage -C none -A arm -T script -d ${ROOTFS_DIR}/boot/boot.cmd ${ROOTFS_DIR}/boot/boot.scr
-
-cp ./sunxi-boards/sys_config/a10/cubieboard.fex ${ROOTFS_DIR}/boot/
-cat >> ${ROOTFS_DIR}/boot/cubieboard.fex <<END
+FEX_NAME=cubieboard_${DEB_HOSTNAME}.fex
+cp ./sunxi-boards/sys_config/a10/${FEX_NAME} ${ROOTFS_DIR}/boot/
+cat >> ${ROOTFS_DIR}/boot/${FEX_NAME} <<END
 
 [dynamic]
 MAC = "${MAC_ADDRESS}"
