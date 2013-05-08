@@ -7,3 +7,6 @@
 [submodule "linux-sunxi"]
 	path = linux-sunxi
 	url = git@github.com:mmplayer/linux-sunxi.git
+[submodule "sunxi-boards"]
+	path = sunxi-boards
+	url = git@github.com:mmplayer/sunxi-boards.git
