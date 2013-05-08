@@ -174,18 +174,19 @@ ext2load mmc 0 0x48000000 boot/uImage
 bootm 0x48000000
 END
 mkimage -C none -A arm -T script -d ${ROOTFS_DIR}/boot/boot.cmd ${ROOTFS_DIR}/boot/boot.scr
-FEX_NAME=cubieboard_${DEB_HOSTNAME}.fex
-cp ./sunxi-boards/sys_config/a10/${FEX_NAME} ${ROOTFS_DIR}/boot/
-cat >> ${ROOTFS_DIR}/boot/${FEX_NAME} <<END
+
+FEX_FILE=cubieboard_${DEB_HOSTNAME}.fex
+cp ./sunxi-boards/sys_config/a10/${FEX_FILE} ${ROOTFS_DIR}/boot/
+cat >> ${ROOTFS_DIR}/boot/${FEX_FILE} <<END
 
 [dynamic]
 MAC = "${MAC_ADDRESS}"
 END
 
 # overlock memory
-sed -i 's/^dram_clk = 480$/dram_clk = 500/' ${ROOTFS_DIR}/boot/cubieboard.fex
+#sed -i 's/^dram_clk = 480$/dram_clk = 500/' ${ROOTFS_DIR}/boot/cubieboard.fex
 
-./sunxi-tools/fex2bin ${ROOTFS_DIR}/boot/cubieboard.fex ${ROOTFS_DIR}/boot/script.bin
+./sunxi-tools/fex2bin ${ROOTFS_DIR}/boot/${FEX_FILE} ${ROOTFS_DIR}/boot/script.bin
 }
 
 installKernel() {
