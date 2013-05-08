@@ -18,7 +18,8 @@ RELEASE_NAME="${DEB_HOSTNAME}-server"
 DEB_WIRELESS_TOOLS="wireless-tools wpasupplicant"
 DEB_TEXT_EDITORS="nvi vim"
 DEB_TEXT_UTILITIES="locales ssh expect sudo"
-DEB_EXTRAPACKAGES="${DEB_TEXT_EDITORS} ${DEB_TEXT_UTILITIES} ${DEB_WIRELESS_TOOLS}" 
+DEB_ADMIN_UTILITIES="inotify-tools ifplugd"
+DEB_EXTRAPACKAGES="${DEB_TEXT_EDITORS} ${DEB_TEXT_UTILITIES} ${DEB_WIRELESS_TOOLS} ${DEB_ADMIN_UTILITIES}" 
 
 # Not all packages can (or should be) reconfigured this way.
 DPKG_RECONFIG="locales tzdata"
@@ -315,6 +316,22 @@ END
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} chmod +x /tmp/adduser.sh
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} /tmp/adduser.sh
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} rm /tmp/adduser.sh
+
+# green led
+cp ./scripts/etc/init.d/bootlightctrl ${ROOTFS_DIR}/etc/init.d/
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} update-rc.d bootlightctrl defaults
+
+# blue led
+cp ./scripts/etc/init.d/networklightctrl ${ROOTFS_DIR}/etc/init.d/
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} update-rc.d networklightctrl start 20 2 3 4 5 . stop .
+
+# ifplugd
+cp ${ROOTFS_DIR}/etc/default/ifplugd ${ROOTFS_DIR}/etc/default/ifplugd.2
+cp ./scripts/etc/default/ifplugd ${ROOTFS_DIR}/etc/default/
+
+cp ${ROOTFS_DIR}/etc/ifplugd/ifplugd.action ${ROOTFS_DIR}/etc/ifplugd/ifplugd.action.2
+cp ./scripts/etc/ifplugd/ifplugd.action ${ROOTFS_DIR}/etc/ifplugd/ifplugd.action
+
 cleanupEnv
 }
 

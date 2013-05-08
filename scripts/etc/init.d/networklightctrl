@@ -1,0 +1,49 @@
+#! /bin/sh
+
+### BEGIN INIT INFO
+# Provides:          networklightctrl
+# Required-Start:
+# Required-Stop:
+# Should-Start: $all
+# Default-Start: 2 3 4 5 
+# Default-Stop:
+# Short-Description: Let blue led on cubieboard indicate network status
+# Description: Blink the blue led when network is down.
+#	Turn off the blue led when network is available.
+### END INIT INFO
+
+N=/etc/init.d/bootlightctrl
+
+set -e
+
+refreshctrllight() {
+    for interface in $(ls /sys/class/net/ | grep -v 'lo\|tunl[0-9]*');do
+        hasNetWork=`cat /sys/class/net/$interface/carrier`
+        if [ "$hasNetWork" = 1 ];then
+            break
+        fi
+    done
+    if [ "$hasNetWork" = 1 ];then
+        echo 0 > /sys/class/leds/blue\:ph21\:led2/brightness
+        #echo "online"
+    else
+        echo timer > /sys/class/leds/blue\:ph21\:led2/trigger
+        #echo "offline"
+    fi
+}
+
+case "$1" in
+  start)
+	# start blink blue led network not connected
+        # or turn off led when network is connected
+        refreshctrllight
+        ;;
+  stop|reload|restart|force-reload|status)
+        ;;
+  *)
+	echo "Usage: $N {start|stop|restart|force-reload|status}" >&2
+	exit 1
+	;;
+esac
+
+exit 0
