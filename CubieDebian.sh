@@ -48,6 +48,9 @@ BASESYS_BACKUP="${DEB_HOSTNAME}.basesys.cleanbackup.tar.gz"
 # Base system has package backup
 BASESYS_PKG_BACKUP="${DEB_HOSTNAME}.basesys.pkg.cleanbackup.tar.gz"
 
+# Base system with basic standard config without personal stuff
+BASESYS_CONFIG_BACKUP="${DEB_HOSTNAME}.basesys.config.cleanbackup.tar.gz"
+
 # Wireless configuration
 WIRELESS_SSID="TP-LINK_3300B6"
 WIRELESS_PSK="m i a n x i e"
@@ -499,7 +502,7 @@ show_menu(){
     echo "${MENU}${NUMBER} 5)${MENU} Download rootfs ${NORMAL}"
     echo "${MENU}${NUMBER} 6)${MENU} Install base system ${NORMAL}"
     echo "${MENU}${NUMBER} 7)${MENU} Install packages ${NORMAL}"
-    echo "${MENU}${NUMBER} 8)${MENU} Install Boot & kernel & config system ${NORMAL}"
+    echo "${MENU}${NUMBER} 8)${MENU} Install UBoot & kernel & standard config system ${NORMAL}"
     echo "${MENU}${NUMBER} 9)${MENU} Install personal stuff ${NORMAL}"
     echo "${MENU}${NUMBER} 10)${MENU} Install to device ${NORMAL}"
     echo ""
@@ -622,7 +625,7 @@ do
                 fi
                 tar -czPf ${BASESYS_BACKUP} ${ROOTFS_DIR}
             else
-                echo "Stop config rootfs, rootfs is not existed at ${ROOTFS_DIR}"
+                echo "[E] rootfs is not existed at ${ROOTFS_DIR}"
             fi
             option_picked "Done";
             show_menu
@@ -651,36 +654,58 @@ do
                 fi
                 tar -czPf ${BASESYS_PKG_BACKUP} ${ROOTFS_DIR}
             else
-                echo "Stop config rootfs, rootfs is not existed at ${ROOTFS_DIR}"
+                echo "[E] rootfs is not existed at ${ROOTFS_DIR}"
             fi
             option_picked "Done";
             show_menu
             ;;
         8) clear;
-            option_picked "Install modules"
-            option_picked "Install UBoot";
-            if [ -f "${ROOTFS_DIR}/boot/boot.scr" ] && [ -f "${ROOTFS_DIR}/boot/script.bin" ];then
-                if promptyn "UBoot has been installed, reinstall?"; then
+            if [ -f ${BASESYS_CONFIG_BACKUP} ];then
+               if promptyn "Found a backup of standard configed system, restore from it?"; then
+                   if [ -d ${ROOTFS_DIR} ];then
+                       rm -rf ${ROOTFS_DIR}
+                   fi
+                   option_picked "Restore basesystem with standard configed, please wait";
+                   tar -xzPf ${BASESYS_CONFIG_BACKUP}
+                   option_picked "Base System with standard configed Restored";
+                   show_menu
+                   continue
+               fi
+            fi
+            if [ -d ${ROOTFS_DIR} ];then
+                option_picked "Install UBoot";
+                if [ -f "${ROOTFS_DIR}/boot/boot.scr" ] && [ -f "${ROOTFS_DIR}/boot/script.bin" ];then
+                    if promptyn "UBoot has been installed, reinstall?"; then
+                        installUBoot
+                    fi
+                else
                     installUBoot
                 fi
-            else
-                installUBoot
-            fi
-            option_picked "Done";
-            option_picked "Install linux kernel";
-            if [ -f "${ROOTFS_DIR}/boot/uImage" ];then
-                if promptyn "Kernel has been installed, reinstall?"; then
+                option_picked "UBoot installed";
+                option_picked "Install linux kernel";
+                if [ -f "${ROOTFS_DIR}/boot/uImage" ];then
+                    if promptyn "Kernel has been installed, reinstall?"; then
+                        installKernel
+                    fi
+                else
                     installKernel
                 fi
+                option_picked "Kernel installed";
+                option_picked "Config Network";
+                    configNetwork
+                option_picked "Net work configed";
+                option_picked "Config System";
+                    configSys
+                option_picked "System configed";
+                option_picked "Make a backup of the system";
+                if [ -f ${BASESYS_CONFIG_BACKUP} ];then
+                    rm ${BASESYS_CONFIG_BACKUP}
+                fi
+                tar -czPf ${BASESYS_CONFIG_BACKUP} ${ROOTFS_DIR}
             else
-                installKernel
+                echo "[E] rootfs is not existed at ${ROOTFS_DIR}"
             fi
-            option_picked "Done";
-            option_picked "Config Network";
-                configNetwork
-            option_picked "Done";
-            option_picked "Config System";
-                configSys
+
             option_picked "Done";
             show_menu
             ;;
