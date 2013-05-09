@@ -33,7 +33,7 @@ refreshctrllight() {
 }
 
 case "$1" in
-  start)
+  start|netstatchange)
 	# start blink blue led network not connected
         # or turn off led when network is connected
         refreshctrllight

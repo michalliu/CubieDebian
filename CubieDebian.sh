@@ -52,11 +52,6 @@ BASESYS_PKG_BACKUP="${DEB_HOSTNAME}.basesys.pkg.cleanbackup.tar.gz"
 # Base system with basic standard config without personal stuff
 BASESYS_CONFIG_BACKUP="${DEB_HOSTNAME}.basesys.config.cleanbackup.tar.gz"
 
-# Wireless configuration
-DEFAULT_WIRELESS_SSID="TP-LINK_3300B6"
-DEFAULT_WIRELESS_PSK="m i a n x i e"
-DEFAULT_WIRELESS_IF="wlan0"
-
 # Accounts
 DEFAULT_USERNAME="cubie"
 DEFAULT_PASSWD="cubie"
@@ -75,7 +70,7 @@ DEFAULT_PASSWD="cubie"
 ########################
 
 setupTools() {
-apt-get install build-essential u-boot-tools qemu-user-static debootstrap git binfmt-support libusb-1.0-0-dev pkg-config libncurses5-dev debian-archive-keyring expect
+apt-get install build-essential u-boot-tools qemu-user-static debootstrap git binfmt-support libusb-1.0-0-dev pkg-config libncurses5-dev debian-archive-keyring expect wpasupplicant
 
 cat > /etc/apt/sources.list.d/emdebian.list <<END
 deb http://www.emdebian.org/debian/ wheezy main
@@ -341,35 +336,15 @@ cleanupEnv
 
 installPersonalStuff(){
 prepareEnv
-
-# prevent double add content
-if [ ! -f ${ROOTFS_DIR}/etc/modules.2.bak ];then
-    cp ${ROOTFS_DIR}/etc/modules ${ROOTFS_DIR}/etc/modules.2.bak
-fi
-cp ${ROOTFS_DIR}/etc/modules.2.bak ${ROOTFS_DIR}/etc/modules
-
-# prevent double add content
-if [ ! -f ${ROOTFS_DIR}/etc/network/interfaces.2.bak ];then
-    cp ${ROOTFS_DIR}/etc/network/interfaces ${ROOTFS_DIR}/etc/network/interfaces.2.bak
-fi
-cp ${ROOTFS_DIR}/etc/network/interfaces.2.bak ${ROOTFS_DIR}/etc/network/interfaces
-
-# auto load 8188eu
+NETWORK_CFG=`./network_cfg.sh`
 cat >> ${ROOTFS_DIR}/etc/modules <<END
 8188eu
 END
 
-# auto startup wireless
-if [ -n "${DEFAULT_WIRELESS_SSID}" ] && [ -n "${DEFAULT_WIRELESS_PSK}" ]; then
-    WIRLESS_CONF="/etc/${DEFAULT_WIRELESS_SSID}.conf"
-    LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} wpa_passphrase ${DEFAULT_WIRELESS_SSID} "${DEFAULT_WIRELESS_PSK}">${ROOTFS_DIR}${WIRLESS_CONF}
-    cat >> ${ROOTFS_DIR}/etc/network/interfaces <<END
-up wpa_supplicant -Dwext -iwlan0 -c${WIRLESS_CONF} -B
-down killall wpa_supplicant
-auto ${DEFAULT_WIRELESS_IF}
-iface ${DEFAULT_WIRELESS_IF} inet dhcp
+cat >> ${ROOTFS_DIR}/etc/network/interfaces <<END
+
+${NETWORK_CFG}
 END
-fi
 
 cleanupEnv
 }

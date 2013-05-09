@@ -22,11 +22,11 @@ set -e
 case "$2" in
 up)
 	#run-parts --arg="$1" --arg="$2" /etc/ifplugd/action.d/
-        /etc/init.d/networklightctrl start
+        /etc/init.d/networklightctrl netstatchange
 	;;
 down)
 	#run-parts --reverse --arg="$1" --arg="$2" /etc/ifplugd/action.d/
-        /etc/init.d/networklightctrl start
+        /etc/init.d/networklightctrl netstatchange
 	;;
 *)
 	echo "ifplugd.action: Incorrect action argument" >&2
