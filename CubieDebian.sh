@@ -53,9 +53,9 @@ BASESYS_PKG_BACKUP="${DEB_HOSTNAME}.basesys.pkg.cleanbackup.tar.gz"
 BASESYS_CONFIG_BACKUP="${DEB_HOSTNAME}.basesys.config.cleanbackup.tar.gz"
 
 # Wireless configuration
-WIRELESS_SSID="TP-LINK_3300B6"
-WIRELESS_PSK="m i a n x i e"
-WIRELESS_IF="wlan0"
+DEFAULT_WIRELESS_SSID="TP-LINK_3300B6"
+DEFAULT_WIRELESS_PSK="m i a n x i e"
+DEFAULT_WIRELESS_IF="wlan0"
 
 # Accounts
 DEFAULT_USERNAME="cubie"
@@ -219,6 +219,33 @@ END
 fi
 }
 
+backupFile() {
+bakfile="$1.bak"
+if [ ! -f $bakfile ];then
+    cp $1 $bakfile
+#else
+#    echo "[W] can't create backup file, $bakfile already exists"
+fi
+}
+
+restoreFile() {
+bakfile="$1.bak"
+if [ -f $bakfile ];then
+    cp $bakfile $1
+else
+    echo "[W] can't restore, backup file $bakfile not exists"
+fi
+}
+
+backupFile() {
+bakfile="$1.bak"
+if [ ! -f $bakfile ];then
+    cp $1 $bakfile
+else
+    echo "backup file $1 exists"
+fi
+}
+
 configSys(){
 prepareEnv
 
@@ -228,53 +255,30 @@ if promptyn "Configure locale and timezone data?"; then
     LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} dpkg-reconfigure ${DPKG_RECONFIG}
     fi
 fi
-# backup inittab
-if [ ! -f ${ROOTFS_DIR}/etc/inittab.bak ];then
-    cp ${ROOTFS_DIR}/etc/inittab ${ROOTFS_DIR}/etc/inittab.bak
-fi
 
-# restore inittab from backup
-cp ${ROOTFS_DIR}/etc/inittab.bak ${ROOTFS_DIR}/etc/inittab
+# the backfile file only create one time
+backupFile ${ROOTFS_DIR}/etc/inittab
+backupFile ${ROOTFS_DIR}/etc/fstab
+backupFile ${ROOTFS_DIR}/etc/modules
+backupFile ${ROOTFS_DIR}/etc/hosts
 
-# add initab content
+# restore from initial file
+restoreFile ${ROOTFS_DIR}/etc/inittab
+restoreFile ${ROOTFS_DIR}/etc/fstab
+restoreFile ${ROOTFS_DIR}/etc/modules
+restoreFile ${ROOTFS_DIR}/etc/hosts
+
 echo T0:2345:respawn:/sbin/getty -L ttyS0 115200 vt100 >> ${ROOTFS_DIR}/etc/inittab
 
-# backup fstab
-if [ ! -f ${ROOTFS_DIR}/etc/fstab.bak ];then
-    cp ${ROOTFS_DIR}/etc/fstab ${ROOTFS_DIR}/etc/fstab.bak
-fi
-
-# restore fstab from backup
-cp ${ROOTFS_DIR}/etc/fstab.bak ${ROOTFS_DIR}/etc/fstab
-
-# add fstab content
 cat >> ${ROOTFS_DIR}/etc/fstab <<END
 #<file system>	<mount point>	<type>	<options>	<dump>	<pass>
 /dev/root	/		ext4	defaults	0	1
 END
 
-# backup modules
-if [ ! -f ${ROOTFS_DIR}/etc/modules.bak ];then
-    cp ${ROOTFS_DIR}/etc/modules ${ROOTFS_DIR}/etc/modules.bak
-fi
-
-# restore modules from backup
-cp ${ROOTFS_DIR}/etc/modules.bak ${ROOTFS_DIR}/etc/modules
-
-# backup hosts
-if [ ! -f ${ROOTFS_DIR}/etc/hosts.bak ];then
-    cp ${ROOTFS_DIR}/etc/hosts ${ROOTFS_DIR}/etc/hosts.bak
-fi
-
-# restore hosts from backup
-cp ${ROOTFS_DIR}/etc/hosts.bak ${ROOTFS_DIR}/etc/hosts
-
-# add hosts content
 cat >> ${ROOTFS_DIR}/etc/hosts <<END
 127.0.0.1 ${DEB_HOSTNAME}
 END
 
-# add modules content
 cat >> ${ROOTFS_DIR}/etc/modules <<END
 
 #For SATA Support
@@ -289,7 +293,7 @@ mali
 mali_drm
 END
 
-# config accounts
+# config user accounts
 cat > ${ROOTFS_DIR}/tmp/adduser.sh <<END
 #!/bin/bash
 # add default user
@@ -317,7 +321,7 @@ LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} chmod +x /tmp/adduser.sh
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} /tmp/adduser.sh
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} rm /tmp/adduser.sh
 
-# green led
+# green led ctrl
 cp ./scripts/etc/init.d/bootlightctrl ${ROOTFS_DIR}/etc/init.d/
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} update-rc.d bootlightctrl defaults
 
@@ -326,10 +330,10 @@ cp ./scripts/etc/init.d/networklightctrl ${ROOTFS_DIR}/etc/init.d/
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} update-rc.d networklightctrl start 20 2 3 4 5 . stop .
 
 # ifplugd
-cp ${ROOTFS_DIR}/etc/default/ifplugd ${ROOTFS_DIR}/etc/default/ifplugd.2
-cp ./scripts/etc/default/ifplugd ${ROOTFS_DIR}/etc/default/
+backupFile ${ROOTFS_DIR}/etc/default/ifplugd
+backupFile ${ROOTFS_DIR}/etc/ifplugd/ifplugd.action
 
-cp ${ROOTFS_DIR}/etc/ifplugd/ifplugd.action ${ROOTFS_DIR}/etc/ifplugd/ifplugd.action.2
+cp ./scripts/etc/default/ifplugd ${ROOTFS_DIR}/etc/default/
 cp ./scripts/etc/ifplugd/ifplugd.action ${ROOTFS_DIR}/etc/ifplugd/ifplugd.action
 
 cleanupEnv
@@ -356,14 +360,14 @@ cat >> ${ROOTFS_DIR}/etc/modules <<END
 END
 
 # auto startup wireless
-if [ -n "${WIRELESS_SSID}" ] && [ -n "${WIRELESS_PSK}" ]; then
-    WIRLESS_CONF="/etc/${WIRELESS_SSID}.conf"
-    LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} wpa_passphrase ${WIRELESS_SSID} "${WIRELESS_PSK}">${ROOTFS_DIR}${WIRLESS_CONF}
+if [ -n "${DEFAULT_WIRELESS_SSID}" ] && [ -n "${DEFAULT_WIRELESS_PSK}" ]; then
+    WIRLESS_CONF="/etc/${DEFAULT_WIRELESS_SSID}.conf"
+    LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} wpa_passphrase ${DEFAULT_WIRELESS_SSID} "${DEFAULT_WIRELESS_PSK}">${ROOTFS_DIR}${WIRLESS_CONF}
     cat >> ${ROOTFS_DIR}/etc/network/interfaces <<END
 up wpa_supplicant -Dwext -iwlan0 -c${WIRLESS_CONF} -B
 down killall wpa_supplicant
-auto ${WIRELESS_IF}
-iface ${WIRELESS_IF} inet dhcp
+auto ${DEFAULT_WIRELESS_IF}
+iface ${DEFAULT_WIRELESS_IF} inet dhcp
 END
 fi
 
