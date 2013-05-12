@@ -251,6 +251,24 @@ if promptyn "Configure locale and timezone data?"; then
     fi
 fi
 
+cleanupEnv
+}
+
+installPersonalStuff(){
+NETWORK_CFG=`./network_cfg.sh`
+cat >> ${ROOTFS_DIR}/etc/modules <<END
+8188eu
+END
+
+cat >> ${ROOTFS_DIR}/etc/network/interfaces <<END
+
+${NETWORK_CFG}
+END
+}
+
+finalConfig(){
+prepareEnv
+
 # the backfile file only create one time
 backupFile ${ROOTFS_DIR}/etc/inittab
 backupFile ${ROOTFS_DIR}/etc/fstab
@@ -338,21 +356,9 @@ LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} update-rc.d bootlightctrl defaul
 # blue led
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} update-rc.d networklightctrl start 20 2 3 4 5 . stop .
 
-cleanupEnv
-}
-
-installPersonalStuff(){
-prepareEnv
-NETWORK_CFG=`./network_cfg.sh`
-cat >> ${ROOTFS_DIR}/etc/modules <<END
-8188eu
-END
-
-cat >> ${ROOTFS_DIR}/etc/network/interfaces <<END
-
-${NETWORK_CFG}
-END
-
+if promptyn "Install Personal Stuff?"; then
+    installPersonalStuff
+fi
 cleanupEnv
 }
 
@@ -507,8 +513,8 @@ show_menu(){
     echo "${MENU}${NUMBER} 5)${MENU} Download rootfs ${NORMAL}"
     echo "${MENU}${NUMBER} 6)${MENU} Install base system ${NORMAL}"
     echo "${MENU}${NUMBER} 7)${MENU} Install packages ${NORMAL}"
-    echo "${MENU}${NUMBER} 8)${MENU} Install UBoot & kernel & standard config system ${NORMAL}"
-    echo "${MENU}${NUMBER} 9)${MENU} Install personal stuff ${NORMAL}"
+    echo "${MENU}${NUMBER} 8)${MENU} Install UBoot & kernel & config System ${NORMAL}"
+    echo "${MENU}${NUMBER} 9)${MENU} Install Utilities & Personal stuff ${NORMAL}"
     echo "${MENU}${NUMBER} 10)${MENU} Install to device ${NORMAL}"
     echo ""
     echo "${NORMAL}    Test Commands (Use them only if you know what you are doing)${NORMAL}"
@@ -715,8 +721,8 @@ do
             show_menu
             ;;
         9) clear;
-            option_picked "Install personal stuff"
-            installPersonalStuff
+            option_picked "Install Utilites and personal stuff"
+            finalConfig
             option_picked "Done";
             show_menu
             ;;
