@@ -256,18 +256,21 @@ backupFile ${ROOTFS_DIR}/etc/inittab
 backupFile ${ROOTFS_DIR}/etc/fstab
 backupFile ${ROOTFS_DIR}/etc/modules
 backupFile ${ROOTFS_DIR}/etc/hosts
+backupFile ${ROOTFS_DIR}/etc/ssh/sshd_config
 
 # restore from initial file
 restoreFile ${ROOTFS_DIR}/etc/inittab
 restoreFile ${ROOTFS_DIR}/etc/fstab
 restoreFile ${ROOTFS_DIR}/etc/modules
 restoreFile ${ROOTFS_DIR}/etc/hosts
+restoreFile ${ROOTFS_DIR}/etc/ssh/sshd_config
 
 echo T0:2345:respawn:/sbin/getty -L ttyS0 115200 vt100 >> ${ROOTFS_DIR}/etc/inittab
 
 cat >> ${ROOTFS_DIR}/etc/fstab <<END
 #<file system>	<mount point>	<type>	<options>	<dump>	<pass>
 /dev/root	/		ext4	defaults	0	1
+/dev/mmcblk0p2	swap		swap	defaults	0	0
 END
 
 cat >> ${ROOTFS_DIR}/etc/hosts <<END
@@ -288,8 +291,18 @@ mali
 mali_drm
 END
 
+# prohibit root user ssh
+sed -i 's/^PermitRootLogin yes$/PermitRootLogin no/' ${ROOTFS_DIR}/etc/ssh/sshd_config
+# change default ssh port
+sed -i 's/^Port 22$/Port 36000/' ${ROOTFS_DIR}/etc/ssh/sshd_config
+# allow 5 unauthenticated clients maximium
+cat >> ${ROOTFS_DIR}/etc/ssh/sshd_config <<END
+
+MaxStartups 5
+END
+
 # config user accounts
-cat > ${ROOTFS_DIR}/tmp/adduser.sh <<END
+cat > ${ROOTFS_DIR}/tmp/initsys.sh <<END
 #!/bin/bash
 # add default user
 if [ -z "\$(getent passwd ${DEFAULT_USERNAME})" ];then
@@ -302,9 +315,6 @@ echo "${DEFAULT_USERNAME}:${DEFAULT_PASSWD}"|chpasswd
 # disable root user
 passwd -l root
 
-# prohibit root user ssh
-sed -i 's/^PermitRootLogin yes$/PermitRootLogin no/' /etc/ssh/sshd_config
-
 # allow the default user has su privileges
 cat > /etc/sudoers.d/sudousers <<DNE
 ${DEFAULT_USERNAME} ALL=(ALL) NOPASSWD:ALL # Admins can do anthing w/o a password
@@ -312,24 +322,21 @@ ${DEFAULT_USERNAME} ALL=(ALL) NOPASSWD:ALL # Admins can do anthing w/o a passwor
 DNE
 chmod 0440 /etc/sudoers.d/sudousers
 END
-LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} chmod +x /tmp/adduser.sh
-LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} /tmp/adduser.sh
-LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} rm /tmp/adduser.sh
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} chmod +x /tmp/initsys.sh
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} /tmp/initsys.sh
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} rm /tmp/initsys.sh
 
-# green led ctrl
-cp ./scripts/etc/init.d/bootlightctrl ${ROOTFS_DIR}/etc/init.d/
-LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} update-rc.d bootlightctrl defaults
-
-# blue led
-cp ./scripts/etc/init.d/networklightctrl ${ROOTFS_DIR}/etc/init.d/
-LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} update-rc.d networklightctrl start 20 2 3 4 5 . stop .
-
-# ifplugd
+# backup some scripts
 backupFile ${ROOTFS_DIR}/etc/default/ifplugd
 backupFile ${ROOTFS_DIR}/etc/ifplugd/ifplugd.action
 
-cp ./scripts/etc/default/ifplugd ${ROOTFS_DIR}/etc/default/
-cp ./scripts/etc/ifplugd/ifplugd.action ${ROOTFS_DIR}/etc/ifplugd/ifplugd.action
+# copy scripts
+cp -r ./scripts/* ${ROOTFS_DIR}
+
+# green led ctrl
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} update-rc.d bootlightctrl defaults
+# blue led
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} update-rc.d networklightctrl start 20 2 3 4 5 . stop .
 
 cleanupEnv
 }
@@ -381,8 +388,10 @@ fi
 formatSD() {
 dd if=/dev/zero of=${SD_PATH} bs=1M count=2
 parted ${SD_PATH} --script mklabel msdos
-parted ${SD_PATH} --script -- mkpart primary 1 -1
+parted ${SD_PATH} --script -- mkpart primary 1 1024
+parted ${SD_PATH} --script -- mkpartfs primary linux-swap 1024 2048
 mkfs.ext4 ${SD_PATH}1
+mkswap ${SD_PATH}2
 sync
 partprobe
 
