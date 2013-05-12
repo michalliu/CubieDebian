@@ -25,7 +25,7 @@ refreshctrllight() {
     done
     if [ "$hasNetWork" = 1 ];then
         echo 0 > /sys/class/leds/blue\:ph21\:led2/brightness
-        sleep 20
+        sleep 30
         #indicates the morse code start to begin
         echo 1 > /sys/class/leds/green\:ph20\:led1/brightness
         sleep 3
