@@ -18,7 +18,7 @@ RELEASE_NAME="${DEB_HOSTNAME}-server"
 DEB_WIRELESS_TOOLS="wireless-tools wpasupplicant"
 DEB_TEXT_EDITORS="nvi vim"
 DEB_TEXT_UTILITIES="locales ssh expect sudo"
-DEB_ADMIN_UTILITIES="inotify-tools ifplugd"
+DEB_ADMIN_UTILITIES="inotify-tools ifplugd ntpdate"
 DEB_EXTRAPACKAGES="${DEB_TEXT_EDITORS} ${DEB_TEXT_UTILITIES} ${DEB_WIRELESS_TOOLS} ${DEB_ADMIN_UTILITIES}" 
 
 # Not all packages can (or should be) reconfigured this way.
@@ -206,15 +206,6 @@ END
 fi
 }
 
-backupFile() {
-bakfile="$1.bak"
-if [ ! -f $bakfile ];then
-    cp $1 $bakfile
-#else
-#    echo "[W] can't create backup file, $bakfile already exists"
-fi
-}
-
 restoreFile() {
 bakfile="$1.bak"
 if [ -f $bakfile ];then
@@ -228,8 +219,6 @@ backupFile() {
 bakfile="$1.bak"
 if [ ! -f $bakfile ];then
     cp $1 $bakfile
-else
-    echo "backup file $1 exists"
 fi
 }
 
@@ -278,7 +267,7 @@ echo T0:2345:respawn:/sbin/getty -L ttyS0 115200 vt100 >> ${ROOTFS_DIR}/etc/init
 
 cat >> ${ROOTFS_DIR}/etc/fstab <<END
 #<file system>	<mount point>	<type>	<options>	<dump>	<pass>
-/dev/root	/		ext4	defaults	0	1
+/dev/mmcblk0p1	/		ext4	defaults	0	1
 /dev/mmcblk0p2	swap		swap	defaults	0	0
 END
 
@@ -337,6 +326,7 @@ LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} rm /tmp/initsys.sh
 
 # backup some scripts
 backupFile ${ROOTFS_DIR}/etc/default/ifplugd
+backupFile ${ROOTFS_DIR}/etc/default/ntpdate
 backupFile ${ROOTFS_DIR}/etc/ifplugd/ifplugd.action
 
 # copy scripts
@@ -346,6 +336,8 @@ cp -r ./scripts/* ${ROOTFS_DIR}
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} update-rc.d bootlightctrl defaults
 # blue led
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} update-rc.d networklightctrl start 20 2 3 4 5 . stop .
+# network time
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} update-rc.d ntpdate defaults
 
 if promptyn "Install Personal Stuff?"; then
     installPersonalStuff
