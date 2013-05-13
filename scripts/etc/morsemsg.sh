@@ -36,6 +36,7 @@ for CODE in "${CODES[@]}";do
             exit 2
         fi
     done
+    sleep 2
     #echo "end of one letter"
 done
 
