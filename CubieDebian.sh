@@ -115,11 +115,6 @@ make -C ./sunxi-tools/ clean
 make -C ./sunxi-tools/ all
 }
 
-cleanupEnv() {
-rm -f ${ROOTFS_DIR}/usr/bin/qemu-arm-static
-rm -f ${ROOTFS_DIR}/etc/resolv.conf
-}
-
 prepareEnv() {
 # install qemu
 if [ ! -f ${ROOTFS_DIR}/usr/bin/qemu-arm-static ];then
@@ -152,8 +147,6 @@ END
 echo deb http://security.debian.org/ wheezy/updates main contrib non-free >> ${ROOTFS_DIR}/etc/apt/sources.list
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get update
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get upgrade
-
-cleanupEnv
 }
 
 installPackages(){
@@ -162,7 +155,6 @@ prepareEnv
 if [ -n "${DEB_EXTRAPACKAGES}" ]; then
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get install ${DEB_EXTRAPACKAGES}
 fi
-cleanupEnv
 }
 
 installUBoot() {
@@ -251,7 +243,6 @@ if promptyn "Configure locale and timezone data?"; then
     fi
 fi
 
-cleanupEnv
 }
 
 installPersonalStuff(){
@@ -359,7 +350,6 @@ LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} update-rc.d networklightctrl sta
 if promptyn "Install Personal Stuff?"; then
     installPersonalStuff
 fi
-cleanupEnv
 }
 
 umountSDSafe() {
@@ -408,7 +398,7 @@ dd if=./u-boot-sunxi/u-boot.bin of=${SD_PATH} bs=1024 seek=32
 installSD() {
 mountSD
 cd ${ROOTFS_DIR}
-tar -cf - . | tar -C ${SD_MNT_POINT} -xf -
+tar --exclude=qemu-arm-static --exclude=resolv.conf -cf - . | tar -C ${SD_MNT_POINT} -xf -
 cd ..
 umountSDSafe
 removeSD
@@ -475,7 +465,6 @@ if [ -b ${SD_PATH} ]; then
     echoStage 6 "Installing BootStrap and Packages"
     downloadSys
     installBaseSys
-    cleanupEnv
     echoStage 7 "Installing Kernel"
     installKernel
     echoStage 8 "Configuring U-Boot"
