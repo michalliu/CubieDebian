@@ -31,7 +31,7 @@ refreshctrllight() {
         sleep 3
         echo 0 > /sys/class/leds/green\:ph20\:led1/brightness
         sleep 1
-        /etc/morseshowip.sh
+        /etc/morseshowip-reversed.sh
         #echo "online"
     else
         echo timer > /sys/class/leds/blue\:ph21\:led2/trigger
