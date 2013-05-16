@@ -336,7 +336,7 @@ backupFile ${ROOTFS_DIR}/etc/ifplugd/ifplugd.action
 cp -r ./scripts/* ${ROOTFS_DIR}
 
 # copy nandinstaller
-cp -r ./nandinstall/* ${ROOTFS_DIR}/home/cubie
+cp -r ./nandinstall ${ROOTFS_DIR}/home/cubie
 
 # green led ctrl
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} update-rc.d bootlightctrl defaults
