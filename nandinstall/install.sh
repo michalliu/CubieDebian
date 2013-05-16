@@ -34,12 +34,13 @@ done
 
 umountNand() {
 sync
+sleep 5
 for n in ${NAND}*;do
     if [ "${NAND}" != "$n" ];then
         if mount|grep ${n};then
             echo "umounting ${n}"
-            umount $n
-            sleep 1
+            umount -l $n
+            sleep 2
         fi
     fi
 done
@@ -128,8 +129,6 @@ if promptyn "This will completely destory your data on $NAND, Are you sure to co
     installRootfs
     installSwap
     patchRootfs
-    echo "please wait"
-    sync
     umountNand
     echo "success! remember to remove your SD card then reboot"
     if promptyn "shutdown now?";then

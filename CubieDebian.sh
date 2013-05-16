@@ -352,12 +352,13 @@ fi
 
 umountSDSafe() {
 sync
-for n in ${SD_PATH}*;do
-    if [ "${SD_PATH}" != "$n" ];then
+sleep 5
+for n in ${NAND}*;do
+    if [ "${NAND}" != "$n" ];then
         if mount|grep ${n};then
             echo "umounting ${n}"
-            umount $n
-            sleep 1
+            umount -l $n
+            sleep 2
         fi
     fi
 done
