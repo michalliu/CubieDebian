@@ -18,7 +18,7 @@ RELEASE_NAME="${DEB_HOSTNAME}-server"
 DEB_WIRELESS_TOOLS="wireless-tools wpasupplicant"
 DEB_TEXT_EDITORS="nvi vim"
 DEB_TEXT_UTILITIES="locales ssh expect sudo"
-DEB_ADMIN_UTILITIES="inotify-tools ifplugd ntpdate"
+DEB_ADMIN_UTILITIES="inotify-tools ifplugd ntpdate rsync parted"
 DEB_EXTRAPACKAGES="${DEB_TEXT_EDITORS} ${DEB_TEXT_UTILITIES} ${DEB_WIRELESS_TOOLS} ${DEB_ADMIN_UTILITIES}" 
 
 # Not all packages can (or should be) reconfigured this way.
@@ -248,6 +248,9 @@ END
 
 finalConfig(){
 prepareEnv
+
+# clean cache
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get clean
 
 # the backfile file only create one time
 backupFile ${ROOTFS_DIR}/etc/inittab
