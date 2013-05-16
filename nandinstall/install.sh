@@ -90,7 +90,7 @@ cd $PWD
 installRootfs(){
 echo "install rootfs"
 rsync -avc --exclude-from=$EXCLUDE / $ROOTFS
-rsync -avc /boot/uImage $ROOTFS
+rsync -avc /boot/uImage $ROOTFS/boot/
 echo "please wait"
 sync
 }
