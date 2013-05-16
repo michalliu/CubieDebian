@@ -99,7 +99,7 @@ cat > ${ROOTFS}/etc/fstab <<END
 #<file system>	<mount point>	<type>	<options>	<dump>	<pass>
 /dev/nandb	/		ext4	defaults	0	1
 /dev/nandc	/mnt/nandc	ext4	defaults	0	1
-/mnt/nandc/swapfile	swap	swap	defaults	0	0
+/root/mnt/nandc/swapfile	swap	swap	defaults	0	0
 END
 }
 
