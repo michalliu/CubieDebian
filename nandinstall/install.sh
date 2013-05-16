@@ -110,7 +110,6 @@ installSwap(){
 echo "making swapfile, it will take about 5 minutes, please be patient"
 dd if=/dev/zero of=$SWAPFILE bs=1M count=1024 # 1911 at maximium
 mkswap $SWAPFILE
-swapon $SWAPFILE
 }
 
 if promptyn "This will completely destory your data on $NAND, Are you sure to continue?"; then
