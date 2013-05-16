@@ -101,7 +101,7 @@ cat > ${ROOTFS}/etc/fstab <<END
 #<file system>	<mount point>	<type>	<options>	<dump>	<pass>
 /dev/nandb	/		ext4	defaults	0	1
 /dev/nandc	/mnt/nandc	ext4	defaults	0	1
-/root/mnt/nandc/swapfile	swap	swap	defaults	0	0
+/mnt/nandc/swapfile	none	swap	sw	0	0
 END
 mkdir ${ROOTFS}/mnt/nandc
 }
@@ -110,6 +110,7 @@ installSwap(){
 echo "making swapfile, it will take about 5 minutes, please be patient"
 dd if=/dev/zero of=$SWAPFILE bs=1M count=1024 # 1911 at maximium
 mkswap $SWAPFILE
+chmod 0600 $SWAPFILE
 }
 
 if promptyn "This will completely destory your data on $NAND, Are you sure to continue?"; then
