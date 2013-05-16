@@ -335,6 +335,9 @@ backupFile ${ROOTFS_DIR}/etc/ifplugd/ifplugd.action
 # copy scripts
 cp -r ./scripts/* ${ROOTFS_DIR}
 
+# copy nandinstaller
+cp -r ./nandinstall/* ${ROOTFS_DIR}/home/cubie
+
 # green led ctrl
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} update-rc.d bootlightctrl defaults
 # blue led
@@ -380,7 +383,7 @@ formatSD() {
 dd if=/dev/zero of=${SD_PATH} bs=1M count=2
 parted ${SD_PATH} --script mklabel msdos
 parted ${SD_PATH} --script -- mkpart primary 1 2048
-parted ${SD_PATH} --script -- mkpartfs primary linux-swap 2048 4096
+parted ${SD_PATH} --script -- mkpartfs primary linux-swap 2048 3072
 mkfs.ext4 ${SD_PATH}1
 mkswap ${SD_PATH}2
 sync
