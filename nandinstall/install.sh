@@ -125,6 +125,8 @@ if promptyn "This will completely destory your data on $NAND, Are you sure to co
     installRootfs
     installSwap
     patchRootfs
+    echo "please wait"
+    sync
     umountNand
     echo "success! remember to remove your SD card then reboot"
     if promptyn "shutdown now?";then
