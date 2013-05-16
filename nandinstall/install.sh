@@ -90,6 +90,7 @@ cd $PWD
 installRootfs(){
 echo "install rootfs"
 rsync -avc --exclude-from=$EXCLUDE / $ROOTFS
+rsync -avc /boot/uImage $ROOTFS
 echo "please wait"
 sync
 }
@@ -101,12 +102,14 @@ cat > ${ROOTFS}/etc/fstab <<END
 /dev/nandc	/mnt/nandc	ext4	defaults	0	1
 /root/mnt/nandc/swapfile	swap	swap	defaults	0	0
 END
+mkdir ${ROOTFS}/mnt/nandc
 }
 
 installSwap(){
 echo "making swapfile, it will take about 5 minutes, please be patient"
 dd if=/dev/zero of=$SWAPFILE bs=1M count=1024 # 1911 at maximium
 mkswap $SWAPFILE
+swapon $SWAPFILE
 }
 
 if promptyn "This will completely destory your data on $NAND, Are you sure to continue?"; then
