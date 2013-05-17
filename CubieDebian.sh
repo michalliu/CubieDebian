@@ -7,7 +7,7 @@
 SCRIPT_VERSION="1.0"
 
 # This will be the hostname of the cubieboard
-DEB_HOSTNAME="argon"
+DEB_HOSTNAME="cubieboard"
 
 # Release name
 RELEASE_NAME="${DEB_HOSTNAME}-server"
@@ -38,7 +38,7 @@ MAC_ADDRESS="008010EDDF01"
 ETH0_MODE="dhcp"
 
 # Rootfs Dir
-ROOTFS_DIR="`pwd`/rootfs/${DEB_HOSTNAME}-armfs"
+ROOTFS_DIR="`pwd`/rootfs/argon-armfs"
 
 # Rootfs backup
 ROOTFS_BACKUP="${DEB_HOSTNAME}.rootfs.cleanbackup.tar.gz"
