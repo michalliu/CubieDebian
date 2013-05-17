@@ -18,7 +18,7 @@ RELEASE_NAME="${DEB_HOSTNAME}-server"
 DEB_WIRELESS_TOOLS="wireless-tools wpasupplicant"
 DEB_TEXT_EDITORS="nvi vim"
 DEB_TEXT_UTILITIES="locales ssh expect sudo"
-DEB_ADMIN_UTILITIES="inotify-tools ifplugd ntpdate rsync parted"
+DEB_ADMIN_UTILITIES="inotify-tools ifplugd ntpdate rsync parted lsof apt-file psmisc"
 DEB_EXTRAPACKAGES="${DEB_TEXT_EDITORS} ${DEB_TEXT_UTILITIES} ${DEB_WIRELESS_TOOLS} ${DEB_ADMIN_UTILITIES}" 
 
 # Not all packages can (or should be) reconfigured this way.
@@ -79,7 +79,7 @@ isRoot() {
 }
 
 setupTools() {
-apt-get install build-essential u-boot-tools qemu-user-static debootstrap git binfmt-support libusb-1.0-0-dev pkg-config libncurses5-dev debian-archive-keyring expect wpasupplicant
+apt-get install build-essential u-boot-tools qemu-user-static debootstrap git binfmt-support libusb-1.0-0-dev pkg-config libncurses5-dev debian-archive-keyring expect kpartx
 
 cat > /etc/apt/sources.list.d/emdebian.list <<END
 deb http://www.emdebian.org/debian/ wheezy main
@@ -241,6 +241,7 @@ if promptyn "Configure locale and timezone data?"; then
     fi
 fi
 
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-file update
 }
 
 installPersonalStuff(){
@@ -517,6 +518,7 @@ show_menu(){
     echo "${NORMAL}    Test Commands (Use them only if you know what you are doing)${NORMAL}"
     echo ""
     echo "${MENU}${NUMBER} 11)${MENU} recompile cubieboard.fex to script.bin on ${SD_PATH}1 /boot ${NORMAL}"
+    echo "${MENU}${NUMBER} 12)${MENU} make disk image"
     echo ""
     echo "${ENTER_LINE}Please enter the option and enter or ${RED_TEXT}enter to exit. ${NORMAL}"
     if [ ! -z "$1" ]
@@ -770,6 +772,11 @@ do
                 removeSD
                 option_picked "Your disk removed"
             fi
+            show_menu
+            ;;
+        12) clear;
+            option_picked "make disk image"
+            dd if=/dev/zero of=disk.img bs=1M count=2048
             show_menu
             ;;
         *) clear;
