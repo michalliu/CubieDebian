@@ -68,6 +68,15 @@ DEFAULT_PASSWD="cubie"
 ########################
 # END OF CONFIGURATION #
 ########################
+set -e
+
+isRoot() {
+  if [ "`id -u`" -ne "0" ]; then
+    echo "this script needs to be run as root, try again with sudo"
+    return 1
+  fi
+  return 0
+}
 
 setupTools() {
 apt-get install build-essential u-boot-tools qemu-user-static debootstrap git binfmt-support libusb-1.0-0-dev pkg-config libncurses5-dev debian-archive-keyring expect wpasupplicant
@@ -523,6 +532,7 @@ option_picked(){
     echo "${COLOR}${MESSAGE}${RESET}"
 }
 
+isRoot
 clear
 show_menu
 while [ ! -z "$opt" ]

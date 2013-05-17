@@ -21,6 +21,14 @@ NANDPART="${CWD}/sunxi-tools/nand-part"
 
 EXCLUDE="${CWD}/exclude.txt"
 
+isRoot() {
+  if [ "`id -u`" -ne "0" ]; then
+    echo "this script needs to be run as root, try again with sudo"
+    return 1
+  fi
+  return 0
+}
+
 promptyn () {
 while true; do
   read -p "$1 " yn
@@ -113,6 +121,7 @@ mkswap $SWAPFILE
 chmod 0600 $SWAPFILE
 }
 
+isRoot
 if promptyn "This will completely destory your data on $NAND, Are you sure to continue?"; then
     umountNand
     formatNand
