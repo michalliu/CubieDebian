@@ -19,7 +19,7 @@ DEB_HOSTNAME="cubieboard"
 DEB_WIRELESS_TOOLS="wireless-tools wpasupplicant"
 DEB_TEXT_EDITORS="nvi vim"
 DEB_TEXT_UTILITIES="locales ssh expect sudo"
-DEB_ADMIN_UTILITIES="inotify-tools ifplugd ntpdate rsync parted lsof apt-file psmisc"
+DEB_ADMIN_UTILITIES="inotify-tools ifplugd ntpdate rsync parted lsof psmisc"
 DEB_EXTRAPACKAGES="${DEB_TEXT_EDITORS} ${DEB_TEXT_UTILITIES} ${DEB_WIRELESS_TOOLS} ${DEB_ADMIN_UTILITIES}" 
 
 # Not all packages can (or should be) reconfigured this way.
@@ -241,7 +241,6 @@ if promptyn "Configure locale and timezone data?"; then
     fi
 fi
 
-LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-file update
 }
 
 installPersonalStuff(){
