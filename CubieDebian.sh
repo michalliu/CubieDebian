@@ -261,6 +261,8 @@ prepareEnv
 
 # clean cache
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get clean
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get autoclean
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get autoremove
 
 echo ${DEB_HOSTNAME} > ${ROOTFS_DIR}/etc/hostname
 
