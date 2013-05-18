@@ -8,6 +8,7 @@ CWD=$(cd "$(dirname "$0")"; pwd)
 
 # This is the script verion
 SCRIPT_VERSION="1.0"
+RELEASE_VERSION="1"
 DEVELOPMENT_CODE="argon"
 
 # This will be the hostname of the cubieboard
@@ -525,12 +526,12 @@ show_menu(){
     echo "${MENU}${NUMBER} 7)${MENU} Install packages ${NORMAL}"
     echo "${MENU}${NUMBER} 8)${MENU} Install UBoot & kernel & config System ${NORMAL}"
     echo "${MENU}${NUMBER} 9)${MENU} Install Utilities & Personal stuff ${NORMAL}"
-    echo "${MENU}${NUMBER} 10)${MENU} Install to device ${NORMAL}"
+    echo "${MENU}${NUMBER} 10)${MENU} Install to device ${SD_PATH} ${NORMAL}"
+    echo "${MENU}${NUMBER} 11)${MENU} Make disk image"
     echo ""
     echo "${NORMAL}    Test Commands (Use them only if you know what you are doing)${NORMAL}"
     echo ""
-    echo "${MENU}${NUMBER} 11)${MENU} recompile cubieboard.fex to script.bin on ${SD_PATH}1 /boot ${NORMAL}"
-    echo "${MENU}${NUMBER} 12)${MENU} make disk image"
+    echo "${MENU}${NUMBER} 12)${MENU} recompile cubieboard.fex to script.bin on ${SD_PATH}1 /boot ${NORMAL}"
     echo ""
     echo "${ENTER_LINE}Please enter the option and enter or ${RED_TEXT}enter to exit. ${NORMAL}"
     if [ ! -z "$1" ]
@@ -760,6 +761,32 @@ do
             show_menu
             ;;
         11) clear;
+            option_picked "make disk image 2GB"
+            IMAGE_FILE="${CWD}/cubino-base-r${RELEASE_VERSION}-arm.img"
+            IMAGE_FILESIZE=2048 #kb
+            echo "create disk file ${IMAGE_FILE}"
+            dd if=/dev/zero of=$IMAGE_FILE bs=1M count=$IMAGE_FILESIZE
+            SD_PATH_OLD=${SD_PATH}
+            SD_PATH_RAW=`losetup -f --show ${IMAGE_FILE}`
+            echo "create device ${SD_PATH_RAW}"
+            SD_PATH=${SD_PATH_RAW}
+            echo "format device"
+            formatSD 1024
+	    SD_PATH="${SD_PATH}p"
+            echo "Transferring system"
+            installRoot
+            SD_PATH=${SD_PATH_RAW}
+            echo "Install MBR"
+            installMBR
+            echo "umount device ${SD_PATH}"
+            umountSDSafe
+            losetup -d ${SD_PATH}
+            SD_PATH=${SD_PATH_OLD}
+            echo  "compressing image"
+            bzip2 -zkfv9 $IMAGE_FILE
+            show_menu
+            ;;
+        12) clear;
             option_picked "recompile cubieboard.fex to script.bin on ${SD_PATH}1 /boot ${NORMAL}"
             umountSDSafe
             sleep 1
@@ -786,32 +813,6 @@ do
                 ejectSD
                 option_picked "Your disk removed"
             fi
-            show_menu
-            ;;
-        12) clear;
-            option_picked "make disk image 2GB"
-            IMAGE_FILE="${CWD}/${DEVELOPMENT_CODE}.img"
-            IMAGE_FILESIZE=2048 #kb
-            echo "create disk file ${IMAGE_FILE}"
-            dd if=/dev/zero of=$IMAGE_FILE bs=1M count=$IMAGE_FILESIZE
-            SD_PATH_OLD=${SD_PATH}
-            SD_PATH_RAW=`losetup -f --show ${IMAGE_FILE}`
-            echo "create device ${SD_PATH_RAW}"
-            SD_PATH=${SD_PATH_RAW}
-            echo "format device"
-            formatSD 1024
-	    SD_PATH="${SD_PATH}p"
-            echo "Transferring system"
-            installRoot
-            SD_PATH=${SD_PATH_RAW}
-            echo "Install MBR"
-            installMBR
-            echo "umount device ${SD_PATH}"
-            umountSDSafe
-            losetup -d ${SD_PATH}
-            SD_PATH=${SD_PATH_OLD}
-            echo  "compressing"
-            bzip2 -zkfv9 $IMAGE_FILE
             show_menu
             ;;
         *) clear;
