@@ -8,3 +8,6 @@ argon.basesys.config.cleanbackup.tar.gz
 boot
 
 mnt/
+
+*.img
+*.img.bz2
