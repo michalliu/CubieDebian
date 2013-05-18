@@ -3,14 +3,15 @@
 #################
 # CONFIGURATION #
 #################
+PWD="`pwd`"
+CWD=$(cd "$(dirname "$0")"; pwd)
+
 # This is the script verion
 SCRIPT_VERSION="1.0"
+DEVELOPMENT_CODE="argon"
 
 # This will be the hostname of the cubieboard
 DEB_HOSTNAME="cubieboard"
-
-# Release name
-RELEASE_NAME="${DEB_HOSTNAME}-server"
 
 # Not all packages can be install this way.
 # DEB_EXTRAPACKAGES="nvi locales ntp ssh expect"
@@ -28,7 +29,7 @@ DPKG_RECONFIG="locales tzdata"
 SD_PATH="/dev/sdb"
 
 # SD Card mount point
-SD_MNT_POINT="`pwd`/mnt"
+SD_MNT_POINT="${CWD}/mnt"
 
 # MAC will be encoded in script.bin
 #MAC_ADDRESS="0DEADBEEFBAD"
@@ -38,19 +39,19 @@ MAC_ADDRESS="008010EDDF01"
 ETH0_MODE="dhcp"
 
 # Rootfs Dir
-ROOTFS_DIR="`pwd`/rootfs/argon-armfs"
+ROOTFS_DIR="${CWD}/rootfs/${DEVELOPMENT_CODE}-armfs"
 
 # Rootfs backup
-ROOTFS_BACKUP="${DEB_HOSTNAME}.rootfs.cleanbackup.tar.gz"
+ROOTFS_BACKUP="${DEVELOPMENT_CODE}.rootfs.cleanbackup.tar.gz"
 
 # Base system backup
-BASESYS_BACKUP="${DEB_HOSTNAME}.basesys.cleanbackup.tar.gz"
+BASESYS_BACKUP="${DEVELOPMENT_CODE}.basesys.cleanbackup.tar.gz"
 
 # Base system has package backup
-BASESYS_PKG_BACKUP="${DEB_HOSTNAME}.basesys.pkg.cleanbackup.tar.gz"
+BASESYS_PKG_BACKUP="${DEVELOPMENT_CODE}.basesys.pkg.cleanbackup.tar.gz"
 
 # Base system with basic standard config without personal stuff
-BASESYS_CONFIG_BACKUP="${DEB_HOSTNAME}.basesys.config.cleanbackup.tar.gz"
+BASESYS_CONFIG_BACKUP="${DEVELOPMENT_CODE}.basesys.config.cleanbackup.tar.gz"
 
 # Accounts
 DEFAULT_USERNAME="cubie"
@@ -94,34 +95,34 @@ for i in /usr/bin/arm-linux-gnueabi*-4.5 ; do ln -f -s $i ${i%%-4.5} ; done
 }
 
 gitClone() {
-if [ ! -d "`pwd`/u-boot-sunxi" ];then
+if [ ! -d "${CWD}/u-boot-sunxi" ];then
 git clone https://github.com/linux-sunxi/u-boot-sunxi.git
 fi
-if [ ! -d "`pwd`/linux-sunxi" ];then
+if [ ! -d "${CWD}/linux-sunxi" ];then
 git clone https://github.com/mmplayer/linux-sunxi.git -b sunxi-3.4
 fi
-if [ ! -d "`pwd`/sunxi-tools" ];then
+if [ ! -d "${CWD}/sunxi-tools" ];then
 git clone https://github.com/linux-sunxi/sunxi-tools.git
 fi
-if [ ! -d "`pwd`/sunxi-boards" ];then
+if [ ! -d "${CWD}/sunxi-boards" ];then
 git clone https://github.com/mmplayer/sunxi-boards.git 
 fi
 }
 
 buildUBoot() {
-make -C ./u-boot-sunxi/ distclean CROSS_COMPILE=arm-linux-gnueabihf-
-make -C ./u-boot-sunxi/ cubieboard CROSS_COMPILE=arm-linux-gnueabihf-
+make -C ${CWD}/u-boot-sunxi/ distclean CROSS_COMPILE=arm-linux-gnueabihf-
+make -C ${CWD}/u-boot-sunxi/ cubieboard CROSS_COMPILE=arm-linux-gnueabihf-
 }
 
 buildKernel() {
 cp linux-sunxi/arch/arm/configs/sun4i_defconfig linux-sunxi/.config
-make -C ./linux-sunxi/ ARCH=arm menuconfig
-make -j4 -C ./linux-sunxi/ ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- uImage modules
+make -C ${CWD}/linux-sunxi/ ARCH=arm menuconfig
+make -j4 -C ${CWD}/linux-sunxi/ ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- uImage modules
 }
 
 buildTools() {
-make -C ./sunxi-tools/ clean
-make -C ./sunxi-tools/ all
+make -C ${CWD}/sunxi-tools/ clean
+make -C ${CWD}/sunxi-tools/ all
 }
 
 prepareEnv() {
@@ -147,7 +148,6 @@ installBaseSys(){
 prepareEnv
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} /debootstrap/debootstrap --second-stage
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} dpkg --configure -a
-echo ${DEB_HOSTNAME} > ${ROOTFS_DIR}/etc/hostname
 cp /etc/resolv.conf ${ROOTFS_DIR}/etc/
 cat > ${ROOTFS_DIR}/etc/apt/sources.list <<END
 deb http://http.debian.net/debian/ wheezy main contrib non-free
@@ -175,8 +175,8 @@ bootm 0x48000000
 END
 mkimage -C none -A arm -T script -d ${ROOTFS_DIR}/boot/boot.cmd ${ROOTFS_DIR}/boot/boot.scr
 
-FEX_FILE=cubieboard_${DEB_HOSTNAME}.fex
-cp ./sunxi-boards/sys_config/a10/${FEX_FILE} ${ROOTFS_DIR}/boot/
+FEX_FILE=cubieboard_${DEVELOPMENT_CODE}.fex
+cp ${CWD}/sunxi-boards/sys_config/a10/${FEX_FILE} ${ROOTFS_DIR}/boot/
 cat >> ${ROOTFS_DIR}/boot/${FEX_FILE} <<END
 
 [dynamic]
@@ -186,12 +186,12 @@ END
 # overlock memory
 #sed -i 's/^dram_clk = 480$/dram_clk = 500/' ${ROOTFS_DIR}/boot/cubieboard.fex
 
-./sunxi-tools/fex2bin ${ROOTFS_DIR}/boot/${FEX_FILE} ${ROOTFS_DIR}/boot/script.bin
+${CWD}/sunxi-tools/fex2bin ${ROOTFS_DIR}/boot/${FEX_FILE} ${ROOTFS_DIR}/boot/script.bin
 }
 
 installKernel() {
-cp ./linux-sunxi/arch/arm/boot/uImage ${ROOTFS_DIR}/boot
-make -C ./linux-sunxi INSTALL_MOD_PATH=${ROOTFS_DIR} ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- modules_install
+cp ${CWD}/linux-sunxi/arch/arm/boot/uImage ${ROOTFS_DIR}/boot
+make -C ${CWD}/linux-sunxi INSTALL_MOD_PATH=${ROOTFS_DIR} ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- modules_install
 }
 
 configNetwork() {
@@ -245,7 +245,7 @@ LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-file update
 }
 
 installPersonalStuff(){
-NETWORK_CFG=`./network_cfg.sh`
+NETWORK_CFG=`${CWD}/network_cfg.sh`
 cat >> ${ROOTFS_DIR}/etc/modules <<END
 8188eu
 END
@@ -261,6 +261,8 @@ prepareEnv
 
 # clean cache
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get clean
+
+echo ${DEB_HOSTNAME} > ${ROOTFS_DIR}/etc/hostname
 
 # the backfile file only create one time
 backupFile ${ROOTFS_DIR}/etc/inittab
@@ -343,10 +345,10 @@ backupFile ${ROOTFS_DIR}/etc/default/ntpdate
 backupFile ${ROOTFS_DIR}/etc/ifplugd/ifplugd.action
 
 # copy scripts
-cp -r ./scripts/* ${ROOTFS_DIR}
+cp -r ${CWD}/scripts/* ${ROOTFS_DIR}
 
 # copy nandinstaller
-cp -r ./nandinstall ${ROOTFS_DIR}/home/cubie
+cp -r ${CWD}/nandinstall ${ROOTFS_DIR}/home/cubie
 
 # green led ctrl
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} update-rc.d bootlightctrl defaults
@@ -363,8 +365,8 @@ fi
 umountSDSafe() {
 sync
 sleep 5
-for n in ${NAND}*;do
-    if [ "${NAND}" != "$n" ];then
+for n in ${SD_PATH}*;do
+    if [ "${SD_PATH}" != "$n" ];then
         if mount|grep ${n};then
             echo "umounting ${n}"
             umount -l $n
@@ -374,7 +376,7 @@ for n in ${NAND}*;do
 done
 }
 
-mountSD() {
+mountRoot() {
 umountSDSafe
 if [ ! -d ${SD_MNT_POINT} ];then
     mkdir ${SD_MNT_POINT}
@@ -382,7 +384,7 @@ fi
 mount ${SD_PATH}1 ${SD_MNT_POINT}
 }
 
-removeSD() {
+ejectSD() {
 if [ -b ${SD_PATH} ];then
 eject ${SD_PATH}
 else
@@ -393,24 +395,31 @@ fi
 formatSD() {
 dd if=/dev/zero of=${SD_PATH} bs=1M count=2
 parted ${SD_PATH} --script mklabel msdos
-parted ${SD_PATH} --script -- mkpart primary 1 2048
-parted ${SD_PATH} --script -- mkpartfs primary linux-swap 2048 3072
+parted ${SD_PATH} --script -- mkpart primary 1 $1
+parted ${SD_PATH} --script -- mkpartfs primary linux-swap $1 $(($1+1024))
+}
+
+installRoot() {
 mkfs.ext4 ${SD_PATH}1
 mkswap ${SD_PATH}2
 sync
 partprobe
 
-dd if=./u-boot-sunxi/spl/sunxi-spl.bin of=${SD_PATH} bs=1024 seek=8
-dd if=./u-boot-sunxi/u-boot.bin of=${SD_PATH} bs=1024 seek=32
+mountRoot
+cd ${ROOTFS_DIR}
+tar --exclude=qemu-arm-static --exclude=resolv.conf -cf - . | tar -C ${SD_MNT_POINT} -xvf -
+umount ${SD_MNT_POINT} >>/dev/null 2>&1
+cd ${PWD}
 }
 
-installSD() {
-mountSD
-cd ${ROOTFS_DIR}
-tar --exclude=qemu-arm-static --exclude=resolv.conf -cf - . | tar -C ${SD_MNT_POINT} -xf -
-cd ..
+installMBR(){
+dd if=${CWD}/u-boot-sunxi/spl/sunxi-spl.bin of=${SD_PATH} bs=1024 seek=8
+dd if=${CWD}/u-boot-sunxi/u-boot.bin of=${SD_PATH} bs=1024 seek=32
+}
+
+removeSD(){
 umountSDSafe
-removeSD
+ejectSD
 }
 
 promptyn () {
@@ -481,9 +490,11 @@ if [ -b ${SD_PATH} ]; then
     echoStage 9 "Configuring Networking"
     configNetwork
     echoStage 10 "Formatting SD Card"
-    formatSD
+    formatSD 2048
     echoStage 11 "Transfering Debian to SD Card"
-    installSD  
+    installRoot  
+    installMBR  
+    removeSD
     echo ""
     echo "All done"
     echo ""
@@ -573,9 +584,9 @@ do
         4) clear;
             option_picked "Build Linux kernel";
             if promptyn "Reconfigure kernel?"; then
-                make -C ./linux-sunxi/ ARCH=arm menuconfig
+                make -C ${CWD}/linux-sunxi/ ARCH=arm menuconfig
             fi
-            make -j4 -C ./linux-sunxi/ ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- uImage modules
+            make -j4 -C ${CWD}/linux-sunxi/ ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- uImage modules
             option_picked "Done";
             show_menu
             ;;
@@ -735,12 +746,14 @@ do
                 umountSDSafe
                 option_picked "Done";
                 option_picked "Formating"
-                formatSD
+                formatSD 2048
                 option_picked "Done";
                 option_picked "Transferring data, it may take a while, please be patient, DO NOT UNPLUG YOUR DEVICE, it will be removed automaticlly when finished";
-                installSD
+                installRoot
+                installMBR
+                removeSD
                 option_picked "Done";
-                option_picked "Congratulations,you can safely remove your sd card and enjoy your ${RELEASE_NAME}";
+                option_picked "Congratulations,you can safely remove your sd card";
                 option_picked "Now press Enter to quit the program";
             fi
             show_menu
@@ -749,7 +762,7 @@ do
             option_picked "recompile cubieboard.fex to script.bin on ${SD_PATH}1 /boot ${NORMAL}"
             umountSDSafe
             sleep 1
-            mountSD
+            mountRoot
             if promptyn "start recompile?"; then
                 SD_BOOT_DIR="${SD_MNT_POINT}/boot"
                 SD_FEX_FILE="${SD_BOOT_DIR}/cubieboard.fex"
@@ -762,21 +775,42 @@ do
                 fi
 
                 # recompile cubieboard.fex to script.bin
-                ./sunxi-tools/fex2bin ${SD_FEX_FILE} ${SD_SCRIPT_BIN_FILE}
+                ${CWD}/sunxi-tools/fex2bin ${SD_FEX_FILE} ${SD_SCRIPT_BIN_FILE}
                 option_picked "hash `md5sum ${SD_SCRIPT_BIN_FILE}`"
                 option_picked "Done"
             fi
             if promptyn "remove ${SD_PATH}?"; then
                 umountSDSafe
                 sleep 1
-                removeSD
+                ejectSD
                 option_picked "Your disk removed"
             fi
             show_menu
             ;;
         12) clear;
-            option_picked "make disk image"
-            dd if=/dev/zero of=disk.img bs=1M count=2048
+            option_picked "make disk image 2GB"
+            IMAGE_FILE="${CWD}/${DEVELOPMENT_CODE}.img"
+            IMAGE_FILESIZE=2048 #kb
+            echo "create disk file ${IMAGE_FILE}"
+            dd if=/dev/zero of=$IMAGE_FILE bs=1M count=$IMAGE_FILESIZE
+            SD_PATH_OLD=${SD_PATH}
+            SD_PATH_RAW=`losetup -f --show ${IMAGE_FILE}`
+            echo "create device ${SD_PATH_RAW}"
+            SD_PATH=${SD_PATH_RAW}
+            echo "format device"
+            formatSD 1024
+	    SD_PATH="${SD_PATH}p"
+            echo "Transferring system"
+            installRoot
+            SD_PATH=${SD_PATH_RAW}
+            echo "Install MBR"
+            installMBR
+            echo "umount device ${SD_PATH}"
+            umountSDSafe
+            losetup -d ${SD_PATH}
+            SD_PATH=${SD_PATH_OLD}
+            echo  "compressing"
+            bzip2 -zkfv9 $IMAGE_FILE
             show_menu
             ;;
         *) clear;
