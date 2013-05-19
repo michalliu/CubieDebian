@@ -1,4 +1,6 @@
 #!/bin/bash
+#Author: cubieplayer(cubieplayer@github.com)
+#Copyright (c) 2013, cubieplayer. All rights reserved.
 
 set -e
 
