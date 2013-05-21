@@ -12,7 +12,7 @@ RELEASE_VERSION="1"
 DEVELOPMENT_CODE="argon"
 
 # This will be the hostname of the cubieboard
-DEB_HOSTNAME="cubieboard"
+DEB_HOSTNAME="cubino"
 
 # Not all packages can be install this way.
 # DEB_EXTRAPACKAGES="nvi locales ntp ssh expect"
@@ -762,7 +762,7 @@ do
             ;;
         11) clear;
             option_picked "make disk image 2GB"
-            IMAGE_FILE="${CWD}/cubino-base-r${RELEASE_VERSION}-arm.img"
+            IMAGE_FILE="${CWD}/${DEB_HOSTNAME}-base-r${RELEASE_VERSION}-arm.img"
             IMAGE_FILESIZE=2048 #kb
             echo "create disk file ${IMAGE_FILE}"
             dd if=/dev/zero of=$IMAGE_FILE bs=1M count=$IMAGE_FILESIZE
