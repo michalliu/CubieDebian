@@ -246,10 +246,6 @@ fi
 
 installPersonalStuff(){
 NETWORK_CFG=`${CWD}/network_cfg.sh`
-cat >> ${ROOTFS_DIR}/etc/modules <<END
-8188eu
-END
-
 cat >> ${ROOTFS_DIR}/etc/network/interfaces <<END
 
 ${NETWORK_CFG}
