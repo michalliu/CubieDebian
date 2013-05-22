@@ -12,7 +12,7 @@ RELEASE_VERSION="1"
 DEVELOPMENT_CODE="argon"
 
 # This will be the hostname of the cubieboard
-DEB_HOSTNAME="cubino"
+DEB_HOSTNAME="Cubian"
 
 # Not all packages can be install this way.
 # DEB_EXTRAPACKAGES="nvi locales ntp ssh expect"

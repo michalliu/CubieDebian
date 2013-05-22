@@ -43,7 +43,7 @@ printf "\t<tr>\n\t\t<td><a class=\"icon file\" href=\"%s\">%s</a></td>\n\t\t<td 
   ) | while read line; do 
     if [[ "$line" =~ "md5sum" ]];then
         HASH=(`eval "$line"`)
-        echo ${HASH[0]}
+        echo "${HASH[0]}"
     else
         printf "%s" "$line"
     fi
