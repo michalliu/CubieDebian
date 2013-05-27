@@ -10,3 +10,18 @@
 [submodule "sunxi-boards"]
 	path = sunxi-boards
 	url = git@github.com:mmplayer/sunxi-boards.git
+[submodule "lib/PCRE"]
+	path = lib/PCRE
+	url = git@github.com:mmplayer/PCRE.git
+[submodule "lib/APR"]
+	path = lib/APR
+	url = git@github.com:mmplayer/APR.git
+[submodule "lib/APR-util"]
+	path = lib/APR-util
+	url = git@github.com:mmplayer/APR-util.git
+[submodule "lib/APR-iconv"]
+	path = lib/APR-iconv
+	url = git@github.com:mmplayer/APR-iconv.git
+[submodule "lib/httpd"]
+	path = lib/httpd
+	url = git@github.com:mmplayer/httpd.git
