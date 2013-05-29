@@ -1,7 +1,7 @@
 #!/bin/sh
-echo "http://stackoverflow.com/questions/8188158/building-and-configuring-apr-util-and-httpd-to-use-apr-iconv-on-linux"
-echo "http://httpd.apache.org/docs/2.2/install.html"
-echo "http://blog.lizhigang.net/archives/36"
+PWD="`pwd`"
+CWD=$(cd "$(dirname "$0")"; pwd)
+
 promptyn () {
 while true; do
   read -p "$1 " yn
@@ -12,6 +12,18 @@ while true; do
   esac
 done
 }
-if promptyn "yes?";then
-echo "y"
+
+APR_DIR="${CWD}/APR"
+APR_PREFIX="/usr/local/apr-httpd/"
+APR_CONFIGURATION="--prefix=${APR_PREFIX}"
+APR_CONFIGURE="${APR_DIR}/configure"
+
+if promptyn "build and install apr?";then
+    if promptyn "configure apr?";then
+        echo "executing $APR_CONFIGURE $APR_CONFIGURATION"
+        $APR_CONFIGURE $APR_CONFIGURATION
+        if promptyn "make apr?";then
+            make -C $APR_DIR
+        fi
+    fi
 fi
