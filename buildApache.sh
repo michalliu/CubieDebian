@@ -24,18 +24,20 @@ PCRE_DIR="${CWD}/PCRE"
 PCRE_PREFIX="${PREFIX_BASE}/pcre"
 PCRE_CONFIGURATION="--prefix=${PCRE_PREFIX}"
 
-APR_UTIL_DIR="${CWD}/APR-util"
-APR_UTIL_PREFIX="${PREFIX_BASE}/apr-util-httpd/"
-APR_UTIL_CONFIGURATION="--prefix=${APR_UTIL_PREFIX} \
---with-apr=${APR_PREFIX} \
---with-ldap-lib=/usr/lib \
---with-ldap=ldap \
---with-apr-iconv=../APR-iconv"
-
 OPENSSL_DIR="${CWD}/openssl"
 OPENSSL_PREFIX="${PREFIX_BASE}"
 OPENSSL_CONFIGURATION="--prefix=${OPENSSL_PREFIX} \
 --openssldir=${OPENSSL_PREFIX}/openssl"
+
+APR_UTIL_DIR="${CWD}/APR-util"
+APR_UTIL_PREFIX="${PREFIX_BASE}/apr-util-httpd/"
+APR_UTIL_CONFIGURATION="--prefix=${APR_UTIL_PREFIX} \
+--with-crypto \
+--with-openssl=/usr/local/include \
+--with-apr=${APR_PREFIX} \
+--with-ldap-lib=/usr/lib \
+--with-ldap=ldap \
+--with-apr-iconv=../APR-iconv"
 
 HTTPD_DIR="${CWD}/httpd"
 HTTPD_CONFIGURATION="--enable-authn-anon \
@@ -102,6 +104,21 @@ if promptyn "process PCRE?";then
     fi
 fi
 
+if promptyn "process openssl?";then
+    cd $OPENSSL_DIR
+    if promptyn "configure openssl?";then
+        echo "configure openssl with configuration $OPENSSL_CONFIGURATION"
+        ./config $OPENSSL_CONFIGURATION
+    fi
+    if promptyn "make openssl?";then
+        make -C $OPENSSL_DIR
+    fi
+    if promptyn "install openssl?";then
+        make -C $OPENSSL_DIR install
+    fi
+fi
+
+
 if promptyn "process apr-util?";then
     apt-get install libldap-dev
     cd $APR_UTIL_DIR
@@ -117,22 +134,9 @@ if promptyn "process apr-util?";then
     fi
 fi
 
-if promptyn "process openssl?";then
-    cd $OPENSSL_DIR
-    if promptyn "configure openssl?";then
-        echo "configure openssl with configuration $OPENSSL_CONFIGURATION"
-        ./config $OPENSSL_CONFIGURATION
-    fi
-    if promptyn "make openssl?";then
-        make -C $OPENSSL_DIR
-    fi
-    if promptyn "install openssl?";then
-        make -C $OPENSSL_DIR install
-    fi
-fi
-
 if promptyn "process httpd?";then
     apt-get install zlib1g-dev
+    apt-get install lua5.1
     cd $HTTPD_DIR
     if promptyn "configure httpd?";then
         echo "configure httpd with configuration $HTTPD_CONFIGURATION"
