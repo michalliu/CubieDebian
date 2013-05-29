@@ -28,6 +28,8 @@ APR_UTIL_DIR="${CWD}/APR-util"
 APR_UTIL_PREFIX="${PREFIX_BASE}/apr-util-httpd/"
 APR_UTIL_CONFIGURATION="--prefix=${APR_UTIL_PREFIX} \
 --with-apr=${APR_PREFIX} \
+--with-ldap-lib=/usr/lib \
+--with-ldap=ldap \
 --with-apr-iconv=../APR-iconv"
 
 OPENSSL_DIR="${CWD}/openssl"
@@ -41,6 +43,7 @@ HTTPD_CONFIGURATION="--enable-authn-anon \
 --enable-authz-owner \
 --enable-auth-digest \
 --disable-imagemap \
+--enable-cgi \
 --enable-dav \
 --enable-dav-fs \
 --enable-dav-lock \
@@ -55,14 +58,18 @@ HTTPD_CONFIGURATION="--enable-authn-anon \
 --enable-proxy-ftp \
 --enable-proxy-balancer \
 --enable-proxy-connect \
---enable-suexec \
 --enable-rewrite \
+--enable-suexec \
+--enable-ssl \
 --enable-so \
 --enable-ssl \
+--enable-static-rotatelogs \
+--enable-speling
 --disable-userdir \
 --enable-vhost-alias \
 --with-mpm=prefork \
 --enable-mods-shared=all \
+--with-pcre=${PCRE_PREFIX} \
 --with-ssl=${OPENSSL_PREFIX}/openssl \
 --with-apr=${APR_PREFIX}bin/apr-1-config \
 --with-apr-util=${APR_UTIL_PREFIX}bin/apu-1-config"
@@ -96,6 +103,7 @@ if promptyn "process PCRE?";then
 fi
 
 if promptyn "process apr-util?";then
+    apt-get install libldap-dev
     cd $APR_UTIL_DIR
     if promptyn "configure apr-util?";then
         echo "configure apr with configuration $APR_UTIL_CONFIGURATION"
@@ -124,6 +132,7 @@ if promptyn "process openssl?";then
 fi
 
 if promptyn "process httpd?";then
+    apt-get install zlib1g-dev
     cd $HTTPD_DIR
     if promptyn "configure httpd?";then
         echo "configure httpd with configuration $HTTPD_CONFIGURATION"
