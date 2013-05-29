@@ -25,3 +25,6 @@
 [submodule "lib/httpd"]
 	path = lib/httpd
 	url = git@github.com:mmplayer/httpd.git
+[submodule "lib/openssl"]
+	path = lib/openssl
+	url = git@github.com:mmplayer/openssl.git

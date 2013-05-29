@@ -114,6 +114,7 @@ case "$TARGET" in
         rsync -avc --exclude '.git' ${CWD}/lib/APR* \
 ${CWD}/lib/PCRE \
 ${CWD}/lib/httpd \
+${CWD}/lib/openssl \
 ${CWD}/buildApache.sh \
 ${DESTDIR}${BUILD_HOME}
         chroot ${DESTDIR} /bin/bash -c "su - -c ${BUILD_HOME}/buildApache.sh"

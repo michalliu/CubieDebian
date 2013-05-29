@@ -13,17 +13,126 @@ while true; do
 done
 }
 
-APR_DIR="${CWD}/APR"
-APR_PREFIX="/usr/local/apr-httpd/"
-APR_CONFIGURATION="--prefix=${APR_PREFIX}"
-APR_CONFIGURE="${APR_DIR}/configure"
+CONFIGURE="./configure"
+PREFIX_BASE="/usr/local"
 
-if promptyn "build and install apr?";then
+APR_DIR="${CWD}/APR"
+APR_PREFIX="${PREFIX_BASE}/apr-httpd/"
+APR_CONFIGURATION="--prefix=${APR_PREFIX}"
+
+PCRE_DIR="${CWD}/PCRE"
+PCRE_PREFIX="${PREFIX_BASE}/pcre"
+PCRE_CONFIGURATION="--prefix=${PCRE_PREFIX}"
+
+APR_UTIL_DIR="${CWD}/APR-util"
+APR_UTIL_PREFIX="${PREFIX_BASE}/apr-util-httpd/"
+APR_UTIL_CONFIGURATION="--prefix=${APR_UTIL_PREFIX} \
+--with-apr=${APR_PREFIX} \
+--with-apr-iconv=../APR-iconv"
+
+OPENSSL_DIR="${CWD}/openssl"
+OPENSSL_PREFIX="${PREFIX_BASE}"
+OPENSSL_CONFIGURATION="--prefix=${OPENSSL_PREFIX} \
+--openssldir=${OPENSSL_PREFIX}/openssl"
+
+HTTPD_DIR="${CWD}/httpd"
+HTTPD_CONFIGURATION="--enable-authn-anon \
+--enable-v4-mapped \
+--enable-authz-owner \
+--enable-auth-digest \
+--disable-imagemap \
+--enable-dav \
+--enable-dav-fs \
+--enable-dav-lock \
+--enable-deflate \
+--enable-expires \
+--enable-headers \
+--enable-info \
+--enable-mime-magic \
+--enable-proxy \
+--enable-proxy-ajp \
+--enable-proxy-http \
+--enable-proxy-ftp \
+--enable-proxy-balancer \
+--enable-proxy-connect \
+--enable-suexec \
+--enable-rewrite \
+--enable-so \
+--enable-ssl \
+--disable-userdir \
+--enable-vhost-alias \
+--with-mpm=prefork \
+--enable-mods-shared=all \
+--with-ssl=${OPENSSL_PREFIX}/openssl \
+--with-apr=${APR_PREFIX}bin/apr-1-config \
+--with-apr-util=${APR_UTIL_PREFIX}bin/apu-1-config"
+
+if promptyn "process apr?";then
+    cd $APR_DIR
     if promptyn "configure apr?";then
-        echo "executing $APR_CONFIGURE $APR_CONFIGURATION"
-        $APR_CONFIGURE $APR_CONFIGURATION
-        if promptyn "make apr?";then
-            make -C $APR_DIR
-        fi
+        echo "configure apr with configuration $APR_CONFIGURATION"
+        $CONFIGURE -q $APR_CONFIGURATION
+    fi
+    if promptyn "make apr?";then
+        make -C $APR_DIR
+    fi
+    if promptyn "install apr?";then
+        make -C $APR_DIR install
+    fi
+fi
+
+if promptyn "process PCRE?";then
+    cd $PCRE_DIR
+    if promptyn "configure PCRE?";then
+        echo "configure PCRE with configuration $PCRE_CONFIGURATION"
+        $CONFIGURE -q $PCRE_CONFIGURATION
+    fi
+    if promptyn "make PCRE?";then
+        make -C $PCRE_DIR
+    fi
+    if promptyn "install PCRE?";then
+        make -C $PCRE_DIR install
+    fi
+fi
+
+if promptyn "process apr-util?";then
+    cd $APR_UTIL_DIR
+    if promptyn "configure apr-util?";then
+        echo "configure apr with configuration $APR_UTIL_CONFIGURATION"
+        $CONFIGURE -q $APR_UTIL_CONFIGURATION
+    fi
+    if promptyn "make apr-util?";then
+        make -C $APR_UTIL_DIR
+    fi
+    if promptyn "install apr-util?";then
+        make -C $APR_UTIL_DIR install
+    fi
+fi
+
+if promptyn "process openssl?";then
+    cd $OPENSSL_DIR
+    if promptyn "configure openssl?";then
+        echo "configure openssl with configuration $OPENSSL_CONFIGURATION"
+        ./config $OPENSSL_CONFIGURATION
+    fi
+    if promptyn "make openssl?";then
+        make -C $OPENSSL_DIR
+    fi
+    if promptyn "install openssl?";then
+        make -C $OPENSSL_DIR install
+    fi
+fi
+
+if promptyn "process httpd?";then
+    cd $HTTPD_DIR
+    if promptyn "configure httpd?";then
+        echo "configure httpd with configuration $HTTPD_CONFIGURATION"
+        $CONFIGURE -q $HTTPD_CONFIGURATION
+    fi
+    if promptyn "make httpd?";then
+        make -C $HTTPD_DIR
+    fi
+    if promptyn "install httpd?";then
+        make -C $HTTPD_DIR install
     fi
 fi
