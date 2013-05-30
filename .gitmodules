@@ -25,3 +25,6 @@
 [submodule "lib/httpd"]
 	path = lib/httpd
 	url = git@github.com:mmplayer/httpd.git
+[submodule "lib/php5"]
+	path = lib/php5
+	url = git@github.com:mmplayer/php.git
