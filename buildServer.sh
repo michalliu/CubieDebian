@@ -62,7 +62,7 @@ do
      esac
 done
 
-IMGFILE=${IMAGEFILE_OPT:-./Cubian-base-r1-arm.img}
+IMGFILE=${IMAGEFILE_OPT:-./Cubian-server-r1-arm.img}
 DESTDIR=${DESTDIR_OPT:-./mnt}
 TARGETS=("apache" "mysql" "php" "nginx" "lighthttpd" "memcached" "mongodb" "jre" )
 
