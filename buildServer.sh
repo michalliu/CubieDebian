@@ -93,9 +93,21 @@ case "$TARGET" in
 ${CWD}/lib/PCRE \
 ${CWD}/lib/httpd \
 ${CWD}/lib/openssl \
+${CWD}/fns.sh \
 ${CWD}/buildApache.sh \
 ${DESTDIR}${BUILD_HOME}
         chroot ${DESTDIR} /bin/bash -c "su - -c ${BUILD_HOME}/buildApache.sh"
+    fi
+    ;;
+    "php")
+    echo "building php"
+    if promptyn "copying files?";then
+        BUILD_HOME="/home/cubie/php5"
+        rsync -avc --exclude '.git' ${CWD}/lib/php5* \
+${CWD}/fns.sh \
+${CWD}/buildPHP.sh \
+${DESTDIR}${BUILD_HOME}
+        chroot ${DESTDIR} /bin/bash -c "su - -c ${BUILD_HOME}/buildPHP.sh"
     fi
     ;;
     *)
