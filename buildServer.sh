@@ -2,6 +2,8 @@
 PWD="`pwd`"
 CWD=$(cd "$(dirname "$0")"; pwd)
 
+source ${CWD}/fns.sh
+
 usage(){
 cat <<EOF
 `basename $0`
@@ -11,30 +13,6 @@ cat <<EOF
 -i    : The name of the image file ( `basename ${IMGFILE}` )
 -v    : Turn on verbose output
 EOF
-}
-
-function contains() {
-    local n=$#
-    local value=${!n}
-    for ((i=1;i < $#;i++)) {
-        if [ "${!i}" == "${value}" ]; then
-            echo "y"
-            return 0
-        fi
-    }
-    echo "n"
-    return 1
-}
-
-promptyn () {
-while true; do
-  read -p "$1 " yn
-  case $yn in
-    [Yy]* ) return 0;;
-    [Nn]* ) return 1;;
-    * ) echo "Please answer yes or no.";;
-  esac
-done
 }
 
 while getopts “hi:t:d:v” OPTION
@@ -71,7 +49,7 @@ if [ ! -z "${HELP_OPT:-}" ];then
     exit
 fi
 
-if [[ ${EUID} != 0 && ${UID} != 0 ]];then
+if ! isRoot2;then
     echo "`basename $0` must be run as root"
     exit -1
 fi

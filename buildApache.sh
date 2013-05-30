@@ -2,36 +2,7 @@
 PWD="`pwd`"
 CWD=$(cd "$(dirname "$0")"; pwd)
 
-promptyn () {
-while true; do
-  read -p "$1 " yn
-  case $yn in
-    [Yy]* ) return 0;;
-    [Nn]* ) return 1;;
-    * ) echo "Please answer yes or no.";;
-  esac
-done
-}
-
-haspackage(){
-if [ -n $1 ];then
-    dpkg -s $1>/dev/null 2>&1
-    if [ $? -eq 0 ];then
-        return 0
-    fi
-fi
-return 1
-}
-
-installpackages(){
-  pkglist=( "$@" )
-  for pkg in "${pkglist[@]}";do
-      if ! haspackage "$pkg";then
-          echo "install missing package ${pkg}"
-          apt-get install -y "${pkg}"
-      fi
-  done
-}
+source ${CWD}/fns.sh
 
 CONFIGURE="./configure"
 PREFIX_BASE="/usr/local"
