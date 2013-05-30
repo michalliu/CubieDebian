@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 PWD="`pwd`"
 CWD=$(cd "$(dirname "$0")"; pwd)
 
@@ -13,6 +13,26 @@ while true; do
 done
 }
 
+haspackage(){
+if [ -n $1 ];then
+    dpkg -s $1>/dev/null 2>&1
+    if [ $? -eq 0 ];then
+        return 0
+    fi
+fi
+return 1
+}
+
+installpackages(){
+  pkglist=( "$@" )
+  for pkg in "${pkglist[@]}";do
+      if ! haspackage "$pkg";then
+          echo "install missing package ${pkg}"
+          apt-get install -y "${pkg}"
+      fi
+  done
+}
+
 CONFIGURE="./configure"
 PREFIX_BASE="/usr/local"
 
@@ -24,36 +44,44 @@ PCRE_DIR="${CWD}/PCRE"
 PCRE_PREFIX="${PREFIX_BASE}/pcre"
 PCRE_CONFIGURATION="--prefix=${PCRE_PREFIX}"
 
-OPENSSL_DIR="${CWD}/openssl"
-OPENSSL_PREFIX="${PREFIX_BASE}"
-OPENSSL_CONFIGURATION="--prefix=${OPENSSL_PREFIX} \
---openssldir=${OPENSSL_PREFIX}/openssl"
+APR_ICONV_DIR="${CWD}/APR-iconv"
+APR_ICONV_PREFIX="${PREFIX_BASE}/apr-iconv-httpd/"
+APR_ICONV_CONFIGURATION="--prefix=${APR_ICONV_PREFIX} \
+--with-apr=${APR_PREFIX}bin/apr-1-config"
 
 APR_UTIL_DIR="${CWD}/APR-util"
 APR_UTIL_PREFIX="${PREFIX_BASE}/apr-util-httpd/"
 APR_UTIL_CONFIGURATION="--prefix=${APR_UTIL_PREFIX} \
 --with-crypto \
---with-openssl=/usr/local/include \
+--with-openssl=/usr/lib \
 --with-apr=${APR_PREFIX} \
 --with-ldap-lib=/usr/lib \
 --with-ldap=ldap \
---with-apr-iconv=../APR-iconv"
+--with-iconv=${APR_ICONV_PREFIX}"
 
 HTTPD_DIR="${CWD}/httpd"
 HTTPD_CONFIGURATION="--enable-authn-anon \
---enable-v4-mapped \
+--enable-authn-dbm \
 --enable-authz-owner \
 --enable-auth-digest \
---disable-imagemap \
---enable-cgi \
+--enable-authz-ldap \
+--enable-cache \
+--enable-charset-lite \
 --enable-dav \
 --enable-dav-fs \
 --enable-dav-lock \
 --enable-deflate \
+--enable-disk-cache \
 --enable-expires \
+--enable-ext-filter \
+--enable-file-cache \
 --enable-headers \
 --enable-info \
+--enable-ldap \
+--enable-logio \
+--enable-mem-cache \
 --enable-mime-magic \
+--enable-isapi \
 --enable-proxy \
 --enable-proxy-ajp \
 --enable-proxy-http \
@@ -64,15 +92,17 @@ HTTPD_CONFIGURATION="--enable-authn-anon \
 --enable-suexec \
 --enable-ssl \
 --enable-so \
---enable-ssl \
 --enable-static-rotatelogs \
---enable-speling
---disable-userdir \
+--enable-static-ab \
+--enable-speling \
+--enable-ssl \
 --enable-vhost-alias \
 --with-mpm=prefork \
 --enable-mods-shared=all \
+--enable-v4-mapped \
+--with-port=8080 \
 --with-pcre=${PCRE_PREFIX} \
---with-ssl=${OPENSSL_PREFIX}/openssl \
+--with-ssl=/usr/lib \
 --with-apr=${APR_PREFIX}bin/apr-1-config \
 --with-apr-util=${APR_UTIL_PREFIX}bin/apu-1-config"
 
@@ -90,6 +120,20 @@ if promptyn "process apr?";then
     fi
 fi
 
+if promptyn "process apr-iconv?";then
+    cd $APR_ICONV_DIR
+    if promptyn "configure apr-iconv?";then
+        echo "configure apr with configuration $APR_ICONV_CONFIGURATION"
+        $CONFIGURE -q $APR_ICONV_CONFIGURATION
+    fi
+    if promptyn "make apr-iconv?";then
+        make -C $APR_ICONV_DIR
+    fi
+    if promptyn "install apr-iconv?";then
+        make -C $APR_ICONV_DIR install
+    fi
+fi
+
 if promptyn "process PCRE?";then
     cd $PCRE_DIR
     if promptyn "configure PCRE?";then
@@ -104,27 +148,12 @@ if promptyn "process PCRE?";then
     fi
 fi
 
-if promptyn "process openssl?";then
-    cd $OPENSSL_DIR
-    if promptyn "configure openssl?";then
-        echo "configure openssl with configuration $OPENSSL_CONFIGURATION"
-        ./config $OPENSSL_CONFIGURATION
-    fi
-    if promptyn "make openssl?";then
-        make -C $OPENSSL_DIR
-    fi
-    if promptyn "install openssl?";then
-        make -C $OPENSSL_DIR install
-    fi
-fi
-
-
 if promptyn "process apr-util?";then
-    apt-get install libldap-dev
+    installpackages "libldap2-dev" "libssl-dev" "openssl"
     cd $APR_UTIL_DIR
     if promptyn "configure apr-util?";then
         echo "configure apr with configuration $APR_UTIL_CONFIGURATION"
-        $CONFIGURE -q $APR_UTIL_CONFIGURATION
+        $CONFIGURE $APR_UTIL_CONFIGURATION
     fi
     if promptyn "make apr-util?";then
         make -C $APR_UTIL_DIR
@@ -135,12 +164,11 @@ if promptyn "process apr-util?";then
 fi
 
 if promptyn "process httpd?";then
-    apt-get install zlib1g-dev
-    apt-get install lua5.1
+    installpackages "zlib1g-dev" "liblua5.1-0-dev"
     cd $HTTPD_DIR
     if promptyn "configure httpd?";then
         echo "configure httpd with configuration $HTTPD_CONFIGURATION"
-        $CONFIGURE -q $HTTPD_CONFIGURATION
+        $CONFIGURE $HTTPD_CONFIGURATION
     fi
     if promptyn "make httpd?";then
         make -C $HTTPD_DIR
