@@ -357,6 +357,7 @@ LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} update-rc.d ntpdate defaults
 
 
 # clean cache
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get update
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get clean
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get autoclean
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get autoremove
