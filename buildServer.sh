@@ -42,7 +42,7 @@ done
 
 IMGFILE=${IMAGEFILE_OPT:-./Cubian-server-r1-arm.img}
 DESTDIR=${DESTDIR_OPT:-./mnt}
-TARGETS=("apache" "mysql" "redis" "php5" "nginx" "lighthttpd" "varnish" "haproxy" "memcached" "mongodb" "jre" "node" "racket")
+TARGETS=("prepare" "apache" "mysql" "redis" "php5" "nginx" "lighthttpd" "varnish" "haproxy" "memcached" "mongodb" "jre" "node" "racket")
 
 if [ ! -z "${HELP_OPT:-}" ];then
     usage
@@ -84,6 +84,17 @@ if [ ! -z "${DESTDIR}" ];then
 fi
 
 case "$TARGET" in
+    "prepare")
+    export QEMU=`which qemu-arm-static`
+    sudo cp -p ${QEMU} ${DESTDIR}${QEMU}
+    cat >> ${DESTDIR}/etc/apt/sources.list <<END
+#deb http://mirrors.sohu.com/debian/ wheezy main contrib non-free
+deb-src http://http.debian.net/debian/ wheezy main contrib non-free
+deb-src http://security.debian.org/ wheezy/updates main contrib non-free
+END
+LC_ALL=C LANGUAGE=C LANG=C chroot ${DESTDIR} apt-get update
+LC_ALL=C LANGUAGE=C LANG=C chroot ${DESTDIR} apt-get -y install build-essential
+    ;;
     "apache")
     echo "building apache"
     if promptyn "copying files?";then

@@ -152,7 +152,8 @@ LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} dpkg --configure -a
 cp /etc/resolv.conf ${ROOTFS_DIR}/etc/
 cat > ${ROOTFS_DIR}/etc/apt/sources.list <<END
 deb http://http.debian.net/debian/ wheezy main contrib non-free
-deb http://http.debian.net/debian/ wheezy main contrib non-free
+#deb http://mirrors.sohu.com/debian/ wheezy main contrib non-free
+deb http://security.debian.org/ wheezy/updates main contrib non-free
 END
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get update
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get upgrade
@@ -282,12 +283,6 @@ cat >> ${ROOTFS_DIR}/etc/hosts <<END
 127.0.0.1 ${DEB_HOSTNAME}
 END
 
-cat >> ${ROOTFS_DIR}/etc/apt/sources.list <<END
-#deb http://mirrors.sohu.com/debian/ wheezy main contrib non-free
-deb-src http://http.debian.net/debian/ wheezy main contrib non-free
-deb-src http://security.debian.org/ wheezy/updates main contrib non-free
-END
-
 cat >> ${ROOTFS_DIR}/etc/modules <<END
 
 #For SATA Support
@@ -357,7 +352,6 @@ LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} update-rc.d ntpdate defaults
 
 
 # clean cache
-LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get update
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get clean
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get autoclean
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get autoremove
