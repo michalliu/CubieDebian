@@ -152,10 +152,7 @@ LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} dpkg --configure -a
 cp /etc/resolv.conf ${ROOTFS_DIR}/etc/
 cat > ${ROOTFS_DIR}/etc/apt/sources.list <<END
 deb http://http.debian.net/debian/ wheezy main contrib non-free
-deb-src http://http.debian.net/debian/ wheezy main contrib non-free
-#deb http://mirrors.sohu.com/debian/ wheezy main contrib non-free
-deb http://security.debian.org/ wheezy/updates main contrib non-free
-deb-src http://security.debian.org/ wheezy/updates main contrib non-free
+deb http://http.debian.net/debian/ wheezy main contrib non-free
 END
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get update
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get upgrade
@@ -288,6 +285,12 @@ END
 
 cat >> ${ROOTFS_DIR}/etc/hosts <<END
 127.0.0.1 ${DEB_HOSTNAME}
+END
+
+cat >> ${ROOTFS_DIR}/etc/apt/sources.list <<END
+#deb http://mirrors.sohu.com/debian/ wheezy main contrib non-free
+deb-src http://http.debian.net/debian/ wheezy main contrib non-free
+deb-src http://security.debian.org/ wheezy/updates main contrib non-free
 END
 
 cat >> ${ROOTFS_DIR}/etc/modules <<END
@@ -761,7 +764,7 @@ do
         11) clear;
             option_picked "make disk image 2GB"
             IMAGE_FILE="${CWD}/${DEB_HOSTNAME}-base-r${RELEASE_VERSION}-arm.img"
-            IMAGE_FILESIZE=2048 #kb
+            IMAGE_FILESIZE=3072 #kb
             echo "create disk file ${IMAGE_FILE}"
             dd if=/dev/zero of=$IMAGE_FILE bs=1M count=$IMAGE_FILESIZE
             SD_PATH_OLD=${SD_PATH}
@@ -769,7 +772,7 @@ do
             echo "create device ${SD_PATH_RAW}"
             SD_PATH=${SD_PATH_RAW}
             echo "format device"
-            formatSD 1024
+            formatSD 2048
 	    SD_PATH="${SD_PATH}p"
             echo "Transferring system"
             installRoot
