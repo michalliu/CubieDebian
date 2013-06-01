@@ -99,7 +99,7 @@ ${DESTDIR}${BUILD_HOME}
         chroot ${DESTDIR} /bin/bash -c "su - -c ${BUILD_HOME}/buildApache.sh"
     fi
     ;;
-    "php")
+    "php5")
     echo "building php"
     if promptyn "copying files?";then
         BUILD_HOME="/home/cubie/php5"
