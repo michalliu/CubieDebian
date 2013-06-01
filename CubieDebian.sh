@@ -254,11 +254,6 @@ END
 finalConfig(){
 prepareEnv
 
-# clean cache
-LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get clean
-LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get autoclean
-LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get autoremove
-
 echo ${DEB_HOSTNAME} > ${ROOTFS_DIR}/etc/hostname
 
 # the backfile file only create one time
@@ -359,6 +354,12 @@ LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} update-rc.d bootlightctrl defaul
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} update-rc.d networklightctrl start 20 2 3 4 5 . stop .
 # network time
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} update-rc.d ntpdate defaults
+
+
+# clean cache
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get clean
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get autoclean
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get autoremove
 
 if promptyn "Install Personal Stuff?"; then
     installPersonalStuff
