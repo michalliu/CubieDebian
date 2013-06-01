@@ -42,7 +42,7 @@ done
 
 IMGFILE=${IMAGEFILE_OPT:-./Cubian-server-r1-arm.img}
 DESTDIR=${DESTDIR_OPT:-./mnt}
-TARGETS=("apache" "mysql" "redis" "php" "nginx" "lighthttpd" "varnish" "haproxy" "memcached" "mongodb" "jre" "node")
+TARGETS=("apache" "mysql" "redis" "php5" "nginx" "lighthttpd" "varnish" "haproxy" "memcached" "mongodb" "jre" "node" "racket")
 
 if [ ! -z "${HELP_OPT:-}" ];then
     usage
