@@ -56,7 +56,8 @@ PHP5_CONFIGURATION=" \
 --without-mm \
 --with-curl=shared,/usr \
 --with-zlib-dir=/usr \
---with-gd=shared,/usr \
+--with-vpx-dir=/usr \
+--with-gd \
 --enable-gd-native-ttf \
 --with-gmp=shared,/usr \
 --with-jpeg-dir=shared,/usr \
@@ -117,7 +118,8 @@ if promptyn "process php5?";then
 "libsnmp-dev" \
 "libtidy-dev" \
 "libxslt1-dev" \
-"libmcrypt-dev"
+"libmcrypt-dev" \
+"libvpx-dev"
 
     if promptyn "configure php5?";then
         echo "configure php5 with configuration $PHP5_CONFIGURATION"
