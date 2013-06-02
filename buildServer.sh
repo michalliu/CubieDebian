@@ -103,7 +103,6 @@ LC_ALL=C LANGUAGE=C LANG=C chroot ${DESTDIR} apt-get -y install build-essential
         rsync -avc --exclude '.git' ${CWD}/lib/APR* \
 ${CWD}/lib/PCRE \
 ${CWD}/lib/httpd \
-${CWD}/lib/openssl \
 ${CWD}/fns.sh \
 ${CWD}/buildApache.sh \
 ${DESTDIR}${BUILD_HOME}
