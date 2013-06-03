@@ -8,7 +8,7 @@ CWD=$(cd "$(dirname "$0")"; pwd)
 
 # This is the script verion
 SCRIPT_VERSION="1.0"
-RELEASE_VERSION="1"
+RELEASE_VERSION="2"
 DEVELOPMENT_CODE="argon"
 
 # This will be the hostname of the cubieboard
@@ -780,7 +780,7 @@ do
             losetup -d ${SD_PATH}
             SD_PATH=${SD_PATH_OLD}
             echo  "compressing image"
-            bzip2 -zkfv9 $IMAGE_FILE
+            bzip2 -zktfv9 $IMAGE_FILE
             show_menu
             ;;
         12) clear;
