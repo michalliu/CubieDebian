@@ -730,7 +730,7 @@ do
                 umountSDSafe
                 echoRed "Done";
                 echoRed "Formating"
-                formatSD 2048
+                formatSD 2944
                 echoRed "Done";
                 echoRed "Transferring data, it may take a while, please be patient, DO NOT UNPLUG YOUR DEVICE, it will be removed automaticlly when finished";
                 installRoot
@@ -745,7 +745,7 @@ do
         11) clear;
             echoRed "make disk image 4GB"
             IMAGE_FILE="${CWD}/${DEB_HOSTNAME}-base-r${RELEASE_VERSION}-arm.img"
-            IMAGE_FILESIZE=3072 #kb
+            IMAGE_FILESIZE=3968 #4096KB ~= 4000KB 4000KB-128KB=3968KB
             echo "create disk file ${IMAGE_FILE}"
             dd if=/dev/zero of=$IMAGE_FILE bs=1M count=$IMAGE_FILESIZE
             SD_PATH_OLD=${SD_PATH}
@@ -753,7 +753,7 @@ do
             echo "create device ${SD_PATH_RAW}"
             SD_PATH=${SD_PATH_RAW}
             echo "format device"
-            formatSD 2048
+            formatSD 2944 # 3968KB-1024KB(SWAP)=2944KB
 	    SD_PATH="${SD_PATH}p"
             echo "Transferring system"
             installRoot
@@ -770,6 +770,8 @@ do
             if ! testbz2 "${IMAGE_FILE}.bz2";then
                 echo "PLEASE REGENERATE THE IMAGE FILE!!!"
                 pause
+            else
+                echo "PASS"
             fi
             show_menu
             ;;
