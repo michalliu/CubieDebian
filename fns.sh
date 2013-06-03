@@ -22,12 +22,17 @@ return 1
 
 installpackages(){
   pkglist=( "$@" )
+  missingpkgs=""
   for pkg in "${pkglist[@]}";do
       if ! haspackage "$pkg";then
-          echo "install missing package ${pkg}"
-          apt-get install -y "${pkg}"
+          missingpkgs="${missingpkgs} ${pkg}"
       fi
   done
+  if [[ -n $missingpkgs ]];then
+      apt-get install -y ${missingpkgs}
+  else
+      echo "all the packages are installed"
+  fi
 }
 
 function contains() {
