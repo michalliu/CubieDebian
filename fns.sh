@@ -52,8 +52,35 @@ isRoot() {
 }
 
 isRoot2(){
-if [[ ${EUID} != 0 && ${UID} != 0 ]];then
-    return 1
-fi
-return 0
+    if [[ ${EUID} != 0 && ${UID} != 0 ]];then
+        return 1
+    fi
+    return 0
+}
+
+testbz2(){
+    echo "check integrity of file $1"
+    bzip2 -t $1>/dev/null 2>&1
+    if [ ! $? -eq 0 ];then
+        echo "$1 is broken"
+        return 1
+    fi
+    return 0
+}
+
+pause(){
+    PROMPT_TEXT="Press any key to continue..."
+    PROMPT_TIMEOUT=10
+    if [[ $1 =~ "^[0-9]+$" ]];then
+    PROMPT_TIMEOUT=$1
+    fi
+    read -t${PROMPT_TIMEOUT} -n1 -p "${PROMPT_TEXT}" key
+    return 0
+}
+
+echoRed(){
+    COLOR=`echo -e "\033[01;31m"` # bold red
+    RESET=`echo -e "\033[00;00m"` # normal white
+    MESSAGE=${@:-"${RESET}Error: No message passed"}
+    echo "${COLOR}${MESSAGE}${RESET}"
 }

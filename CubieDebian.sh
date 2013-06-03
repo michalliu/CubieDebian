@@ -1,10 +1,12 @@
-#!/bin/sh
+#!/bin/bash
 
 #################
 # CONFIGURATION #
 #################
 PWD="`pwd`"
 CWD=$(cd "$(dirname "$0")"; pwd)
+
+source ${CWD}/fns.sh
 
 # This is the script verion
 SCRIPT_VERSION="1.0"
@@ -421,17 +423,6 @@ umountSDSafe
 ejectSD
 }
 
-promptyn () {
-while true; do
-  read -p "$1 " yn
-  case $yn in
-    [Yy]* ) return 0;;
-    [Nn]* ) return 1;;
-    * ) echo "Please answer yes or no.";;
-  esac
-done
-}
-
 echoStage () {
 echo ""
 echo "-- Stage $1 : $2"
@@ -507,12 +498,12 @@ fi
 }
 
 show_menu(){
-    NORMAL=`echo "\033[m"`
-    MENU=`echo "\033[36m"` #Blue
-    NUMBER=`echo "\033[33m"` #yellow
-    FGRED=`echo "\033[41m"`
-    RED_TEXT=`echo "\033[31m"`
-    ENTER_LINE=`echo "\033[33m"`
+    NORMAL=`echo -e "\033[m"`
+    MENU=`echo -e "\033[36m"` #Blue
+    NUMBER=`echo -e "\033[33m"` #yellow
+    FGRED=`echo -e "\033[41m"`
+    RED_TEXT=`echo -e "\033[31m"`
+    ENTER_LINE=`echo -e "\033[33m"`
     echo "${MENU}    Debian Builder ${SCRIPT_VERSION}     ${NORMAL}"
     echo "${MENU}${NUMBER} 1)${MENU} Setup enviroment ${NORMAL}"
     echo "${MENU}${NUMBER} 2)${MENU} Download or Update Linux source ${NORMAL}"
@@ -537,12 +528,6 @@ show_menu(){
     fi
     read opt
 }
-option_picked(){
-    COLOR='\033[01;31m' # bold red
-    RESET='\033[00;00m' # normal white
-    MESSAGE=${@:-"${RESET}Error: No message passed"}
-    echo "${COLOR}${MESSAGE}${RESET}"
-}
 
 isRoot
 clear
@@ -555,42 +540,42 @@ do
     else
         case $opt in
         1) clear;
-            option_picked "Set up your enviroment";
+            echoRed "Set up your enviroment";
             if promptyn "Install essential building tools to `uname -v`?"; then
                 setupTools
             fi
-            option_picked "Done";
+            echoRed "Done";
             show_menu
             ;;
         2) clear;
-            option_picked "Clone repository uBoot,kernel,tools,boards from github";
+            echoRed "Clone repository uBoot,kernel,tools,boards from github";
             gitClone
             if promptyn "Do you want update these repositories?"; then
                 git submodule foreach git pull
             fi
-            option_picked "Done";
+            echoRed "Done";
             show_menu
             ;;
         3) clear;
-            option_picked "Start build uBoot";
+            echoRed "Start build uBoot";
             buildUBoot
-            option_picked "Done";
-            option_picked "Start build sunxi-tools";
+            echoRed "Done";
+            echoRed "Start build sunxi-tools";
             buildTools
-            option_picked "Done";
+            echoRed "Done";
             show_menu
             ;;
         4) clear;
-            option_picked "Build Linux kernel";
+            echoRed "Build Linux kernel";
             if promptyn "Reconfigure kernel?"; then
                 make -C ${CWD}/linux-sunxi/ ARCH=arm menuconfig
             fi
             make -j4 -C ${CWD}/linux-sunxi/ ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- uImage modules
-            option_picked "Done";
+            echoRed "Done";
             show_menu
             ;;
         5) clear;
-            option_picked "Download rootfs";
+            echoRed "Download rootfs";
             if [ -d ${ROOTFS_DIR} ];then
                if promptyn "The rootfs exists, do you want delete it?"; then
                    rm -rf ${ROOTFS_DIR}
@@ -601,46 +586,46 @@ do
                    if [ -d ${ROOTFS_DIR} ];then
                        rm -rf ${ROOTFS_DIR}
                    fi
-                   option_picked "Restore from rootfs";
+                   echoRed "Restore from rootfs";
                    tar -xzPf ${ROOTFS_BACKUP}
-                   option_picked "Done";
+                   echoRed "Done";
                    show_menu
                    continue
                fi
             fi
             if promptyn "Download rootfs, it may take a few minutes, continue?"; then
-                option_picked "Start download rootfs";
+                echoRed "Start download rootfs";
                 downloadSys
-                option_picked "Make a backup of the clean rootfs";
+                echoRed "Make a backup of the clean rootfs";
                 if [ -f ${ROOTFS_BACKUP} ];then
                     rm ${ROOTFS_BACKUP}
                 fi
                 tar -czPf ${ROOTFS_BACKUP} ${ROOTFS_DIR}
             fi
-            option_picked "Done";
+            echoRed "Done";
             show_menu
             ;;
         6) clear;
-            option_picked "Install base system";
+            echoRed "Install base system";
             if [ -f ${BASESYS_BACKUP} ];then
                if promptyn "Found a backup of base system, restore from it?"; then
                    if [ -d ${ROOTFS_DIR} ];then
                        rm -rf ${ROOTFS_DIR}
                    fi
-                   option_picked "Restore basesystem, please wait";
+                   echoRed "Restore basesystem, please wait";
                    tar -xzPf ${BASESYS_BACKUP}
-                   option_picked "Base System Restored";
+                   echoRed "Base System Restored";
                    show_menu
                    continue
                fi
             fi
             if [ -d ${ROOTFS_DIR} ];then
                 if promptyn "Are you sure to install the base system?"; then
-                   option_picked "Installing base system, it may take a while";
+                   echoRed "Installing base system, it may take a while";
                    installBaseSys
-                   option_picked "Base system installed";
+                   echoRed "Base system installed";
                 fi
-                option_picked "Make a backup of the clean base system";
+                echoRed "Make a backup of the clean base system";
                 if [ -f ${BASESYS_BACKUP} ];then
                     rm ${BASESYS_BACKUP}
                 fi
@@ -648,28 +633,28 @@ do
             else
                 echo "[E] rootfs is not existed at ${ROOTFS_DIR}"
             fi
-            option_picked "Done";
+            echoRed "Done";
             show_menu
             ;;
         7) clear;
-            option_picked "Install packages";
+            echoRed "Install packages";
             if [ -f ${BASESYS_PKG_BACKUP} ];then
                if promptyn "Found a backup of base system with packages, restore from it?"; then
                    if [ -d ${ROOTFS_DIR} ];then
                        rm -rf ${ROOTFS_DIR}
                    fi
-                   option_picked "Restore basesystem with packages, please wait";
+                   echoRed "Restore basesystem with packages, please wait";
                    tar -xzPf ${BASESYS_PKG_BACKUP}
-                   option_picked "Base System with packages Restored";
+                   echoRed "Base System with packages Restored";
                    show_menu
                    continue
                fi
             fi
             if [ -d ${ROOTFS_DIR} ];then
-                option_picked "${DEB_EXTRAPACKAGES}";
+                echoRed "${DEB_EXTRAPACKAGES}";
                 installPackages
-                option_picked "Package ${DEB_EXTRAPACKAGES} installed to the system";
-                option_picked "Make a backup of the system";
+                echoRed "Package ${DEB_EXTRAPACKAGES} installed to the system";
+                echoRed "Make a backup of the system";
                 if [ -f ${BASESYS_PKG_BACKUP} ];then
                     rm ${BASESYS_PKG_BACKUP}
                 fi
@@ -677,7 +662,7 @@ do
             else
                 echo "[E] rootfs is not existed at ${ROOTFS_DIR}"
             fi
-            option_picked "Done";
+            echoRed "Done";
             show_menu
             ;;
         8) clear;
@@ -686,15 +671,15 @@ do
                    if [ -d ${ROOTFS_DIR} ];then
                        rm -rf ${ROOTFS_DIR}
                    fi
-                   option_picked "Restore basesystem with standard configed, please wait";
+                   echoRed "Restore basesystem with standard configed, please wait";
                    tar -xzPf ${BASESYS_CONFIG_BACKUP}
-                   option_picked "Base System with standard configed Restored";
+                   echoRed "Base System with standard configed Restored";
                    show_menu
                    continue
                fi
             fi
             if [ -d ${ROOTFS_DIR} ];then
-                option_picked "Install UBoot";
+                echoRed "Install UBoot";
                 if [ -f "${ROOTFS_DIR}/boot/boot.scr" ] && [ -f "${ROOTFS_DIR}/boot/script.bin" ];then
                     if promptyn "UBoot has been installed, reinstall?"; then
                         installUBoot
@@ -702,8 +687,8 @@ do
                 else
                     installUBoot
                 fi
-                option_picked "UBoot installed";
-                option_picked "Install linux kernel";
+                echoRed "UBoot installed";
+                echoRed "Install linux kernel";
                 if [ -f "${ROOTFS_DIR}/boot/uImage" ];then
                     if promptyn "Kernel has been installed, reinstall?"; then
                         installKernel
@@ -711,14 +696,14 @@ do
                 else
                     installKernel
                 fi
-                option_picked "Kernel installed";
-                option_picked "Config Network";
+                echoRed "Kernel installed";
+                echoRed "Config Network";
                     configNetwork
-                option_picked "Net work configed";
-                option_picked "Config System";
+                echoRed "Net work configed";
+                echoRed "Config System";
                     configSys
-                option_picked "System configed";
-                option_picked "Make a backup of the system";
+                echoRed "System configed";
+                echoRed "Make a backup of the system";
                 if [ -f ${BASESYS_CONFIG_BACKUP} ];then
                     rm ${BASESYS_CONFIG_BACKUP}
                 fi
@@ -727,38 +712,38 @@ do
                 echo "[E] rootfs is not existed at ${ROOTFS_DIR}"
             fi
 
-            option_picked "Done";
+            echoRed "Done";
             show_menu
             ;;
         9) clear;
-            option_picked "Install Utilites and personal stuff"
+            echoRed "Install Utilites and personal stuff"
             finalConfig
-            option_picked "Done";
+            echoRed "Done";
             show_menu
             ;;
         10) clear;
-            option_picked "Install to your device ${SD_PATH}"
-            option_picked "Device info"
+            echoRed "Install to your device ${SD_PATH}"
+            echoRed "Device info"
             fdisk -l | grep ${SD_PATH}
             if promptyn "All the data on ${SD_PATH} will be destoried, continue?"; then
-                option_picked "umount ${SD_PATH}"
+                echoRed "umount ${SD_PATH}"
                 umountSDSafe
-                option_picked "Done";
-                option_picked "Formating"
+                echoRed "Done";
+                echoRed "Formating"
                 formatSD 2048
-                option_picked "Done";
-                option_picked "Transferring data, it may take a while, please be patient, DO NOT UNPLUG YOUR DEVICE, it will be removed automaticlly when finished";
+                echoRed "Done";
+                echoRed "Transferring data, it may take a while, please be patient, DO NOT UNPLUG YOUR DEVICE, it will be removed automaticlly when finished";
                 installRoot
                 installMBR
                 removeSD
-                option_picked "Done";
-                option_picked "Congratulations,you can safely remove your sd card";
-                option_picked "Now press Enter to quit the program";
+                echoRed "Done";
+                echoRed "Congratulations,you can safely remove your sd card";
+                echoRed "Now press Enter to quit the program";
             fi
             show_menu
             ;;
         11) clear;
-            option_picked "make disk image 2GB"
+            echoRed "make disk image 4GB"
             IMAGE_FILE="${CWD}/${DEB_HOSTNAME}-base-r${RELEASE_VERSION}-arm.img"
             IMAGE_FILESIZE=3072 #kb
             echo "create disk file ${IMAGE_FILE}"
@@ -780,11 +765,16 @@ do
             losetup -d ${SD_PATH}
             SD_PATH=${SD_PATH_OLD}
             echo  "compressing image"
-            bzip2 -zktfv9 $IMAGE_FILE
+            bzip2 -zkfv9 $IMAGE_FILE
+            echo  "test decompress"
+            if ! testbz2 "${IMAGE_FILE}.bz2";then
+                echo "PLEASE REGENERATE THE IMAGE FILE!!!"
+                pause
+            fi
             show_menu
             ;;
         12) clear;
-            option_picked "recompile cubieboard.fex to script.bin on ${SD_PATH}1 /boot ${NORMAL}"
+            echoRed "recompile cubieboard.fex to script.bin on ${SD_PATH}1 /boot ${NORMAL}"
             umountSDSafe
             sleep 1
             mountRoot
@@ -794,21 +784,21 @@ do
                 SD_SCRIPT_BIN_FILE="${SD_BOOT_DIR}/script.bin"
 
                 if [ -f ${SD_FEX_FILE} ];then
-                    option_picked "hash `md5sum ${SD_SCRIPT_BIN_FILE}`"
+                    echoRed "hash `md5sum ${SD_SCRIPT_BIN_FILE}`"
                 else
-                    option_picked "[W] script.bin not founded"
+                    echoRed "[W] script.bin not founded"
                 fi
 
                 # recompile cubieboard.fex to script.bin
                 ${CWD}/sunxi-tools/fex2bin ${SD_FEX_FILE} ${SD_SCRIPT_BIN_FILE}
-                option_picked "hash `md5sum ${SD_SCRIPT_BIN_FILE}`"
-                option_picked "Done"
+                echoRed "hash `md5sum ${SD_SCRIPT_BIN_FILE}`"
+                echoRed "Done"
             fi
             if promptyn "remove ${SD_PATH}?"; then
                 umountSDSafe
                 sleep 1
                 ejectSD
-                option_picked "Your disk removed"
+                echoRed "Your disk removed"
             fi
             show_menu
             ;;
