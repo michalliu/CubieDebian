@@ -85,7 +85,7 @@ PHP5_CONFIGURATION=" \
 
 if promptyn "process php5?";then
     cd $PHP5_SRC_DIR
-    installpackages "libxml2-dev" \
+    dependspackages "libxml2-dev" \
 "re2c" \
 "bison" \
 "libssl-dev" \

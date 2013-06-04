@@ -75,17 +75,17 @@ DEFAULT_PASSWD="cubie"
 set -e
 
 setupTools() {
-apt-get install build-essential u-boot-tools qemu-user-static debootstrap git binfmt-support libusb-1.0-0-dev pkg-config libncurses5-dev debian-archive-keyring expect kpartx
+installpackages "build-essential" "u-boot-tools" "qemu-user-static" "debootstrap" "git" "binfmt-support" "libusb-1.0-0-dev" "pkg-config" "libncurses5-dev" "debian-archive-keyring" "expect" "kpartx"
 
 cat > /etc/apt/sources.list.d/emdebian.list <<END
 deb http://www.emdebian.org/debian/ wheezy main
 deb http://www.emdebian.org/debian/ sid main
 END
 
-apt-get install emdebian-archive-keyring
 apt-get update
 
-apt-get install gcc-4.5-arm-linux-gnueabihf
+installpackages "emdebian-archive-keyring" "gcc-4.5-arm-linux-gnueabihf"
+
 for i in /usr/bin/arm-linux-gnueabi*-4.5 ; do ln -f -s $i ${i%%-4.5} ; done
 }
 
@@ -113,7 +113,7 @@ make -C ${CWD}/sunxi-tools/ all
 prepareEnv() {
 # install qemu
 if [ ! -f ${ROOTFS_DIR}/usr/bin/qemu-arm-static ];then
-    cp -f /usr/bin/qemu-arm-static ${ROOTFS_DIR}/usr/bin
+    cp `which qemu-arm-static` ${ROOTFS_DIR}/usr/bin
 fi
 if [ ! -f ${ROOTFS_DIR}/etc/resolv.conf ];then
     cp /etc/resolv.conf ${ROOTFS_DIR}/etc/
@@ -522,10 +522,8 @@ do
     else
         case $opt in
         1) clear;
-            echoRed "Set up your enviroment";
-            if promptyn "Install essential building tools to `uname -v`?"; then
-                setupTools
-            fi
+            echoRed "Set up your enviroment `uname -v`";
+            setupTools
             echoRed "Done";
             show_menu
             ;;

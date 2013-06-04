@@ -29,10 +29,43 @@ installpackages(){
       fi
   done
   if [[ -n $missingpkgs ]];then
+      echo "Install packages ${missingpkgs}"
       apt-get install -y ${missingpkgs}
   else
-      echo "all the deb package are installed"
+      echo "All the deb package were installed"
   fi
+}
+
+dependspackages(){
+  pkglist=( "$@" )
+  missingpkgs=""
+  echo "Check whether dependency packages installed $@"
+  for pkg in "${pkglist[@]}";do
+      if ! haspackage "$pkg";then
+          missingpkgs="${missingpkgs} ${pkg}"
+          echo "${pkg} isn't installed"
+      fi
+  done
+  if [[ -n $missingpkgs ]];then
+      echo "Install the missing dependencies${missingpkgs}"
+      apt-get install -y ${missingpkgs}
+  else
+      echo "Yeeah, all the dependencies were installed"
+  fi
+}
+
+ismounted(){
+if [[ -d $1 ]];then
+    currdir=`pwd`
+    absdir=$(cd $1;pwd)
+    cd $currdir
+    if grep -qs "$absdir" /proc/mounts;then
+        return 0
+    else 
+        return 1
+    fi
+fi
+return 2
 }
 
 function contains() {
@@ -50,7 +83,7 @@ function contains() {
 
 isRoot() {
   if [ "`id -u`" -ne "0" ]; then
-    echo "this script needs to be run as root, try again with sudo"
+    echo "This script needs to be run as root, try again with sudo"
     return 1
   fi
   return 0
@@ -64,7 +97,7 @@ isRoot2(){
 }
 
 testbz2(){
-    echo "check integrity of file $1"
+    echo "Check integrity of file $1"
     bzip2 -t $1>/dev/null 2>&1
     if [ ! $? -eq 0 ];then
         echo "$1 is broken"

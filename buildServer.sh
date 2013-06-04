@@ -97,28 +97,28 @@ LC_ALL=C LANGUAGE=C LANG=C chroot ${DESTDIR} apt-get -y install build-essential
     ;;
     "apache2")
     echo "building apache2"
+    BUILD_HOME="/home/cubie/apache2"
     if promptyn "copying files?";then
         #tar --exclude=".git" -czf - ./lib | ( cd ../${DESTDIR}/home/cubie; tar -xzvf -)
-        BUILD_HOME="/home/cubie/apache2"
         rsync -avc --exclude '.git' ${CWD}/lib/APR* \
 ${CWD}/lib/PCRE \
 ${CWD}/lib/httpd \
 ${CWD}/fns.sh \
 ${CWD}/buildApache.sh \
 ${DESTDIR}${BUILD_HOME}
-        chroot ${DESTDIR} /bin/bash -c "su - -c ${BUILD_HOME}/buildApache.sh"
     fi
+    chroot ${DESTDIR} /bin/bash -c "su - -c ${BUILD_HOME}/buildApache.sh"
     ;;
     "php5")
     echo "building php"
+    BUILD_HOME="/home/cubie/php5"
     if promptyn "copying files?";then
-        BUILD_HOME="/home/cubie/php5"
         rsync -avc --exclude '.git' ${CWD}/lib/php5* \
 ${CWD}/fns.sh \
 ${CWD}/buildPHP.sh \
 ${DESTDIR}${BUILD_HOME}
-        chroot ${DESTDIR} /bin/bash -c "su - -c ${BUILD_HOME}/buildPHP.sh"
     fi
+    chroot ${DESTDIR} /bin/bash -c "su - -c ${BUILD_HOME}/buildPHP.sh"
     ;;
     *)
     echo "sry, ${TARGET} not implemented yet"
