@@ -31,7 +31,7 @@ installpackages(){
   if [[ -n $missingpkgs ]];then
       apt-get install -y ${missingpkgs}
   else
-      echo "all the packages are installed"
+      echo "all the deb package are installed"
   fi
 }
 
