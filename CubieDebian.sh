@@ -74,14 +74,6 @@ DEFAULT_PASSWD="cubie"
 ########################
 set -e
 
-isRoot() {
-  if [ "`id -u`" -ne "0" ]; then
-    echo "this script needs to be run as root, try again with sudo"
-    return 1
-  fi
-  return 0
-}
-
 setupTools() {
 apt-get install build-essential u-boot-tools qemu-user-static debootstrap git binfmt-support libusb-1.0-0-dev pkg-config libncurses5-dev debian-archive-keyring expect kpartx
 
@@ -97,19 +89,9 @@ apt-get install gcc-4.5-arm-linux-gnueabihf
 for i in /usr/bin/arm-linux-gnueabi*-4.5 ; do ln -f -s $i ${i%%-4.5} ; done
 }
 
-gitClone() {
-if [ ! -d "${CWD}/u-boot-sunxi" ];then
-git clone https://github.com/linux-sunxi/u-boot-sunxi.git
-fi
-if [ ! -d "${CWD}/linux-sunxi" ];then
-git clone https://github.com/mmplayer/linux-sunxi.git -b sunxi-3.4
-fi
-if [ ! -d "${CWD}/sunxi-tools" ];then
-git clone https://github.com/linux-sunxi/sunxi-tools.git
-fi
-if [ ! -d "${CWD}/sunxi-boards" ];then
-git clone https://github.com/mmplayer/sunxi-boards.git 
-fi
+initRepo() {
+git submodule init
+git submodule update
 }
 
 buildUBoot() {
@@ -463,7 +445,7 @@ if [ -b ${SD_PATH} ]; then
     echoStage 1 "Setting up build environment"
     setupTools
     echoStage 2 "Cloning repositories"
-    gitClone
+    initRepo
     echoStage 3 "Building U-Boot"
     buildUBoot
     echoStage 4 "Building Kernel"
@@ -549,7 +531,7 @@ do
             ;;
         2) clear;
             echoRed "Clone repository uBoot,kernel,tools,boards from github";
-            gitClone
+            initRepo
             if promptyn "Do you want update these repositories?"; then
                 git submodule foreach git pull
             fi
@@ -730,7 +712,7 @@ do
                 umountSDSafe
                 echoRed "Done";
                 echoRed "Formating"
-                formatSD 2944
+                formatSD 2662
                 echoRed "Done";
                 echoRed "Transferring data, it may take a while, please be patient, DO NOT UNPLUG YOUR DEVICE, it will be removed automaticlly when finished";
                 installRoot
@@ -745,7 +727,7 @@ do
         11) clear;
             echoRed "make disk image 4GB"
             IMAGE_FILE="${CWD}/${DEB_HOSTNAME}-base-r${RELEASE_VERSION}-arm.img"
-            IMAGE_FILESIZE=3968 #4096KB ~= 4000KB 4000KB-128KB=3968KB
+            IMAGE_FILESIZE=3686 #
             echo "create disk file ${IMAGE_FILE}"
             dd if=/dev/zero of=$IMAGE_FILE bs=1M count=$IMAGE_FILESIZE
             SD_PATH_OLD=${SD_PATH}
@@ -753,7 +735,7 @@ do
             echo "create device ${SD_PATH_RAW}"
             SD_PATH=${SD_PATH_RAW}
             echo "format device"
-            formatSD 2944 # 3968KB-1024KB(SWAP)=2944KB
+            formatSD 2662
 	    SD_PATH="${SD_PATH}p"
             echo "Transferring system"
             installRoot
@@ -766,7 +748,6 @@ do
             SD_PATH=${SD_PATH_OLD}
             echo  "compressing image"
             bzip2 -zkfv9 $IMAGE_FILE
-            echo  "test decompress"
             if ! testbz2 "${IMAGE_FILE}.bz2";then
                 echo "PLEASE REGENERATE THE IMAGE FILE!!!"
                 pause
