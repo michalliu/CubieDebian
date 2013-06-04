@@ -6,26 +6,19 @@ source ${CWD}/fns.sh
 
 CONFIGURE="./configure"
 
-PHP5_DIR="${CWD}/php5"
+PHP5_ALIAS="php54"
+
+PHP5_SRC_DIR="${CWD}/php5"
 PHP5_CONFIGURATION=" \
---prefix=/usr/share/php52 \
---datadir=/usr/share/php52 \
---mandir=/usr/share/man \
---bindir=/usr/bin/php52 \
+--with-layout=GNU \
 --with-libdir=lib64 \
---includedir=/usr/include \
---sysconfdir=/etc/php52/apache2 \
---with-config-file-path=/etc/php52/cli \
---with-config-file-scan-dir=/etc/php52/conf.d \
---localstatedir=/var \
 --disable-debug \
 --with-regex=php \
 --disable-rpath \
 --disable-static \
 --disable-posix \
 --with-pic \
---with-layout=GNU \
---with-pear=/usr/share/php \
+--without-pear \
 --enable-calendar \
 --enable-sysvsem \
 --enable-sysvshm \
@@ -52,7 +45,6 @@ PHP5_CONFIGURATION=" \
 --enable-soap \
 --enable-zip \
 --with-mhash \
---with-exec-dir=/usr/lib/php5/libexec \
 --without-mm \
 --with-curl=shared,/usr \
 --with-zlib-dir=/usr \
@@ -92,7 +84,7 @@ PHP5_CONFIGURATION=" \
 --with-imap-ssl"
 
 if promptyn "process php5?";then
-    cd $PHP5_DIR
+    cd $PHP5_SRC_DIR
     installpackages "libxml2-dev" \
 "re2c" \
 "bison" \
@@ -126,9 +118,9 @@ if promptyn "process php5?";then
         $CONFIGURE $PHP5_CONFIGURATION
     fi
     if promptyn "make php5?";then
-        make -C $PHP5_DIR
+        make -C $PHP5_SRC_DIR
     fi
     if promptyn "install php5?";then
-        make -C $PHP5_DIR install
+        make -C $PHP5_SRC_DIR install
     fi
 fi

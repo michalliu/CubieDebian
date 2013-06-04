@@ -42,7 +42,7 @@ done
 
 IMGFILE=${IMAGEFILE_OPT:-./Cubian-server-r1-arm.img}
 DESTDIR=${DESTDIR_OPT:-./mnt}
-TARGETS=("prepare" "apache" "mysql" "redis" "php5" "nginx" "lighthttpd" "varnish" "haproxy" "memcached" "mongodb" "jre" "node" "racket")
+TARGETS=("prepare" "apache2" "php5" "mysql" "redis" "nginx" "lighthttpd" "varnish" "haproxy" "memcached" "mongodb" "jre" "node" "racket")
 
 if [ ! -z "${HELP_OPT:-}" ];then
     usage
@@ -95,11 +95,11 @@ END
 LC_ALL=C LANGUAGE=C LANG=C chroot ${DESTDIR} apt-get update
 LC_ALL=C LANGUAGE=C LANG=C chroot ${DESTDIR} apt-get -y install build-essential
     ;;
-    "apache")
-    echo "building apache"
+    "apache2")
+    echo "building apache2"
     if promptyn "copying files?";then
         #tar --exclude=".git" -czf - ./lib | ( cd ../${DESTDIR}/home/cubie; tar -xzvf -)
-        BUILD_HOME="/home/cubie/apache"
+        BUILD_HOME="/home/cubie/apache2"
         rsync -avc --exclude '.git' ${CWD}/lib/APR* \
 ${CWD}/lib/PCRE \
 ${CWD}/lib/httpd \

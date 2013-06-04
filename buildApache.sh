@@ -7,22 +7,24 @@ source ${CWD}/fns.sh
 CONFIGURE="./configure"
 PREFIX_BASE="/usr/local"
 
-APR_DIR="${CWD}/APR"
-APR_PREFIX="${PREFIX_BASE}/apr-httpd/"
+APR_SRC_DIR="${CWD}/APR"
+APR_PREFIX="${PREFIX_BASE}/apr"
 APR_CONFIGURATION="--prefix=${APR_PREFIX}"
 
-PCRE_DIR="${CWD}/PCRE"
+PCRE_SRC_DIR="${CWD}/PCRE"
 PCRE_PREFIX="${PREFIX_BASE}/pcre"
 PCRE_CONFIGURATION="--prefix=${PCRE_PREFIX}"
 
 APR_ICONV_DIR="${CWD}/APR-iconv"
-APR_ICONV_PREFIX="${PREFIX_BASE}/apr-iconv-httpd/"
-APR_ICONV_CONFIGURATION="--prefix=${APR_ICONV_PREFIX} \
+APR_ICONV_PREFIX="${PREFIX_BASE}/apr-iconv"
+APR_ICONV_CONFIGURATION=" \
+--prefix=${APR_ICONV_PREFIX} \
 --with-apr=${APR_PREFIX}bin/apr-1-config"
 
-APR_UTIL_DIR="${CWD}/APR-util"
-APR_UTIL_PREFIX="${PREFIX_BASE}/apr-util-httpd/"
-APR_UTIL_CONFIGURATION="--prefix=${APR_UTIL_PREFIX} \
+APR_UTIL_SRC_DIR="${CWD}/APR-util"
+APR_UTIL_PREFIX="${PREFIX_BASE}/apr-util"
+APR_UTIL_CONFIGURATION=" \
+--prefix=${APR_UTIL_PREFIX} \
 --with-crypto \
 --with-openssl=/usr/lib \
 --with-apr=${APR_PREFIX} \
@@ -30,8 +32,9 @@ APR_UTIL_CONFIGURATION="--prefix=${APR_UTIL_PREFIX} \
 --with-ldap=ldap \
 --with-iconv=${APR_ICONV_PREFIX}"
 
-HTTPD_DIR="${CWD}/httpd"
-HTTPD_CONFIGURATION="--enable-authn-anon \
+HTTPD_SRC_DIR="${CWD}/httpd"
+HTTPD_CONFIGURATION=" \
+--enable-authn-anon \
 --enable-authn-dbm \
 --enable-authz-owner \
 --enable-auth-digest \
@@ -78,16 +81,16 @@ HTTPD_CONFIGURATION="--enable-authn-anon \
 --with-apr-util=${APR_UTIL_PREFIX}bin/apu-1-config"
 
 if promptyn "process apr?";then
-    cd $APR_DIR
+    cd $APR_SRC_DIR
     if promptyn "configure apr?";then
         echo "configure apr with configuration $APR_CONFIGURATION"
         $CONFIGURE -q $APR_CONFIGURATION
     fi
     if promptyn "make apr?";then
-        make -C $APR_DIR
+        make -C $APR_SRC_DIR
     fi
     if promptyn "install apr?";then
-        make -C $APR_DIR install
+        make -C $APR_SRC_DIR install
     fi
 fi
 
@@ -106,45 +109,45 @@ if promptyn "process apr-iconv?";then
 fi
 
 if promptyn "process PCRE?";then
-    cd $PCRE_DIR
+    cd $PCRE_SRC_DIR
     if promptyn "configure PCRE?";then
         echo "configure PCRE with configuration $PCRE_CONFIGURATION"
         $CONFIGURE -q $PCRE_CONFIGURATION
     fi
     if promptyn "make PCRE?";then
-        make -C $PCRE_DIR
+        make -C $PCRE_SRC_DIR
     fi
     if promptyn "install PCRE?";then
-        make -C $PCRE_DIR install
+        make -C $PCRE_SRC_DIR install
     fi
 fi
 
 if promptyn "process apr-util?";then
     installpackages "libldap2-dev" "libssl-dev" "openssl"
-    cd $APR_UTIL_DIR
+    cd $APR_UTIL_SRC_DIR
     if promptyn "configure apr-util?";then
         echo "configure apr with configuration $APR_UTIL_CONFIGURATION"
         $CONFIGURE $APR_UTIL_CONFIGURATION
     fi
     if promptyn "make apr-util?";then
-        make -C $APR_UTIL_DIR
+        make -C $APR_UTIL_SRC_DIR
     fi
     if promptyn "install apr-util?";then
-        make -C $APR_UTIL_DIR install
+        make -C $APR_UTIL_SRC_DIR install
     fi
 fi
 
 if promptyn "process httpd?";then
     installpackages "zlib1g-dev" "liblua5.1-0-dev"
-    cd $HTTPD_DIR
+    cd $HTTPD_SRC_DIR
     if promptyn "configure httpd?";then
         echo "configure httpd with configuration $HTTPD_CONFIGURATION"
         $CONFIGURE $HTTPD_CONFIGURATION
     fi
     if promptyn "make httpd?";then
-        make -C $HTTPD_DIR
+        make -C $HTTPD_SRC_DIR
     fi
     if promptyn "install httpd?";then
-        make -C $HTTPD_DIR install
+        make -C $HTTPD_SRC_DIR install
     fi
 fi
