@@ -181,6 +181,11 @@ make -C ${CWD}/linux-sunxi INSTALL_MOD_PATH=${ROOTFS_DIR} ARCH=arm CROSS_COMPILE
 
 configNetwork() {
 cat > ${ROOTFS_DIR}/etc/network/interfaces <<END
+# the loopback interface
+auto lo
+iface lo inet loopback
+
+#
 auto eth0
 allow-hotplug eth0
 iface eth0 inet ${ETH0_MODE}
@@ -232,6 +237,7 @@ installPersonalStuff(){
 NETWORK_CFG=`${CWD}/network_cfg.sh`
 cat >> ${ROOTFS_DIR}/etc/network/interfaces <<END
 
+#
 ${NETWORK_CFG}
 END
 }
