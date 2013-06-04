@@ -19,7 +19,7 @@ APR_ICONV_DIR="${CWD}/APR-iconv"
 APR_ICONV_PREFIX="${PREFIX_BASE}/apr-iconv"
 APR_ICONV_CONFIGURATION=" \
 --prefix=${APR_ICONV_PREFIX} \
---with-apr=${APR_PREFIX}bin/apr-1-config"
+--with-apr=${APR_PREFIX}/bin/apr-1-config"
 
 APR_UTIL_SRC_DIR="${CWD}/APR-util"
 APR_UTIL_PREFIX="${PREFIX_BASE}/apr-util"
@@ -77,8 +77,8 @@ HTTPD_CONFIGURATION=" \
 --with-port=8080 \
 --with-pcre=${PCRE_PREFIX} \
 --with-ssl=/usr/lib \
---with-apr=${APR_PREFIX}bin/apr-1-config \
---with-apr-util=${APR_UTIL_PREFIX}bin/apu-1-config"
+--with-apr=${APR_PREFIX}/bin/apr-1-config \
+--with-apr-util=${APR_UTIL_PREFIX}/bin/apu-1-config"
 
 if promptyn "process apr?";then
     cd $APR_SRC_DIR
