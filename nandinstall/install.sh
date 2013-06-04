@@ -90,7 +90,6 @@ mount $NANDC $SWAP
 }
 
 installBootloader(){
-echo "install bootloader"
 cd $BOOT
 rm -rf *
 rsync -avc $BOOTLOADER/* $BOOT
@@ -99,7 +98,6 @@ cd $PWD
 }
 
 installRootfs(){
-echo "install rootfs"
 rsync -avc --exclude-from=$EXCLUDE / $ROOTFS
 rsync -avc /boot/uImage $ROOTFS/boot/
 echo "please wait"
@@ -117,7 +115,6 @@ mkdir ${ROOTFS}/mnt/nandc
 }
 
 installSwap(){
-echo "making swapfile, it will take about 5 minutes, please be patient"
 dd if=/dev/zero of=$SWAPFILE bs=1M count=1024 # 1911 at maximium
 mkswap $SWAPFILE
 chmod 0600 $SWAPFILE
@@ -134,10 +131,17 @@ if promptyn "This will completely destory your data on $NAND, Are you sure to co
     sleep 5
     echo "waiting 5 seconds"
     sleep 5
+    partprobe $NAND
     mkFS
+    echo "waiting 5 seconds"
+    sleep 5
+    echo "mount NAND partitions"
     mountDevice
+    echo "install bootloader"
     installBootloader
+    echo "install rootfs"
     installRootfs
+    echo "making swapfile, it will take about 5 minutes, please be patient"
     installSwap
     patchRootfs
     umountNand
