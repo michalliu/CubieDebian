@@ -133,6 +133,7 @@ if promptyn "process apr-util?";then
         make -C $APR_UTIL_SRC_DIR
     fi
     if promptyn "install apr-util?";then
+        installpackages "libexpat1-dev"
         make -C $APR_UTIL_SRC_DIR install
     fi
 fi
