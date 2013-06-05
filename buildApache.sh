@@ -80,6 +80,23 @@ HTTPD_CONFIGURATION=" \
 --with-apr=${APR_PREFIX}/bin/apr-1-config \
 --with-apr-util=${APR_UTIL_PREFIX}/bin/apu-1-config"
 
+installab2(){
+apache_bin_dir="/usr/local/apache2/bin"
+ab2="${apache_bin_dir}/ab2"
+if [[ ! -f "$ab2" ]];then
+    cat >"$ab2"<<END
+#!/bin/bash
+set -e
+# Disable kernel's SYN flood protection temporarily
+sysctl -w net.ipv4.tcp_syncookies=0
+/usr/local/apache2/bin/ab \$@
+# Enable kernel's SYN flood protection
+sysctl -w net.ipv4.tcp_syncookies=1
+END
+fi
+chmod 0755 "$ab2"
+}
+
 if promptyn "process apr?";then
     cd $APR_SRC_DIR
     if promptyn "configure apr?";then
@@ -150,5 +167,9 @@ if promptyn "process httpd?";then
     fi
     if promptyn "install httpd?";then
         make -C $HTTPD_SRC_DIR install
+        cat >/usr/local/apache2/bin/ab2<<EOF
+    fi
+    if promptyn "install httpd tools?";then
+        installab2
     fi
 fi
