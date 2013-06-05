@@ -80,21 +80,36 @@ HTTPD_CONFIGURATION=" \
 --with-apr=${APR_PREFIX}/bin/apr-1-config \
 --with-apr-util=${APR_UTIL_PREFIX}/bin/apu-1-config"
 
-installab2(){
+installtools(){
 apache_bin_dir="/usr/local/apache2/bin"
-ab2="${apache_bin_dir}/ab2"
-if [[ ! -f "$ab2" ]];then
-    cat >"$ab2"<<END
+local_ab2="${apache_bin_dir}/ab2"
+local_apachectl="${apache_bin_dir}/apachectl"
+
+sys_bin_dir="/usr/bin"
+sys_ab="${sys_bin_dir}/ab"
+sys_apachectl="${sys_bin_dir}/apachectl"
+
+if [[ ! -f "$local_ab2" ]];then
+    cat >"$local_ab2"<<END
 #!/bin/bash
 set -e
 # Disable kernel's SYN flood protection temporarily
 sysctl -w net.ipv4.tcp_syncookies=0
-/usr/local/apache2/bin/ab \$@
+"${apache_bin_dir}/ab" \$@
 # Enable kernel's SYN flood protection
 sysctl -w net.ipv4.tcp_syncookies=1
 END
 fi
-chmod 0755 "$ab2"
+
+chmod 0755 "$local_ab2"
+
+if [[ ! -f "$sys_ab" ]];then
+ln -s $local_ab2 $sys_ab
+fi
+
+if [[ ! -f "$sys_apachectl" ]];then
+ln -s $local_apachectl $sys_apachectl
+fi
 }
 
 if promptyn "process apr?";then
@@ -170,6 +185,6 @@ if promptyn "process httpd?";then
         cat >/usr/local/apache2/bin/ab2<<EOF
     fi
     if promptyn "install httpd tools?";then
-        installab2
+        installtools
     fi
 fi
