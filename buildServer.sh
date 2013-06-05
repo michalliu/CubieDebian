@@ -42,7 +42,57 @@ done
 
 IMGFILE=${IMAGEFILE_OPT:-./Cubian-server-r1-arm.img}
 DESTDIR=${DESTDIR_OPT:-./mnt}
-TARGETS=("prepare" "apache2" "php5" "mysql" "redis" "nginx" "lighthttpd" "varnish" "haproxy" "memcached" "mongodb" "jre" "node" "racket")
+TARGETS=(\
+"prepare" \
+"apache2" \
+"php5" \
+"mysql" \
+"redis" \
+"nginx" \
+"lighthttpd" \
+"varnish" \
+"haproxy" \
+"memcached" \
+"mongodb" \
+"jre" \
+"node" \
+"racket")
+
+DEPENDENCIES=(\
+"build-essential"
+"libldap2-dev" \
+"libssl-dev" \
+"openssl" \
+"libexpat1-dev" \
+"zlib1g-dev" \
+"liblua5.1-0-dev" \
+"libxml2-dev" \
+"re2c" \
+"bison" \
+"libssl-dev" \
+"libpcre3-dev" \
+"libbz2-dev" \
+"libcurl4-openssl-dev" \
+"libdb5.1-dev" \
+"libjpeg8-dev" \
+"libpng12-dev" \
+"libxpm-dev" \
+"libfreetype6-dev" \
+"libmysqlclient-dev" \
+"postgresql-server-dev-9.1" \
+"libt1-dev" \
+"libgd2-xpm-dev" \
+"libgmp-dev" \
+"libsasl2-dev" \
+"libmhash-dev" \
+"unixodbc-dev" \
+"freetds-dev" \
+"libpspell-dev" \
+"libsnmp-dev" \
+"libtidy-dev" \
+"libxslt1-dev" \
+"libmcrypt-dev" \
+"libvpx-dev")
 
 if [ ! -z "${HELP_OPT:-}" ];then
     usage
@@ -93,7 +143,7 @@ deb-src http://http.debian.net/debian/ wheezy main contrib non-free
 deb-src http://security.debian.org/ wheezy/updates main contrib non-free
 END
 LC_ALL=C LANGUAGE=C LANG=C chroot ${DESTDIR} apt-get update
-LC_ALL=C LANGUAGE=C LANG=C chroot ${DESTDIR} apt-get -y install build-essential
+LC_ALL=C LANGUAGE=C LANG=C chroot ${DESTDIR} apt-get -y install ${DEPENDENCIES[@]}
     ;;
     "apache2")
     echo "building apache2"

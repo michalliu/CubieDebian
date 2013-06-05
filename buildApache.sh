@@ -182,7 +182,6 @@ if promptyn "process httpd?";then
     fi
     if promptyn "install httpd?";then
         make -C $HTTPD_SRC_DIR install
-        cat >/usr/local/apache2/bin/ab2<<EOF
     fi
     if promptyn "install httpd tools?";then
         installtools
