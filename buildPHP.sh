@@ -60,6 +60,7 @@ PHP5_CONFIGURATION=" \
 --with-t1lib=shared,/usr \
 --with-ldap=shared,/usr \
 --with-mysql=shared,/usr \
+--with-apxs2=/usr/local/apache2/bin/apxs \
 --with-mysqli=shared,/usr/bin/mysql_config \
 --with-pgsql=shared,/usr \
 --with-pspell=shared,/usr \
