@@ -84,6 +84,38 @@ PHP5_CONFIGURATION=" \
 --with-mcrypt \
 --with-imap-ssl"
 
+configPHP() {
+apacheroot="/usr/local/apache2"
+apacheconfroot="${apacheroot}/conf"
+extraconf="${apacheconfroot}/extra"
+
+httpdconf="httpd.conf"
+apacheconf="${apacheconfroot}/${httpdconf}"
+
+local_phpini="${CWD}/php5/php.ini-development"
+phpini="/usr/local/lib/php.ini"
+phpconf="${extraconf}/httd-php.conf"
+
+# config Apache
+cat >>$apacheconf<<END
+Include ${phpconf} 
+END
+
+# copy php.ini
+cp $local_phpini $phpini
+
+# write httpd-php.conf
+cat>$phpconf<<END
+LoadModule php5_module modules/libphp5.so
+<FilesMatch \.php$>
+    SetHandler application/x-httpd-php
+</FilesMatch>
+<FilesMatch "\.ph(p[2-6]?|tml)$">
+    SetHandler application/x-httpd-php
+</FilesMatch>
+END
+}
+
 if promptyn "process php5?";then
     cd $PHP5_SRC_DIR
     dependspackages \

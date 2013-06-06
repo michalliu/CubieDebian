@@ -80,7 +80,7 @@ HTTPD_CONFIGURATION=" \
 --with-apr=${APR_PREFIX}/bin/apr-1-config \
 --with-apr-util=${APR_UTIL_PREFIX}/bin/apu-1-config"
 
-installtools(){
+installTools(){
 apache_bin_dir="/usr/local/apache2/bin"
 local_ab2="${apache_bin_dir}/ab2"
 local_apachectl="${apache_bin_dir}/apachectl"
@@ -110,6 +110,47 @@ fi
 if [[ ! -f "$sys_apachectl" ]];then
 ln -s $local_apachectl $sys_apachectl
 fi
+}
+
+configApache(){
+defaultenabledmodules=("mod_mime" "mod_rewrite")
+defaultenabledmodulesrule=$(printf "|%s\.so" "${defaultenabledmodules[@]}")
+defaultenabledmodulesrule=${defaultenabledmodulesrule:1}
+
+apacheroot="/usr/local/apache2"
+apacheconfroot="${apacheroot}/conf"
+
+originalconf="${apacheconfroot}/original"
+
+httpdconf="httpd.conf"
+apacheconf="${apacheconfroot}/${httpdconf}"
+apacheoriginalconf="${originalconf}/${httpdconf}"
+
+awkremovecomment='{ \
+if ($0 ~ /^[ \t]*#LoadModule/) {\
+    if ($0 ~/'$defaultenabledmodulesrule'$/) {\
+        #ucomment allowd modules
+        sub(/^#/,"");print\
+    } else {\
+        # keep the LoadModule comments\
+        print\
+    }\
+} else if ($0 ~ /^[ \t]*LoadModule/) {\
+    if ($0 !~/'$defaultenabledmodulesrule'$/) {\
+        # comment modules not inside the default allowed\
+        print "#"$0\
+    } else { \
+        # keep the module unmodified\
+        print\
+    }\
+} else if ($0 ~ /^[ \t]*#/) {\
+# remove other comments\
+} else {\
+print\
+}\
+}'
+awkremoveemptyline='/./'
+cat $apacheoriginalconf | awk "$awkremovecomment" | awk $awkremoveemptyline > $apacheconf
 }
 
 if promptyn "process apr?";then
@@ -183,7 +224,8 @@ if promptyn "process httpd?";then
     if promptyn "install httpd?";then
         make -C $HTTPD_SRC_DIR install
     fi
-    if promptyn "install httpd tools?";then
-        installtools
+    if promptyn "config apache and tools?";then
+        configApache
+        installTools
     fi
 fi
