@@ -125,8 +125,7 @@ if [ -d ${ROOTFS_DIR} ];then
     rm -rf ${ROOTFS_DIR}
 fi
 mkdir --parents ${ROOTFS_DIR}
-#debootstrap --foreign --arch armhf wheezy ${ROOTFS_DIR}/ http://mirrors.sohu.com/debian/
-debootstrap --foreign --arch armhf wheezy ${ROOTFS_DIR}/ http://http.debian.net/debian/
+debootstrap --foreign --verbose --arch armhf wheezy ${ROOTFS_DIR}/ http://http.debian.net/debian/
 }
 
 installBaseSys(){
@@ -141,6 +140,7 @@ deb http://security.debian.org/ wheezy/updates main contrib non-free
 END
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get update
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get upgrade
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get clean
 }
 
 installPackages(){
@@ -343,8 +343,6 @@ LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} update-rc.d ntpdate defaults
 
 # clean cache
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get clean
-LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get autoclean
-LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get autoremove
 
 if promptyn "Install Personal Stuff?"; then
     installPersonalStuff
