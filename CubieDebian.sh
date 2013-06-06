@@ -10,7 +10,7 @@ source ${CWD}/fns.sh
 
 # This is the script verion
 SCRIPT_VERSION="1.0"
-RELEASE_VERSION="2"
+RELEASE_VERSION="3"
 DEVELOPMENT_CODE="argon"
 
 # This will be the hostname of the cubieboard
@@ -75,18 +75,8 @@ DEFAULT_PASSWD="cubie"
 set -e
 
 setupTools() {
-installpackages "build-essential" "u-boot-tools" "qemu-user-static" "debootstrap" "git" "binfmt-support" "libusb-1.0-0-dev" "pkg-config" "libncurses5-dev" "debian-archive-keyring" "expect" "kpartx"
-
-cat > /etc/apt/sources.list.d/emdebian.list <<END
-deb http://www.emdebian.org/debian/ wheezy main
-deb http://www.emdebian.org/debian/ sid main
-END
-
+installpackages "build-essential" "u-boot-tools" "debootstrap" "git" "binfmt-support" "libusb-1.0-0-dev" "pkg-config" "libncurses5-dev" "debian-archive-keyring" "expect" "kpartx"
 apt-get update
-
-installpackages "emdebian-archive-keyring" "gcc-4.5-arm-linux-gnueabihf"
-
-for i in /usr/bin/arm-linux-gnueabi*-4.5 ; do ln -f -s $i ${i%%-4.5} ; done
 }
 
 initRepo() {
