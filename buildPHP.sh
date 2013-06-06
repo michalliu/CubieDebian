@@ -92,9 +92,13 @@ extraconf="${apacheconfroot}/extra"
 httpdconf="httpd.conf"
 apacheconf="${apacheconfroot}/${httpdconf}"
 
-local_phpini="${CWD}/php5/php.ini-development"
-phpini="/usr/local/lib/php.ini"
+dev_phpini="${CWD}/php5/php.ini-development"
+production_phpini="${CWD}/php5/php.ini-production"
+phpini_dir="/usr/local/etc"
+phpini="${phpini_dir}/php.ini"
 phpconf="${extraconf}/httd-php.conf"
+
+sed -i '/libphp5\.so$/d' $apacheconf
 
 # config Apache
 cat >>$apacheconf<<END
@@ -102,7 +106,21 @@ Include ${phpconf}
 END
 
 # copy php.ini
-cp $local_phpini $phpini
+cp $dev_phpini $phpini_dir
+cp $production_phpini $phpini_dir
+
+awkremovecomment='{ \
+if ($0 ~ /^[ \t]*short_open_tag/) {\
+    print "short_open_tag = On"\
+} else if ($0 ~ /^[ \t]*;/) {\
+# remove other comments\
+} else {\
+print\
+}\
+}'
+awkremoveemptyline='/./'
+cat $production_phpini | awk "$awkremovecomment" | awk $awkremoveemptyline > $phpini
+
 
 # write httpd-php.conf
 cat>$phpconf<<END
@@ -156,5 +174,8 @@ if promptyn "process php5?";then
     fi
     if promptyn "install php5?";then
         make -C $PHP5_SRC_DIR install
+    fi
+    if promptyn "config php5?";then
+        configPHP
     fi
 fi

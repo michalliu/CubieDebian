@@ -94,10 +94,10 @@ if [[ ! -f "$local_ab2" ]];then
 #!/bin/bash
 set -e
 # Disable kernel's SYN flood protection temporarily
-sysctl -w net.ipv4.tcp_syncookies=0
-"${apache_bin_dir}/ab" \$@
+sysctl -w net.ipv4.tcp_syncookies=0>/dev/null
+$apache_bin_dir/ab \$@
 # Enable kernel's SYN flood protection
-sysctl -w net.ipv4.tcp_syncookies=1
+sysctl -w net.ipv4.tcp_syncookies=1>/dev/null
 END
 fi
 
@@ -113,7 +113,13 @@ fi
 }
 
 configApache(){
-defaultenabledmodules=("mod_mime" "mod_rewrite")
+defaultenabledmodules=(\
+"mod_access_compat" \
+"mod_authz_core" \
+"mod_unixd" \
+"mod_mime" \
+"mod_rewrite" \
+)
 defaultenabledmodulesrule=$(printf "|%s\.so" "${defaultenabledmodules[@]}")
 defaultenabledmodulesrule=${defaultenabledmodulesrule:1}
 
@@ -127,7 +133,9 @@ apacheconf="${apacheconfroot}/${httpdconf}"
 apacheoriginalconf="${originalconf}/${httpdconf}"
 
 awkremovecomment='{ \
-if ($0 ~ /^[ \t]*#LoadModule/) {\
+if ($0 ~ /^[ \t]*#ServerName/) {\
+    sub(/^#/,"");print\
+} else if ($0 ~ /^[ \t]*#LoadModule/) {\
     if ($0 ~/'$defaultenabledmodulesrule'$/) {\
         #ucomment allowd modules
         sub(/^#/,"");print\
