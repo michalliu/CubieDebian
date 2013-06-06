@@ -1,6 +1,7 @@
 [2013.x.x] r3
 * add uEnv.txt for nand installation
 * config network lookback interface by default
+* recompile using linaro toolchain
 
 [2013.6.3] r2
 * synchronize kernel from sunxi
