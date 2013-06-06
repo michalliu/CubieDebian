@@ -74,9 +74,14 @@ DEFAULT_PASSWD="cubie"
 ########################
 set -e
 
+TOOLCHAIN="${CWD}/toolchain/arm-2010.09"
+export PATH=${TOOLCHAIN}/bin:$PATH
+
 setupTools() {
-installpackages "build-essential" "u-boot-tools" "debootstrap" "git" "binfmt-support" "libusb-1.0-0-dev" "pkg-config" "libncurses5-dev" "debian-archive-keyring" "expect" "kpartx"
+sudo add-apt-repository ppa:linaro-maintainers/tools
 apt-get update
+
+installpackages "debootstrap" "qemu-user-static" "build-essential" "u-boot-tools" "git" "binfmt-support" "libusb-1.0-0-dev" "pkg-config" "libncurses5-dev" "debian-archive-keyring" "expect" "kpartx"
 }
 
 initRepo() {
@@ -85,14 +90,14 @@ git submodule update
 }
 
 buildUBoot() {
-make -C ${CWD}/u-boot-sunxi/ distclean CROSS_COMPILE=arm-linux-gnueabihf-
-make -C ${CWD}/u-boot-sunxi/ cubieboard CROSS_COMPILE=arm-linux-gnueabihf-
+make -C ${CWD}/u-boot-sunxi/ distclean CROSS_COMPILE=arm-none-linux-gnueabi-
+make -C ${CWD}/u-boot-sunxi/ cubieboard CROSS_COMPILE=arm-none-linux-gnueabi-
 }
 
 buildKernel() {
 cp linux-sunxi/arch/arm/configs/sun4i_defconfig linux-sunxi/.config
 make -C ${CWD}/linux-sunxi/ ARCH=arm menuconfig
-make -j4 -C ${CWD}/linux-sunxi/ ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- uImage modules
+make -j4 -C ${CWD}/linux-sunxi/ ARCH=arm CROSS_COMPILE=arm-none-linux-gnueabi- uImage modules
 }
 
 buildTools() {
@@ -125,7 +130,6 @@ LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} dpkg --configure -a
 cp /etc/resolv.conf ${ROOTFS_DIR}/etc/
 cat > ${ROOTFS_DIR}/etc/apt/sources.list <<END
 deb http://http.debian.net/debian/ wheezy main contrib non-free
-#deb http://mirrors.sohu.com/debian/ wheezy main contrib non-free
 deb http://security.debian.org/ wheezy/updates main contrib non-free
 END
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get update
@@ -166,7 +170,7 @@ ${CWD}/sunxi-tools/fex2bin ${ROOTFS_DIR}/boot/${FEX_FILE} ${ROOTFS_DIR}/boot/scr
 
 installKernel() {
 cp ${CWD}/linux-sunxi/arch/arm/boot/uImage ${ROOTFS_DIR}/boot
-make -C ${CWD}/linux-sunxi INSTALL_MOD_PATH=${ROOTFS_DIR} ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- modules_install
+make -C ${CWD}/linux-sunxi INSTALL_MOD_PATH=${ROOTFS_DIR} ARCH=arm CROSS_COMPILE=arm-none-linux-gnueabi- modules_install
 }
 
 configNetwork() {
@@ -544,7 +548,7 @@ do
             if promptyn "Reconfigure kernel?"; then
                 make -C ${CWD}/linux-sunxi/ ARCH=arm menuconfig
             fi
-            make -j4 -C ${CWD}/linux-sunxi/ ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- uImage modules
+            make -j4 -C ${CWD}/linux-sunxi/ ARCH=arm CROSS_COMPILE=arm-none-linux-gnueabi- uImage modules
             echoRed "Done";
             show_menu
             ;;
