@@ -141,7 +141,7 @@ installPackages(){
 prepareEnv
 # install extra modules
 if [ -n "${DEB_EXTRAPACKAGES}" ]; then
-LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get install ${DEB_EXTRAPACKAGES}
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get -y install ${DEB_EXTRAPACKAGES}
 fi
 }
 
