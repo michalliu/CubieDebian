@@ -53,18 +53,14 @@ crossCompileNcurses(){
 crossCompileOpenSSL(){
     cd ${CWD}/lib/openssl
     git checkout 357a79461dbe75e08d9dc4137767d176995be8b9
-    cross=arm-none-linux-gnueabi- \
+    export cross=arm-none-linux-gnueabi-
     ./Configure dist \
---prefix=${TOOLCHAIN}/arm-none-linux-gnueabi/openssl \
---openssldir=${TOOLCHAIN}/arm-none-linux-gnueabi/openssl
+--prefix=${TOOLCHAIN}/arm-none-linux-gnueabi/openssl
+#--openssldir=${TOOLCHAIN}/arm-none-linux-gnueabi/openssl
 
-    cross=arm-none-linux-gnueabi- \
     make CC="${cross}gcc" \
 AR="${cross}ar r" \
-RANLIB="${cross}ranlib" \
-LD="${cross}ld" \
-MAKEDEPPROG="${cross}gcc" \
-PROCESSOR=ARM
+RANLIB="${cross}ranlib"
     make install
     git checkout openssl-1.0.1e -f
     git clean -df
