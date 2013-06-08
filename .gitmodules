@@ -31,3 +31,6 @@
 [submodule "lib/MySQL"]
 	path = lib/MySQL
 	url = git@github.com:mmplayer/MySQL.git
+[submodule "lib/ncurses"]
+	path = lib/ncurses
+	url = git@github.com:mmplayer/ncurses.git
