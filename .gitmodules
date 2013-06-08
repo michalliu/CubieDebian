@@ -37,3 +37,6 @@
 [submodule "lib/openldap"]
 	path = lib/openldap
 	url = git@github.com:mmplayer/openldap.git
+[submodule "lib/zlib"]
+	path = lib/zlib
+	url = git@github.com:mmplayer/zlib.git
