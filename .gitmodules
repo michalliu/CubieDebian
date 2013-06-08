@@ -40,3 +40,6 @@
 [submodule "lib/zlib"]
 	path = lib/zlib
 	url = git@github.com:mmplayer/zlib.git
+[submodule "lib/openssl"]
+	path = lib/openssl
+	url = git@github.com:mmplayer/openssl.git
