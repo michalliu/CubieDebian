@@ -34,3 +34,6 @@
 [submodule "lib/ncurses"]
 	path = lib/ncurses
 	url = git@github.com:mmplayer/ncurses.git
+[submodule "lib/openldap"]
+	path = lib/openldap
+	url = git@github.com:mmplayer/openldap.git
