@@ -28,3 +28,6 @@
 [submodule "lib/php5"]
 	path = lib/php5
 	url = git@github.com:mmplayer/php.git
+[submodule "lib/MySQL"]
+	path = lib/MySQL
+	url = git@github.com:mmplayer/MySQL.git
