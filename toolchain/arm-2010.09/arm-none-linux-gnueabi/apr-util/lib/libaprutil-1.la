@@ -17,7 +17,7 @@ old_library='libaprutil-1.a'
 inherited_linker_flags=''
 
 # Libraries that this one depends upon.
-dependency_libs=' -L/home/michal/CubieDebian/toolchain/arm-2010.09/arm-none-linux-gnueabi/apr-iconv/lib /home/michal/CubieDebian/toolchain/arm-2010.09/arm-none-linux-gnueabi/apr-util/lib/libexpat.la /home/michal/CubieDebian/toolchain/arm-2010.09/arm-none-linux-gnueabi/apr-iconv/lib/libapriconv-1.la /home/michal/CubieDebian/toolchain/arm-2010.09/arm-none-linux-gnueabi/apr/lib/libapr-1.la -lrt -lcrypt -ldl'
+dependency_libs=' -L/home/michal/CubieDebian/toolchain/arm-2010.09/arm-none-linux-gnueabi/openldap/lib -L/home/michal/CubieDebian/toolchain/arm-2010.09/arm-none-linux-gnueabi/apr-iconv/lib /home/michal/CubieDebian/toolchain/arm-2010.09/arm-none-linux-gnueabi/apr-util/lib/libexpat.la /home/michal/CubieDebian/toolchain/arm-2010.09/arm-none-linux-gnueabi/apr-iconv/lib/libapriconv-1.la /home/michal/CubieDebian/toolchain/arm-2010.09/arm-none-linux-gnueabi/apr/lib/libapr-1.la -lrt -lcrypt -ldl'
 
 # Names of additional weak libraries provided by this library
 weak_library_names=''
