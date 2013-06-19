@@ -7,6 +7,7 @@ CWD=$(cd "$(dirname "$0")"; pwd)
 source ${CWD}/fns.sh
 TOOLCHAIN="${CWD}/toolchain/arm-2010.09"
 export PATH=${TOOLCHAIN}/bin:$PATH
+export LD_LIBRARY_PATH="${TOOLCHAIN}/arm-none-linux-gnueabi/libc/lib/"
 
 #arm-none-linux-gnueabi-gcc -print-search-dirs
 
@@ -89,12 +90,13 @@ crossCompileAPR(){
     ./configure \
 --prefix=${TOOLCHAIN}/arm-none-linux-gnueabi/apr \
 --host=arm-none-linux-gnueabi \
-ac_cv_file__dev_zero="yes" \
-ac_cv_func_setpgrp_void="yes" \
-apr_cv_process_shared_works="yes" \
-apr_cv_mutex_robust_shared="no" \
-apr_cv_tcp_nodelay_with_cork="yes" \
-ac_cv_sizeof_struct_iovec="8"
+ac_cv_file__dev_zero=yes \
+ac_cv_func_setpgrp_void=yes \
+apr_cv_process_shared_works=yes \
+apr_cv_mutex_robust_shared=yes \
+apr_cv_tcp_nodelay_with_cork=yes \
+ac_cv_sizeof_struct_iovec=8 \
+ac_cv_struct_rlimit=yes
     make
     make install
     git checkout APR-1.4.6 -f
@@ -163,15 +165,15 @@ crossCompileAPRUtil(){
     cd $PWD
 }
 
-crossCompileHttpd(){
-# dependspackage bison flex
-    cd ${CWD}/lib/httpd
-    git checkout 3ee23b629365178d8cfd3b28d4b2be68312ca252
-    CC=arm-none-linux-gnueabi-gcc \
-    AR=arm-none-linux-gnueabi-ar \
-    LD=arm-none-linux-gnueabi-ld \
-    CXX=arm-none-linux-gnueabi-g++ \
-    ./configure \
+testCompileHttpd(){
+cd ${CWD}/lib/httpd
+
+git checkout 3ee23b629365178d8cfd3b28d4b2be68312ca252
+CC=arm-none-linux-gnueabi-gcc \
+AR=arm-none-linux-gnueabi-ar \
+LD=arm-none-linux-gnueabi-ld \
+CXX=arm-none-linux-gnueabi-g++ \
+./configure \
 ap_cv_void_ptr_lt_long=no \
 --with-pcre=${TOOLCHAIN}/arm-none-linux-gnueabi/pcre \
 --with-apr=${TOOLCHAIN}/arm-none-linux-gnueabi/apr/bin/apr-1-config \
@@ -181,48 +183,25 @@ ap_cv_void_ptr_lt_long=no \
 --with-mpm=prefork \
 --with-port=8080 \
 --host=arm-none-linux-gnueabi \
---enable-authn-anon \
---enable-authn-dbm \
---enable-authz-owner \
---enable-auth-digest \
---enable-authz-ldap \
---enable-cache \
---enable-charset-lite \
---enable-dav \
---enable-dav-fs \
---enable-dav-lock \
---enable-deflate \
---enable-disk-cache \
---enable-expires \
---enable-ext-filter \
---enable-file-cache \
---enable-headers \
---enable-info \
---enable-ldap \
---enable-logio \
---enable-mem-cache \
---enable-mime-magic \
---enable-isapi \
---enable-proxy \
---enable-proxy-ajp \
---enable-proxy-http \
---enable-proxy-ftp \
---enable-proxy-balancer \
---enable-proxy-connect \
---enable-rewrite \
---enable-suexec \
---enable-ssl \
---enable-so \
---enable-static-rotatelogs \
---enable-static-ab \
---enable-speling \
---enable-ssl \
---enable-vhost-alias \
+--enable-modules=all \
 --enable-mods-shared=all \
+--enable-ssl \
+--enable-rewrite \
+--enable-so \
+--enable-static-ab \
+--enable-static-checkgid \
+--enable-static-htdbm \
+--enable-static-htdigest \
+--enable-static-htpasswd \
+--enable-static-logresolve \
+--enable-static-rotatelogs \
+--enable-vhost-alias \
 --enable-v4-mapped
+
 ldlinux="/lib/ld-linux.so.3"
 libgcc="/lib/libgcc_s.so.1"
 libc="/lib/libc.so.6"
+
 if [[ ! -f "$ldlinux" ]];then
     sudo ln -s ${TOOLCHAIN}/arm-none-linux-gnueabi/libc/lib/ld-linux.so.3 $ldlinux
 fi
@@ -232,21 +211,29 @@ fi
 if [[ ! -f "$libc" ]];then
     sudo ln -s ${TOOLCHAIN}/arm-none-linux-gnueabi/libc/lib/libc.so.6 $libc
 fi
-    make
-    sudo rm $ldlinux
-    sudo rm $libgcc
-    sudo rm $libc
-    #git checkout httpd-2.2.24 -f
-    #git clean -df
-    #cd $PWD
+   make
+   sudo rm $ldlinux
+   sudo rm $libgcc
+   sudo rm $libc
+
+   git checkout httpd-2.2.24 -f
+   git clean -df
+   cd $PWD
 }
-crossCompileHttpd
-exit
 
 # DO NOT call this function, the toolchain is already prepared
 # if you clone this repo from github, just for history purpose
 prepareToolchain(){
-    #crossCompilePCRE
-    #crossCompileNcurses
+crossCompilePCRE
+crossCompileNcurses
+crossCompileOpenSSL
+crossCompileZlib
+crossCompileAPR
+crossCompileAPRIconv
+crossCompileLDAP
+crossCompileAPRUtil
+testCompileHttpd
 }
+
+prepareToolchain
 
