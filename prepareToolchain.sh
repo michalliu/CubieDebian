@@ -246,7 +246,7 @@ exit
 # DO NOT call this function, the toolchain is already prepared
 # if you clone this repo from github, just for history purpose
 prepareToolchain(){
-    crossCompilePCRE
-    crossCompileNcurses
+    #crossCompilePCRE
+    #crossCompileNcurses
 }
 

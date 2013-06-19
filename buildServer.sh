@@ -154,10 +154,10 @@ LC_ALL=C LANGUAGE=C LANG=C chroot ${DESTDIR} apt-get -y install ${DEPENDENCIES[@
 ${CWD}/lib/PCRE \
 ${CWD}/lib/httpd \
 ${CWD}/fns.sh \
-${CWD}/buildApache.sh \
+${CWD}/compileApache.sh \
 ${DESTDIR}${BUILD_HOME}
     fi
-    chroot ${DESTDIR} /bin/bash -c "su - -c ${BUILD_HOME}/buildApache.sh"
+    chroot ${DESTDIR} /bin/bash -c "su - -c ${BUILD_HOME}/compileApache.sh"
     ;;
     "php5")
     echo "building php"
@@ -165,10 +165,10 @@ ${DESTDIR}${BUILD_HOME}
     if promptyn "copying files?";then
         rsync -avc --exclude '.git' ${CWD}/lib/php5* \
 ${CWD}/fns.sh \
-${CWD}/buildPHP.sh \
+${CWD}/compilePHP.sh \
 ${DESTDIR}${BUILD_HOME}
     fi
-    chroot ${DESTDIR} /bin/bash -c "su - -c ${BUILD_HOME}/buildPHP.sh"
+    chroot ${DESTDIR} /bin/bash -c "su - -c ${BUILD_HOME}/compilePHP.sh"
     ;;
     *)
     echo "sry, ${TARGET} not implemented yet"
