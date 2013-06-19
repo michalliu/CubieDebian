@@ -255,7 +255,7 @@ restoreFile ${ROOTFS_DIR}/etc/modules
 restoreFile ${ROOTFS_DIR}/etc/hosts
 restoreFile ${ROOTFS_DIR}/etc/ssh/sshd_config
 
-echo T0:2345:respawn:/sbin/getty -L ttyS0 115200 vt100 >> ${ROOTFS_DIR}/etc/inittab
+echo "T0:2345:respawn:/sbin/getty -L ttyS0 115200 vt100" >> ${ROOTFS_DIR}/etc/inittab
 
 cat >> ${ROOTFS_DIR}/etc/fstab <<END
 #<file system>	<mount point>	<type>	<options>	<dump>	<pass>
