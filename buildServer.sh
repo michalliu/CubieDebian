@@ -96,29 +96,34 @@ DEPENDENCIES=(\
 
 if [ ! -z "${HELP_OPT:-}" ];then
     usage
-    exit
+    exit 0
 fi
 
 if ! isRoot2;then
     echo "`basename $0` must be run as root"
-    exit -1
+    exit 1
 fi
 
 if [ -z "${TARGET}" ];then
-    echo "TARGET not found"
+    echo "TARGET is required"
     usage
     exit 2
 fi
 
-if [ $(contains "${TARGETS[@]}" "${TARGET}") == "n" ];then
-    echo "${TARGET} is not supported"
-    exit 3
+if [ -z "${DESTDIR}" ];then
+    echo "DESTDIR is required"
+    exit 2
 fi
 
 if [ ! -f ${IMGFILE} ];then
     echo "${IMGFILE} does not exists"
     exit 4
 fi
+
+#if [ $(contains "${TARGETS[@]}" "${TARGET}") == "n" ];then
+#    echo "${TARGET} is not supported"
+#    exit 3
+#fi
 
 BYTES_PER_SECTOR=`fdisk -lu ${IMGFILE} | grep ^Units | awk '{print $9}'`
 LINUX_START_SECTOR=`fdisk -lu ${IMGFILE} | grep ^${IMGFILE}1 | awk '{print $2}'`
