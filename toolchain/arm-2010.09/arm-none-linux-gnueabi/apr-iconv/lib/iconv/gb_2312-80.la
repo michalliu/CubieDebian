@@ -14,7 +14,7 @@ library_names='gb_2312-80.so gb_2312-80.so gb_2312-80.so'
 old_library='gb_2312-80.a'
 
 # Linker flags that can not go in dependency_libs.
-inherited_linker_flags=''
+inherited_linker_flags=' -pthread'
 
 # Libraries that this one depends upon.
 dependency_libs=''

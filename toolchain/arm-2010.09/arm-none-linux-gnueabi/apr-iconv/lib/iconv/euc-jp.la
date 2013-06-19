@@ -14,7 +14,7 @@ library_names='euc-jp.so euc-jp.so euc-jp.so'
 old_library='euc-jp.a'
 
 # Linker flags that can not go in dependency_libs.
-inherited_linker_flags=''
+inherited_linker_flags=' -pthread'
 
 # Libraries that this one depends upon.
 dependency_libs=''

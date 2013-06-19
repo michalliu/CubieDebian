@@ -14,7 +14,7 @@ library_names='ucs4-internal.so ucs4-internal.so ucs4-internal.so'
 old_library='ucs4-internal.a'
 
 # Linker flags that can not go in dependency_libs.
-inherited_linker_flags=''
+inherited_linker_flags=' -pthread'
 
 # Libraries that this one depends upon.
 dependency_libs=''

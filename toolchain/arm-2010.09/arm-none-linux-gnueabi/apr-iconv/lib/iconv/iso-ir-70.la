@@ -14,7 +14,7 @@ library_names='iso-ir-70.so iso-ir-70.so iso-ir-70.so'
 old_library='iso-ir-70.a'
 
 # Linker flags that can not go in dependency_libs.
-inherited_linker_flags=''
+inherited_linker_flags=' -pthread'
 
 # Libraries that this one depends upon.
 dependency_libs=''

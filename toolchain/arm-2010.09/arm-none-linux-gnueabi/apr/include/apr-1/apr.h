@@ -210,7 +210,7 @@ extern "C" {
 
 #define APR_HAVE_SHMEM_MMAP_TMP     1
 #define APR_HAVE_SHMEM_MMAP_SHM     1
-#define APR_HAVE_SHMEM_MMAP_ZERO    0
+#define APR_HAVE_SHMEM_MMAP_ZERO    1
 #define APR_HAVE_SHMEM_SHMGET_ANON  1
 #define APR_HAVE_SHMEM_SHMGET       1
 #define APR_HAVE_SHMEM_MMAP_ANON    1
@@ -233,9 +233,9 @@ extern "C" {
 
 #define APR_HAS_FLOCK_SERIALIZE           1
 #define APR_HAS_SYSVSEM_SERIALIZE         1
-#define APR_HAS_POSIXSEM_SERIALIZE        0
+#define APR_HAS_POSIXSEM_SERIALIZE        1
 #define APR_HAS_FCNTL_SERIALIZE           1
-#define APR_HAS_PROC_PTHREAD_SERIALIZE    0
+#define APR_HAS_PROC_PTHREAD_SERIALIZE    1
 
 #define APR_PROCESS_LOCK_IS_GLOBAL        0
 
@@ -258,7 +258,7 @@ extern "C" {
 #define APR_HAVE_STRNICMP       0
 #define APR_HAVE_STRSTR         1
 #define APR_HAVE_MEMCHR         1
-#define APR_HAVE_STRUCT_RLIMIT  0
+#define APR_HAVE_STRUCT_RLIMIT  1
 #define APR_HAVE_UNION_SEMUN    0
 #define APR_HAVE_SCTP           0
 #define APR_HAVE_IOVEC          1
@@ -276,7 +276,7 @@ extern "C" {
 #define APR_HAS_UNICODE_FS        0
 #define APR_HAS_PROC_INVOKED      0
 #define APR_HAS_USER              1
-#define APR_HAS_LARGE_FILES       0
+#define APR_HAS_LARGE_FILES       1
 #define APR_HAS_XTHREAD_FILES     0
 #define APR_HAS_OS_UUID           0
 
@@ -302,7 +302,7 @@ extern "C" {
 
 /* Is the O_NONBLOCK flag inherited from listening sockets?
 */
-#define APR_O_NONBLOCK_INHERITED 1
+#define APR_O_NONBLOCK_INHERITED 0
 
 /* Typedefs that APR needs. */
 
@@ -355,7 +355,7 @@ typedef  unsigned int    apr_uint32_t;
 
 typedef  size_t          apr_size_t;
 typedef  ssize_t         apr_ssize_t;
-typedef  off_t           apr_off_t;
+typedef  off64_t           apr_off_t;
 typedef  socklen_t       apr_socklen_t;
 typedef  unsigned long           apr_ino_t;
 
@@ -523,7 +523,7 @@ typedef  apr_uint32_t            apr_uintptr_t;
 #define APR_OFF_T_FMT APR_INT64_T_FMT
 
 /* And APR_PID_T_FMT */
-#define APR_PID_T_FMT APR_INT64_T_FMT
+#define APR_PID_T_FMT "d"
 
 /* And APR_INT64_T_FMT */
 #define APR_INT64_T_FMT "lld"

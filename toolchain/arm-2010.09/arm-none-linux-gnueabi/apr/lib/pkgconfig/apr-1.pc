@@ -7,5 +7,5 @@ includedir=${prefix}/include/apr-${APR_MAJOR_VERSION}
 Name: APR
 Description: The Apache Portable Runtime library
 Version: 1.4.6
-Libs: -L${libdir} -lapr-${APR_MAJOR_VERSION} -lrt -lcrypt  -ldl
-Cflags: -D_REENTRANT -D_GNU_SOURCE -g -O2 -I${includedir}
+Libs: -L${libdir} -lapr-${APR_MAJOR_VERSION} -lrt -lcrypt  -lpthread -ldl
+Cflags: -D_REENTRANT -D_GNU_SOURCE -D_LARGEFILE64_SOURCE -g -O2 -pthread -I${includedir}

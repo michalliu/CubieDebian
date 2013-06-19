@@ -14,7 +14,7 @@ library_names='apr_ldap-1.so apr_ldap-1.so apr_ldap.so'
 old_library='apr_ldap.a'
 
 # Linker flags that can not go in dependency_libs.
-inherited_linker_flags=''
+inherited_linker_flags=' -pthread'
 
 # Libraries that this one depends upon.
 dependency_libs=' -L/home/michal/CubieDebian/toolchain/arm-2010.09/arm-none-linux-gnueabi/openldap/lib -L/home/michal/CubieDebian/toolchain/arm-2010.09/arm-none-linux-gnueabi/apr-iconv/lib /home/michal/CubieDebian/toolchain/arm-2010.09/arm-none-linux-gnueabi/openldap/lib/libldap.la /home/michal/CubieDebian/toolchain/arm-2010.09/arm-none-linux-gnueabi/openldap/lib/liblber.la -lresolv'

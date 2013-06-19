@@ -14,7 +14,7 @@ library_names='_tbl_simple.so _tbl_simple.so _tbl_simple.so'
 old_library='_tbl_simple.a'
 
 # Linker flags that can not go in dependency_libs.
-inherited_linker_flags=''
+inherited_linker_flags=' -pthread'
 
 # Libraries that this one depends upon.
 dependency_libs=''

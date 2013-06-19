@@ -14,7 +14,7 @@ library_names='mac-ukraine.so mac-ukraine.so mac-ukraine.so'
 old_library='mac-ukraine.a'
 
 # Linker flags that can not go in dependency_libs.
-inherited_linker_flags=''
+inherited_linker_flags=' -pthread'
 
 # Libraries that this one depends upon.
 dependency_libs=''

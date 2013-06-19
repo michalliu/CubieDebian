@@ -14,7 +14,7 @@ library_names='adobe-symbol.so adobe-symbol.so adobe-symbol.so'
 old_library='adobe-symbol.a'
 
 # Linker flags that can not go in dependency_libs.
-inherited_linker_flags=''
+inherited_linker_flags=' -pthread'
 
 # Libraries that this one depends upon.
 dependency_libs=''

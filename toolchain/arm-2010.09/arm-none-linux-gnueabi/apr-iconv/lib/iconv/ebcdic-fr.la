@@ -14,7 +14,7 @@ library_names='ebcdic-fr.so ebcdic-fr.so ebcdic-fr.so'
 old_library='ebcdic-fr.a'
 
 # Linker flags that can not go in dependency_libs.
-inherited_linker_flags=''
+inherited_linker_flags=' -pthread'
 
 # Libraries that this one depends upon.
 dependency_libs=''

@@ -14,7 +14,7 @@ library_names='libapriconv-1.so.0.2.1 libapriconv-1.so.0 libapriconv-1.so'
 old_library='libapriconv-1.a'
 
 # Linker flags that can not go in dependency_libs.
-inherited_linker_flags=''
+inherited_linker_flags=' -pthread'
 
 # Libraries that this one depends upon.
 dependency_libs=''

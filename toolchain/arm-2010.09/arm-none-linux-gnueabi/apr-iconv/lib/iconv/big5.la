@@ -14,7 +14,7 @@ library_names='big5.so big5.so big5.so'
 old_library='big5.a'
 
 # Linker flags that can not go in dependency_libs.
-inherited_linker_flags=''
+inherited_linker_flags=' -pthread'
 
 # Libraries that this one depends upon.
 dependency_libs=''

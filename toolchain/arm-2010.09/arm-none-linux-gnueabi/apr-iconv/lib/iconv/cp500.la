@@ -14,7 +14,7 @@ library_names='cp500.so cp500.so cp500.so'
 old_library='cp500.a'
 
 # Linker flags that can not go in dependency_libs.
-inherited_linker_flags=''
+inherited_linker_flags=' -pthread'
 
 # Libraries that this one depends upon.
 dependency_libs=''

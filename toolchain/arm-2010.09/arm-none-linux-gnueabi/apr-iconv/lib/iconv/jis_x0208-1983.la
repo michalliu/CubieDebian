@@ -14,7 +14,7 @@ library_names='jis_x0208-1983.so jis_x0208-1983.so jis_x0208-1983.so'
 old_library='jis_x0208-1983.a'
 
 # Linker flags that can not go in dependency_libs.
-inherited_linker_flags=''
+inherited_linker_flags=' -pthread'
 
 # Libraries that this one depends upon.
 dependency_libs=''

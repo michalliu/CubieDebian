@@ -14,7 +14,7 @@ library_names='cp284.so cp284.so cp284.so'
 old_library='cp284.a'
 
 # Linker flags that can not go in dependency_libs.
-inherited_linker_flags=''
+inherited_linker_flags=' -pthread'
 
 # Libraries that this one depends upon.
 dependency_libs=''

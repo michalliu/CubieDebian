@@ -14,7 +14,7 @@ library_names='mac-turkish.so mac-turkish.so mac-turkish.so'
 old_library='mac-turkish.a'
 
 # Linker flags that can not go in dependency_libs.
-inherited_linker_flags=''
+inherited_linker_flags=' -pthread'
 
 # Libraries that this one depends upon.
 dependency_libs=''

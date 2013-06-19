@@ -14,7 +14,7 @@ library_names='ebcdic-dk-no-a.so ebcdic-dk-no-a.so ebcdic-dk-no-a.so'
 old_library='ebcdic-dk-no-a.a'
 
 # Linker flags that can not go in dependency_libs.
-inherited_linker_flags=''
+inherited_linker_flags=' -pthread'
 
 # Libraries that this one depends upon.
 dependency_libs=''
