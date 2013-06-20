@@ -43,7 +43,6 @@ crossCompileNcurses(){
 --prefix=${TOOLCHAIN}/arm-none-linux-gnueabi/libc/usr \
 --cache-file=/dev/null
     make
-    #pushd include && ln -fs curses.h ncurses.h && popd
     make install
     # checkout latest version 
     git checkout ncurses-5.9 -f
