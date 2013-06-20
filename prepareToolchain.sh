@@ -39,7 +39,8 @@ crossCompileNcurses(){
     AR=arm-none-linux-gnueabi-ar \
     CXX=arm-none-linux-gnueabi-g++ \
     ./configure \
---host=arm-none-linux-gnueabi \
+--host=arm-linux \
+--target=arm-linux \
 --prefix=${TOOLCHAIN}/arm-none-linux-gnueabi/libc/usr \
 --cache-file=/dev/null
     make
@@ -233,4 +234,6 @@ crossCompileLDAP
 crossCompileAPRUtil
 testCompileHttpd
 }
+
+prepareToolchain
 
