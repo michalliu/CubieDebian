@@ -39,11 +39,11 @@ crossCompileNcurses(){
     AR=arm-none-linux-gnueabi-ar \
     CXX=arm-none-linux-gnueabi-g++ \
     ./configure \
---host=arm-linux \
---target=arm-linux \
+--host=arm-none-linux-gnueabi \
 --prefix=${TOOLCHAIN}/arm-none-linux-gnueabi/libc/usr \
 --cache-file=/dev/null
     make
+    #pushd include && ln -fs curses.h ncurses.h && popd
     make install
     # checkout latest version 
     git checkout ncurses-5.9 -f
@@ -234,6 +234,4 @@ crossCompileLDAP
 crossCompileAPRUtil
 testCompileHttpd
 }
-
-prepareToolchain
 
