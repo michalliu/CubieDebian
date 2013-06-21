@@ -40,8 +40,8 @@ crossCompileNcurses(){
     CXX=arm-none-linux-gnueabi-g++ \
     ./configure \
 --host=arm-linux \
---target=arm-linux \
 --prefix=${TOOLCHAIN}/arm-none-linux-gnueabi/libc/usr \
+--with-shared \
 --cache-file=/dev/null
     make
     make install
