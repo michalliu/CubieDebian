@@ -49,3 +49,36 @@
 [submodule "lib/SQLite"]
 	path = lib/SQLite
 	url = git@github.com:mmplayer/SQLite.git
+[submodule "lib/expat"]
+	path = lib/expat
+	url = git@github.com:mmplayer/expat.git
+[submodule "lib/lua"]
+	path = lib/lua
+	url = git@github.com:mmplayer/lua.git
+[submodule "lib/bzip2"]
+	path = lib/bzip2
+	url = git@github.com:mmplayer/bzip2.git
+[submodule "lib/jpeg"]
+	path = lib/jpeg
+	url = git@github.com:mmplayer/JPEG.git
+[submodule "lib/png"]
+	path = lib/png
+	url = git@github.com:mmplayer/PNG.git
+[submodule "lib/freetype"]
+	path = lib/freetype
+	url = git@github.com:mmplayer/freetype.git
+[submodule "lib/xml2"]
+	path = lib/xml2
+	url = git@github.com:mmplayer/libxml2.git
+[submodule "lib/cURL"]
+	path = lib/cURL
+	url = git@github.com:mmplayer/cURL.git
+[submodule "lib/mcrypt"]
+	path = lib/mcrypt
+	url = git@github.com:mmplayer/mcrypt.git
+[submodule "lib/gmp"]
+	path = lib/gmp
+	url = git@github.com:mmplayer/GMP.git
+[submodule "lib/xslt"]
+	path = lib/xslt
+	url = git@github.com:mmplayer/xslt.git
