@@ -1,0 +1,35 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"><title>3.2. Library Configurations</title><link rel="stylesheet" type="text/css" href="cs.css"><meta name="generator" content="DocBook XSL Stylesheets V1.78.0"><link rel="home" href="index.html" title="Sourcery CodeBench Lite"><link rel="up" href="chap-target.html" title="Chapter 3. Sourcery CodeBench Lite for ARM GNU/Linux"><link rel="prev" href="chap-target.html" title="Chapter 3. Sourcery CodeBench Lite for ARM GNU/Linux"><link rel="next" href="ch03s03.html" title="3.3. Compiling for ARMv4T and ARMv5T Systems"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">3.2. Library Configurations</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="chap-target.html">Prev</a> </td><th width="60%" align="center">Chapter 3. Sourcery CodeBench Lite for ARM GNU/Linux</th><td width="20%" align="right"> <a accesskey="n" href="ch03s03.html">Next</a></td></tr></table><hr></div><div class="section"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="sec-multilibs"></a>3.2. Library Configurations</h2></div></div></div><p>
+    Sourcery CodeBench Lite for ARM GNU/Linux includes the following library
+    configuration.
+  </p><div class="informaltable"><table border="1" width="100%"><colgroup><col align="left" class="c1"><col align="left" class="c2"></colgroup><thead><tr><th colspan="2" align="left">ARMv5TE - Little-Endian, Soft-Float, GLIBC</th></tr></thead><tbody><tr><td align="left">Command-line option(s):</td><td align="left">default</td></tr><tr><td align="left">Sysroot subdirectory:</td><td align="left"><code class="filename">./</code></td></tr><tr><td align="left">Dynamic linker:</td><td align="left"><code class="filename">lib/ld-linux.so.3</code></td></tr></tbody></table></div><div class="informaltable"><table border="1" width="100%"><colgroup><col align="left" class="c1"><col align="left" class="c2"></colgroup><thead><tr><th colspan="2" align="left">ARMv4T - Little-Endian, Soft-Float, GLIBC</th></tr></thead><tbody><tr><td align="left">Command-line option(s):</td><td align="left"><code class="option">-march=armv4t</code></td></tr><tr><td align="left">Sysroot subdirectory:</td><td align="left"><code class="filename">armv4t/</code></td></tr><tr><td align="left">Dynamic linker:</td><td align="left"><code class="filename">lib/ld-linux.so.3</code></td></tr><tr><td align="left">Notes:</td><td align="left">This should also be used for ARMv5T cores such as
+the ARM1020T.</td></tr></tbody></table></div><div class="informaltable"><table border="1" width="100%"><colgroup><col align="left" class="c1"><col align="left" class="c2"></colgroup><thead><tr><th colspan="2" align="left">ARMv7-A Thumb-2 - Little-Endian, Soft-Float, GLIBC</th></tr></thead><tbody><tr><td align="left">Command-line option(s):</td><td align="left"><code class="option">-mthumb -march=armv7-a</code></td></tr><tr><td align="left">Sysroot subdirectory:</td><td align="left"><code class="filename">thumb2/</code></td></tr><tr><td align="left">Dynamic linker:</td><td align="left"><code class="filename">lib/ld-linux.so.3</code></td></tr></tbody></table></div><p>
+    Sourcery CodeBench includes copies of run-time libraries that have been built
+    with optimizations for different target architecture variants or other
+    sets of build options.  Each such set of libraries is referred to as a
+    <em class="firstterm">multilib</em>.  When you link a target application,
+    Sourcery CodeBench selects the multilib matching the build
+    options you have selected.  
+  </p><p>
+    <span class="phrase">Each multilib</span>
+    
+    corresponds to a <em class="firstterm">sysroot</em> directory
+    which contains the files that should be installed on the target system.
+    <span class="phrase">
+      The sysroot contains the dynamic linker used to run your applications 
+      on the target as well as the libraries.
+    </span>
+    <span class="phrase">
+      Refer to <a class="xref" href="included-libraries.html" title="3.6. Using Sourcery CodeBench Lite on GNU/Linux Targets">Section 3.6, &#8220;Using Sourcery CodeBench Lite on GNU/Linux Targets&#8221;</a> for instructions
+      on how to install and use these support files on your target GNU/Linux
+      system.
+    </span>
+    <span class="phrase">
+      You can find the sysroot directories provided with Sourcery CodeBench in the
+      <code class="filename">arm-none-linux-gnueabi/libc</code> directory of your installation.
+      
+    </span>
+    <span class="phrase">
+      In the tables below, the dynamic linker pathname is given relative
+      to the corresponding sysroot.
+    </span>
+  </p></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="chap-target.html">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="chap-target.html">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="ch03s03.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">Chapter 3. Sourcery CodeBench Lite for ARM GNU/Linux </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> 3.3. Compiling for ARMv4T and ARMv5T Systems</td></tr></table></div></body></html>
