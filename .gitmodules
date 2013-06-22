@@ -43,3 +43,9 @@
 [submodule "lib/openssl"]
 	path = lib/openssl
 	url = git@github.com:mmplayer/openssl.git
+[submodule "lib/readline"]
+	path = lib/readline
+	url = git@github.com:mmplayer/readline.git
+[submodule "lib/SQLite"]
+	path = lib/SQLite
+	url = git@github.com:mmplayer/SQLite.git
