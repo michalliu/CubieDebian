@@ -1,5 +1,7 @@
 [2013.x.x] r3
+* compiled USB Serial Converter modules
 * add uEnv.txt for nand installation
+* disable swap file for nand installation
 * config network lookback interface by default
 * recompile using optimized toolchain
 

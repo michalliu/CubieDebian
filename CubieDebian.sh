@@ -10,7 +10,7 @@ source ${CWD}/fns.sh
 
 # This is the script verion
 SCRIPT_VERSION="1.0"
-RELEASE_VERSION="3"
+RELEASE_VERSION="4"
 DEVELOPMENT_CODE="argon"
 
 # This will be the hostname of the cubieboard
@@ -74,7 +74,7 @@ DEFAULT_PASSWD="cubie"
 ########################
 set -e
 
-TOOLCHAIN="${CWD}/toolchain/arm-2010.09"
+TOOLCHAIN="${CWD}/toolchain/arm-2013.05"
 export PATH=${TOOLCHAIN}/bin:$PATH
 
 setupTools() {
