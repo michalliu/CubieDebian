@@ -14,11 +14,9 @@ NANDC="/dev/nandc"
 
 BOOT="/mnt/nanda"
 ROOTFS="/mnt/nandb"
-SWAP="/mnt/nandc"
 
 BOOTLOADER="${CWD}/bootloader"
 
-SWAPFILE="${SWAP}/swapfile"
 NANDPART="${CWD}/sunxi-tools/nand-part"
 
 EXCLUDE="${CWD}/exclude.txt"
@@ -59,7 +57,7 @@ done
 formatNand () {
 expect -c "
 set timeout -1
-spawn $NANDPART $NAND \"linux 4000000\" \"swap 8000000\"
+spawn $NANDPART $NAND \"linux 4000000\" \"data 8000000\"
 expect (Y/N)
 send \"y\n\"
 interact
@@ -82,11 +80,6 @@ if [ ! -d $ROOTFS ];then
     mkdir $ROOTFS
 fi
 mount $NANDB $ROOTFS
-
-if [ ! -d $SWAP ];then
-    mkdir $SWAP
-fi
-mount $NANDC $SWAP
 }
 
 installBootloader(){
@@ -109,15 +102,8 @@ cat > ${ROOTFS}/etc/fstab <<END
 #<file system>	<mount point>	<type>	<options>	<dump>	<pass>
 /dev/nandb	/		ext4	defaults	0	1
 /dev/nandc	/mnt/nandc	ext4	defaults	0	1
-/mnt/nandc/swapfile	none	swap	sw	0	0
 END
 mkdir ${ROOTFS}/mnt/nandc
-}
-
-installSwap(){
-dd if=/dev/zero of=$SWAPFILE bs=1M count=1024 # 1911 at maximium
-mkswap $SWAPFILE
-chmod 0600 $SWAPFILE
 }
 
 isRoot
@@ -141,8 +127,6 @@ if promptyn "This will completely destory your data on $NAND, Are you sure to co
     installBootloader
     echo "install rootfs"
     installRootfs
-    echo "making swapfile, it will take about 5 minutes, please be patient"
-    installSwap
     patchRootfs
     umountNand
     echo "success! remember to remove your SD card then reboot"
