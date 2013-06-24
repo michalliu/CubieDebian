@@ -12,7 +12,7 @@
 #	Turn off the blue led when network is available.
 ### END INIT INFO
 
-N=/etc/init.d/bootlightctrl
+N=/etc/init.d/networklightctrl
 
 set -e
 
