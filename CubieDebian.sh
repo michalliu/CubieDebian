@@ -330,8 +330,6 @@ cp -r ${CWD}/nandinstall ${ROOTFS_DIR}/home/cubie
 
 # green led ctrl
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} update-rc.d bootlightctrl defaults
-# blue led
-LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} update-rc.d networklightctrl start 20 2 3 4 5 . stop .
 # network time
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} update-rc.d ntpdate defaults
 
