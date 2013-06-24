@@ -74,7 +74,7 @@ DEFAULT_PASSWD="cubie"
 ########################
 set -e
 
-TOOLCHAIN="${CWD}/toolchain/arm-2013.05"
+TOOLCHAIN="${CWD}/toolchain/arm-2010.09"
 export PATH=${TOOLCHAIN}/bin:$PATH
 
 setupTools() {
