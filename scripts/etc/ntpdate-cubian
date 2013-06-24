@@ -1,0 +1,5 @@
+#! /bin/sh
+set -e
+sleep 30
+/usr/sbin/ntpdate-debian>/dev/null 2>&1
+exit 0
