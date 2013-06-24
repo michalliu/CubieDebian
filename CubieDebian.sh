@@ -295,8 +295,9 @@ END
 cat > ${ROOTFS_DIR}/tmp/initsys.sh <<END
 #!/bin/bash
 # add default user
+groupadd gpio
 if [ -z "\$(getent passwd ${DEFAULT_USERNAME})" ];then
-    useradd -m -s /bin/bash ${DEFAULT_USERNAME}
+    useradd -m -s /bin/bash -G gpio ${DEFAULT_USERNAME}
 fi
 
 # set user
