@@ -1,6 +1,6 @@
 #!/bin/bash
 WIRELESS_SSID=("TP-LINK_3300B6" "Tencent-FreeWiFi")
-WIRELESS_PSK=("m i a n x i e" "Ohs67000")
+WIRELESS_PSK=("m i a n x i e" "Webex6666")
 WIRELESS_ACTIVE=(1 0)
 WIRELESS_IF="wlan0"
 
