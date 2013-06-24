@@ -1,8 +1,10 @@
 [2013.x.x] r3
-* compiled USB Serial Converter modules
+* fix script bugs
+* compiled USB Serial Converter driver
 * add uEnv.txt for nand installation
 * disable swap file for nand installation
 * config network lookback interface by default
+* upgrade kernel from 3.4.29 to 3.4.43
 * recompile using optimized toolchain
 
 [2013.6.3] r2
