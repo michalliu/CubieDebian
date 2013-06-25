@@ -10,7 +10,7 @@ source ${CWD}/fns.sh
 
 # This is the script verion
 SCRIPT_VERSION="1.0"
-RELEASE_VERSION="4"
+RELEASE_VERSION="3"
 DEVELOPMENT_CODE="argon"
 
 # This will be the hostname of the cubieboard
@@ -299,7 +299,7 @@ cat > ${ROOTFS_DIR}/tmp/initsys.sh <<END
 # add default user
 groupadd gpio
 if [ -z "\$(getent passwd ${DEFAULT_USERNAME})" ];then
-    useradd -m -s /bin/bash -G gpio ${DEFAULT_USERNAME}
+    useradd -m -s /bin/bash -G gpio,sudo ${DEFAULT_USERNAME}
 fi
 
 # set user
@@ -307,13 +307,6 @@ echo "${DEFAULT_USERNAME}:${DEFAULT_PASSWD}"|chpasswd
 
 # disable root user
 passwd -l root
-
-# allow the default user has su privileges
-cat > /etc/sudoers.d/sudousers <<DNE
-${DEFAULT_USERNAME} ALL=(ALL) NOPASSWD:ALL # Admins can do anthing w/o a password
-%cubie ALL=(ALL) NOPASSWD:ALL # Cubie group can do anthing w/o a password
-DNE
-chmod 0440 /etc/sudoers.d/sudousers
 END
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} chmod +x /tmp/initsys.sh
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} /tmp/initsys.sh
