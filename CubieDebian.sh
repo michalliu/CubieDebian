@@ -737,7 +737,7 @@ do
             losetup -d ${SD_PATH}
             SD_PATH=${SD_PATH_OLD}
             echo  "compressing image"
-            7z a -t7z -mx=9 -ms=on ${IMAGE_FILE}.7z $IMAGE_FILE
+            7z a -mx=9 ${IMAGE_FILE}.7z $IMAGE_FILE
             show_menu
             ;;
         12) clear;
