@@ -82,7 +82,7 @@ setupTools() {
 sudo add-apt-repository ppa:linaro-maintainers/tools
 apt-get update
 
-installpackages "debootstrap" "qemu-user-static" "build-essential" "u-boot-tools" "git" "binfmt-support" "libusb-1.0-0-dev" "pkg-config" "libncurses5-dev" "debian-archive-keyring" "expect" "kpartx"
+installpackages "debootstrap" "qemu-user-static" "build-essential" "u-boot-tools" "git" "binfmt-support" "libusb-1.0-0-dev" "pkg-config" "libncurses5-dev" "debian-archive-keyring" "expect" "kpartx" "p7zip-full"
 }
 
 initRepo() {
@@ -737,13 +737,7 @@ do
             losetup -d ${SD_PATH}
             SD_PATH=${SD_PATH_OLD}
             echo  "compressing image"
-            bzip2 -zkfv9 $IMAGE_FILE
-            if ! testbz2 "${IMAGE_FILE}.bz2";then
-                echo "PLEASE REGENERATE THE IMAGE FILE!!!"
-                pause
-            else
-                echo "PASS"
-            fi
+            7z a -t7z -mx=9 -ms=on ${IMAGE_FILE}.7z $IMAGE_FILE
             show_menu
             ;;
         12) clear;
