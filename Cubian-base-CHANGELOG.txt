@@ -1,3 +1,6 @@
+[2013.x.x] r4
+* fix various permission issues
+
 [2013.6.25] r3
 + alsa sound driver
 + compiled NFS server in kernel
