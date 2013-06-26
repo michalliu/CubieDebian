@@ -1,5 +1,5 @@
 [2013.x.x] r4
-* fix various permission issues
++ gpio support
 
 [2013.6.25] r3
 + alsa sound driver
