@@ -271,6 +271,9 @@ END
 
 cat >> ${ROOTFS_DIR}/etc/modules <<END
 
+#GPIO
+gpio_sunxi
+
 #For SATA Support
 sw_ahci_platform
 

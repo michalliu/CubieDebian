@@ -91,11 +91,13 @@ cd $PWD
 }
 
 installRootfs(){
-rsync -avc --exclude-from=$EXCLUDE / $ROOTFS
-rsync -avc /boot/uImage $ROOTFS/boot/
+#rsync -avc --exclude-from=$EXCLUDE / $ROOTFS
+rsync -avc /boot/uImage /boot/script.bin $ROOTFS/boot/
 echo "please wait"
 sync
 }
+installRootfs
+exit
 
 patchRootfs(){
 cat > ${ROOTFS}/etc/fstab <<END
