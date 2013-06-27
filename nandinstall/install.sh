@@ -65,6 +65,7 @@ interact
 }
 
 mkFS(){
+mkfs.msdos $NANDA
 mkfs.ext4 $NANDB
 mkfs.ext4 $NANDC
 }
