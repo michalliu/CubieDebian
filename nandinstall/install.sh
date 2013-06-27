@@ -86,7 +86,6 @@ installBootloader(){
 cd $BOOT
 rm -rf *
 rsync -avc $BOOTLOADER/* $BOOT
-cp /boot/script.bin $BOOT
 cd $PWD
 }
 
