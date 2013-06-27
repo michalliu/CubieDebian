@@ -497,6 +497,7 @@ show_menu(){
     echo "${NORMAL}    Test Commands (Use them only if you know what you are doing)${NORMAL}"
     echo ""
     echo "${MENU}${NUMBER} 12)${MENU} recompile cubieboard.fex to script.bin on ${SD_PATH}1 /boot ${NORMAL}"
+    echo "${MENU}${NUMBER} 13)${MENU} add default package ${NORMAL}"
     echo ""
     echo "${ENTER_LINE}Please enter the option and enter or ${RED_TEXT}enter to exit. ${NORMAL}"
     if [ ! -z "$1" ]
@@ -772,6 +773,10 @@ do
             fi
             show_menu
             ;;
+       13) clear;
+           echoRed "Not implemented yet"
+           show_menu
+           ;;
         *) clear;
             show_menu "$opt is invalid. please enter a number from menu."
             ;;
