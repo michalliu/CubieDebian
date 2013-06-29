@@ -489,7 +489,7 @@ show_menu(){
     echo "${MENU}    Debian Builder ${SCRIPT_VERSION}     ${NORMAL}"
     echo "${MENU}${NUMBER} 1)${MENU} Setup enviroment ${NORMAL}"
     echo "${MENU}${NUMBER} 2)${MENU} Download or Update Linux source ${NORMAL}"
-    echo "${MENU}${NUMBER} 3)${MENU} Build tools ${NORMAL}"
+    echo "${MENU}${NUMBER} 3)${MENU} Build u-boot and sunxi-tools ${NORMAL}"
     echo "${MENU}${NUMBER} 4)${MENU} Build Linux kernel ${NORMAL}"
     echo "${MENU}${NUMBER} 5)${MENU} Download rootfs ${NORMAL}"
     echo "${MENU}${NUMBER} 6)${MENU} Install base system ${NORMAL}"
