@@ -106,9 +106,9 @@ make -C ${CWD}/sunxi-tools/ clean
 make -C ${CWD}/sunxi-tools/ all
 }
 
-crossCompileTools(){
-make -C ${CWD}/sunxi-tools/ CROSS_COMPILE=arm-none-linux-gnueabi- clean
-make -C ${CWD}/sunxi-tools/ CC=arm-none-linux-gnueabi-gcc nand-part2
+crossCompileNandpart(){
+make -C ${CWD}/sunxi-tools/ clean
+make -C ${CWD}/sunxi-tools/ CC=arm-none-linux-gnueabi-gcc CFLAGS='-Wall -static -Iinclude/' nand-part2
 }
 
 prepareEnv() {
