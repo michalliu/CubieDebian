@@ -17,7 +17,7 @@ ROOTFS="/mnt/nandb"
 
 BOOTLOADER="${CWD}/bootloader"
 
-NANDPART="${CWD}/sunxi-tools/nand-part"
+NANDPART="${CWD}/sunxi-tools/nand-part2"
 
 EXCLUDE="${CWD}/exclude.txt"
 
@@ -55,13 +55,7 @@ done
 }
 
 formatNand () {
-expect -c "
-set timeout -1
-spawn $NANDPART $NAND \"linux 4000000\" \"data 8000000\"
-expect (Y/N)
-send \"y\n\"
-interact
-"
+$NANDPART $NAND 16 "boot 2048" "linux 4000000" "data 0"
 }
 
 mkFS(){
@@ -87,6 +81,7 @@ installBootloader(){
 cd $BOOT
 rm -rf *
 rsync -avc $BOOTLOADER/* $BOOT
+cp /boot/script.bin $BOOT
 cd $PWD
 }
 
