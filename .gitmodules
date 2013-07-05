@@ -1,6 +1,3 @@
-[submodule "u-boot-sunxi"]
-	path = u-boot-sunxi
-	url = https://github.com/linux-sunxi/u-boot-sunxi.git
 [submodule "linux-sunxi"]
 	path = linux-sunxi
 	url = git@github.com:mmplayer/linux-sunxi.git
