@@ -8,6 +8,16 @@ CWD=$(cd "$(dirname "$0")"; pwd)
 
 source ${CWD}/fns.sh
 
+UBOOT_REPO="${CWD}/u-boot-sunxi"
+LINUX_REPO="${CWD}/linux-sunxi"
+UBOOT_REPO_A20="${CWD}/u-boot-sunxi-a20"
+LINUX_REPO_A20="${CWD}/linux-sunxi-a20"
+
+UBOOT_A10="sunxi"
+LINUX_A10="sunxi-3.4"
+UBOOT_A20="hno-a20"
+LINUX_A20="sunxi-3.4-a20"
+
 # This is the script verion
 SCRIPT_VERSION="1.0"
 RELEASE_VERSION="3"
@@ -94,8 +104,8 @@ git submodule update
 }
 
 buildUBoot() {
-make -C ${CWD}/u-boot-sunxi/ distclean CROSS_COMPILE=arm-none-linux-gnueabi-
-make -C ${CWD}/u-boot-sunxi/ cubieboard CROSS_COMPILE=arm-none-linux-gnueabi-
+make -C $1 distclean CROSS_COMPILE=arm-none-linux-gnueabi-
+make -C $1 cubieboard CROSS_COMPILE=arm-none-linux-gnueabi-
 }
 
 buildKernel() {
@@ -515,6 +525,8 @@ show_menu(){
 
     echo ""
     echo "${NORMAL}    A20${NORMAL}"
+    echo "${MENU}${NUMBER} 201)${MENU} Build u-boot for A20 ${NORMAL}"
+    echo "${MENU}${NUMBER} 202)${MENU} Build Linux kernel for A20 ${NORMAL}"
     echo ""
 
     echo ""
@@ -712,27 +724,36 @@ do
             echoRed "Done";
             show_menu
             ;;
+
         101) clear;
             echoRed "Start build u-boot";
-            buildUBoot
+            gitOpt="--git-dir=${UBOOT_REPO}/.git --work-tree=${UBOOT_REPO}"
+            branchName=$(git $gitOpt rev-parse --abbrev-ref HEAD)
+            if [ $branchName != $UBOOT_A10 ]; then
+                git $gitOpt checkout .
+                git $gitOpt clean -df
+                git $gitOpt checkout $UBOOT_A10
+            fi
+            buildUBoot $UBOOT_REPO
             echoRed "Done";
             show_menu
             ;;
         102) clear;
             echoRed "Build Linux kernel";
-            a10Branch="sunxi-3.4"
-            gitOpt="--git-dir=${CWD}/linux-sunxi/.git --work-tree=${CWD}/linux-sunxi/"
+            gitOpt="--git-dir=${LINUX_REPO}/.git --work-tree=${LINUX_REPO}/"
             branchName=$(git $gitOpt rev-parse --abbrev-ref HEAD)
-            if [ $branchName != $a10Branch ]; then
-                git $gitOpt checkout $a10Branch
+            if [ $branchName != $LINUX_A10 ]; then
+                git $gitOpt checkout .
                 git $gitOpt clean -df
+                git $gitOpt checkout $LINUX_A10
             fi
             echoRed "Copy configuration file";
             cp -f ${CWD}/kernelConfig/a10_base_release ${CWD}/linux-sunxi/.config
             if promptyn "Reconfigure kernel?"; then
-                make -C ${CWD}/linux-sunxi/ ARCH=arm menuconfig
+                make -C $LINUX_REPO ARCH=arm menuconfig
             fi
-            make -j4 -C ${CWD}/linux-sunxi/ ARCH=arm CROSS_COMPILE=arm-none-linux-gnueabi- uImage modules
+            #make -j4 -C $LINUX_REPO ARCH=arm CROSS_COMPILE=arm-none-linux-gnueabi- uImage modules
+            make -C $LINUX_REPO ARCH=arm CROSS_COMPILE=arm-none-linux-gnueabi- uImage modules
             echoRed "Done";
             show_menu
             ;;
@@ -808,6 +829,48 @@ do
             SD_PATH=${SD_PATH_OLD}
             echo  "compressing image"
             7z a -mx=9 ${IMAGE_FILE}.7z $IMAGE_FILE
+            show_menu
+            ;;
+
+        201) clear;
+            echoRed "Start build u-boot for A20";
+            gitOpt="--git-dir=${UBOOT_REPO_A20}/.git --work-tree=${UBOOT_REPO_A20}/"
+            if [ ! -d $UBOOT_REPO_A20 ];then
+                git clone $UBOOT_REPO $UBOOT_REPO_A20
+                git $gitOpt checkout $UBOOT_A20
+            fi
+            branchName=$(git $gitOpt rev-parse --abbrev-ref HEAD)
+            if [ $branchName != $UBOOT_A20 ]; then
+                echoRed "Switch branch to A20"
+                git $gitOpt checkout .
+                git $gitOpt clean -df
+                git $gitOpt checkout $UBOOT_A20
+            fi
+            buildUBoot $UBOOT_REPO_A20
+            echoRed "Done";
+            show_menu
+            ;;
+        202) clear;
+            echoRed "Build Linux kernel for A20";
+            gitOpt="--git-dir=${LINUX_REPO_A20}/.git --work-tree=${LINUX_REPO_A20}/"
+            if [ ! -d $LINUX_REPO_A20 ];then
+                git clone $LINUX_REPO $LINUX_REPO_A20
+                git $gitOpt checkout $LINUX_A20
+            fi
+            branchName=$(git $gitOpt rev-parse --abbrev-ref HEAD)
+            if [ $branchName != $LINUX_A20 ]; then
+                git $gitOpt checkout .
+                git $gitOpt clean -df
+                git $gitOpt checkout $LINUX_A20
+            fi
+            echoRed "Copy configuration file";
+            cp -f ${CWD}/kernelConfig/a20_base_wip ${CWD}/linux-sunxi/.config
+            if promptyn "Reconfigure kernel?"; then
+                make -C $LINUX_REPO_A20 ARCH=arm menuconfig
+            fi
+            #make -j4 -C $LINUX_REPO_A20 ARCH=arm CROSS_COMPILE=arm-none-linux-gnueabi- uImage modules
+            make -C $LINUX_REPO_A20 ARCH=arm CROSS_COMPILE=arm-none-linux-gnueabi- uImage modules
+            echoRed "Done";
             show_menu
             ;;
         12) clear;
