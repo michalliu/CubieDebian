@@ -748,7 +748,7 @@ do
                 git $gitOpt checkout $LINUX_A10
             fi
             echoRed "Copy configuration file";
-            cp -f ${CWD}/kernelConfig/a10_base_release ${CWD}/linux-sunxi/.config
+            cp -f ${CWD}/kernelConfig/a10_base_release ${LINUX_REPO}/.config
             if promptyn "Reconfigure kernel?"; then
                 make -C $LINUX_REPO ARCH=arm menuconfig
             fi
@@ -864,7 +864,7 @@ do
                 git $gitOpt checkout $LINUX_A20
             fi
             echoRed "Copy configuration file";
-            cp -f ${CWD}/kernelConfig/a20_base_wip ${CWD}/linux-sunxi/.config
+            cp -f ${CWD}/kernelConfig/a10_base_release ${LINUX_REPO_A20}/.config
             if promptyn "Reconfigure kernel?"; then
                 make -C $LINUX_REPO_A20 ARCH=arm menuconfig
             fi
