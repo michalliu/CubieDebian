@@ -57,6 +57,9 @@ BASESYS_PKG_BACKUP="${DEVELOPMENT_CODE}.basesys.pkg.cleanbackup.tar.gz"
 # Base system with basic standard config without personal stuff
 BASESYS_CONFIG_BACKUP="${DEVELOPMENT_CODE}.basesys.config.cleanbackup.tar.gz"
 
+# Base system with basic standard config without personal stuff
+BASESYS_FINAL_BACKUP="${DEVELOPMENT_CODE}.basesys.final.cleanbackup.tar.gz"
+
 # Accounts
 DEFAULT_USERNAME="cubie"
 DEFAULT_PASSWD="cubie"
@@ -206,6 +209,17 @@ END
 fi
 }
 
+configSys(){
+prepareEnv
+
+# prompt to config local and timezone
+if promptyn "Configure locale and timezone data?"; then
+    if [ -n "${DPKG_RECONFIG}" ]; then
+    LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} dpkg-reconfigure ${DPKG_RECONFIG}
+    fi
+fi
+}
+
 restoreFile() {
 bakfile="$1.bak"
 if [ -f $bakfile ];then
@@ -220,18 +234,6 @@ bakfile="$1.bak"
 if [ ! -f $bakfile ];then
     cp $1 $bakfile
 fi
-}
-
-configSys(){
-prepareEnv
-
-# prompt to config local and timezone
-if promptyn "Configure locale and timezone data?"; then
-    if [ -n "${DPKG_RECONFIG}" ]; then
-    LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} dpkg-reconfigure ${DPKG_RECONFIG}
-    fi
-fi
-
 }
 
 installPersonalStuff(){
@@ -486,23 +488,40 @@ show_menu(){
     FGRED=`echo -e "\033[41m"`
     RED_TEXT=`echo -e "\033[31m"`
     ENTER_LINE=`echo -e "\033[33m"`
-    echo "${MENU}    Debian Builder ${SCRIPT_VERSION}     ${NORMAL}"
+    #echo "${MENU}    Debian Builder ${SCRIPT_VERSION}     ${NORMAL}"
+    #echo ""
+    echo "${NORMAL}    General options${NORMAL}"
+    echo ""
     echo "${MENU}${NUMBER} 1)${MENU} Setup enviroment ${NORMAL}"
-    echo "${MENU}${NUMBER} 2)${MENU} Download or Update Linux source ${NORMAL}"
-    echo "${MENU}${NUMBER} 3)${MENU} Build u-boot and sunxi-tools ${NORMAL}"
-    echo "${MENU}${NUMBER} 4)${MENU} Build Linux kernel ${NORMAL}"
-    echo "${MENU}${NUMBER} 5)${MENU} Download rootfs ${NORMAL}"
-    echo "${MENU}${NUMBER} 6)${MENU} Install base system ${NORMAL}"
-    echo "${MENU}${NUMBER} 7)${MENU} Install packages ${NORMAL}"
-    echo "${MENU}${NUMBER} 8)${MENU} Install UBoot & kernel & config System ${NORMAL}"
-    echo "${MENU}${NUMBER} 9)${MENU} Install Utilities & Personal stuff ${NORMAL}"
-    echo "${MENU}${NUMBER} 10)${MENU} Install to device ${SD_PATH} ${NORMAL}"
-    echo "${MENU}${NUMBER} 11)${MENU} Make disk image"
+    echo "${MENU}${NUMBER} 2)${MENU} Download or Update source ${NORMAL}"
+    echo "${MENU}${NUMBER} 3)${MENU} Build sunxi-tools ${NORMAL}"
+    echo ""
+    echo "${NORMAL}    Root file system${NORMAL}"
+    echo ""
+    echo "${MENU}${NUMBER} 4)${MENU} Download rootfs ${NORMAL}"
+    echo "${MENU}${NUMBER} 5)${MENU} Install base system ${NORMAL}"
+    echo "${MENU}${NUMBER} 6)${MENU} Install packages ${NORMAL}"
+    echo "${MENU}${NUMBER} 7)${MENU} Config Network & Locale & Timezone ${NORMAL}"
+    echo "${MENU}${NUMBER} 8)${MENU} Final config ${NORMAL}"
+
+    echo ""
+    echo "${NORMAL}    A10${NORMAL}"
+    echo ""
+    echo "${MENU}${NUMBER} 101)${MENU} Build u-boot for A10 ${NORMAL}"
+    echo "${MENU}${NUMBER} 102)${MENU} Build Linux kernel for A10 ${NORMAL}"
+    echo "${MENU}${NUMBER} 103)${MENU} Install UBoot & kernel & modules${NORMAL}"
+    echo "${MENU}${NUMBER} 104)${MENU} Install to device ${SD_PATH} ${NORMAL}"
+    echo "${MENU}${NUMBER} 105)${MENU} Make disk image"
+
+    echo ""
+    echo "${NORMAL}    A20${NORMAL}"
+    echo ""
+
     echo ""
     echo "${NORMAL}    Test Commands (Use them only if you know what you are doing)${NORMAL}"
     echo ""
+
     echo "${MENU}${NUMBER} 12)${MENU} recompile cubieboard.fex to script.bin on ${SD_PATH}1 /boot ${NORMAL}"
-    echo "${MENU}${NUMBER} 13)${MENU} add default package ${NORMAL}"
     echo ""
     echo "${ENTER_LINE}Please enter the option and enter or ${RED_TEXT}enter to exit. ${NORMAL}"
     if [ ! -z "$1" ]
@@ -538,24 +557,12 @@ do
             show_menu
             ;;
         3) clear;
-            echoRed "Start build uBoot";
-            buildUBoot
-            echoRed "Done";
             echoRed "Start build sunxi-tools";
             buildTools
             echoRed "Done";
             show_menu
             ;;
         4) clear;
-            echoRed "Build Linux kernel";
-            if promptyn "Reconfigure kernel?"; then
-                make -C ${CWD}/linux-sunxi/ ARCH=arm menuconfig
-            fi
-            make -j4 -C ${CWD}/linux-sunxi/ ARCH=arm CROSS_COMPILE=arm-none-linux-gnueabi- uImage modules
-            echoRed "Done";
-            show_menu
-            ;;
-        5) clear;
             echoRed "Download rootfs";
             if [ -d ${ROOTFS_DIR} ];then
                if promptyn "The rootfs exists, do you want delete it?"; then
@@ -586,7 +593,7 @@ do
             echoRed "Done";
             show_menu
             ;;
-        6) clear;
+        5) clear;
             echoRed "Install base system";
             if [ -f ${BASESYS_BACKUP} ];then
                if promptyn "Found a backup of base system, restore from it?"; then
@@ -617,7 +624,7 @@ do
             echoRed "Done";
             show_menu
             ;;
-        7) clear;
+        6) clear;
             echoRed "Install packages";
             if [ -f ${BASESYS_PKG_BACKUP} ];then
                if promptyn "Found a backup of base system with packages, restore from it?"; then
@@ -646,7 +653,7 @@ do
             echoRed "Done";
             show_menu
             ;;
-        8) clear;
+        7) clear;
             if [ -f ${BASESYS_CONFIG_BACKUP} ];then
                if promptyn "Found a backup of standard configed system, restore from it?"; then
                    if [ -d ${ROOTFS_DIR} ];then
@@ -659,6 +666,77 @@ do
                    continue
                fi
             fi
+            if [ -d ${ROOTFS_DIR} ];then
+                echoRed "Config Network";
+                    configNetwork
+                echoRed "Net work configed";
+                echoRed "Config System";
+                    configSys
+                echoRed "System configed";
+                echoRed "Make a backup of the system";
+                if [ -f ${BASESYS_CONFIG_BACKUP} ];then
+                    rm ${BASESYS_CONFIG_BACKUP}
+                fi
+                tar -czPf ${BASESYS_CONFIG_BACKUP} ${ROOTFS_DIR}
+            else
+                echo "[E] rootfs is not existed at ${ROOTFS_DIR}"
+            fi
+
+            echoRed "Done";
+            show_menu
+            ;;
+        8) clear;
+            if [ -f ${BASESYS_FINAL_BACKUP} ];then
+               if promptyn "Found a backup of final configed system, restore from it?"; then
+                   if [ -d ${ROOTFS_DIR} ];then
+                       rm -rf ${ROOTFS_DIR}
+                   fi
+                   echoRed "Restore basesystem with final configed, please wait";
+                   tar -xzPf ${BASESYS_FINAL_BACKUP}
+                   echoRed "Base System with final configed Restored";
+                   show_menu
+                   continue
+               fi
+            fi
+            if [ -d ${ROOTFS_DIR} ];then
+                echoRed "Install Utilites and personal stuff"
+                finalConfig
+                echoRed "Make a backup of the system";
+                if [ -f ${BASESYS_FINAL_BACKUP} ];then
+                    rm ${BASESYS_FINAL_BACKUP}
+                fi
+                tar -czPf ${BASESYS_FINAL_BACKUP} ${ROOTFS_DIR}
+            else
+                echo "[E] rootfs is not existed at ${ROOTFS_DIR}"
+            fi
+            echoRed "Done";
+            show_menu
+            ;;
+        101) clear;
+            echoRed "Start build u-boot";
+            buildUBoot
+            echoRed "Done";
+            show_menu
+            ;;
+        102) clear;
+            echoRed "Build Linux kernel";
+            a10Branch="sunxi-3.4"
+            gitOpt="--git-dir=${CWD}/linux-sunxi/.git --work-tree=${CWD}/linux-sunxi/"
+            branchName=$(git $gitOpt rev-parse --abbrev-ref HEAD)
+            if [ $branchName != $a10Branch ]; then
+                git $gitOpt checkout $a10Branch
+                git $gitOpt clean -df
+            fi
+            echoRed "Copy configuration file";
+            cp -f ${CWD}/kernelConfig/a10_base_release ${CWD}/linux-sunxi/.config
+            if promptyn "Reconfigure kernel?"; then
+                make -C ${CWD}/linux-sunxi/ ARCH=arm menuconfig
+            fi
+            make -j4 -C ${CWD}/linux-sunxi/ ARCH=arm CROSS_COMPILE=arm-none-linux-gnueabi- uImage modules
+            echoRed "Done";
+            show_menu
+            ;;
+        103) clear;
             if [ -d ${ROOTFS_DIR} ];then
                 echoRed "Install UBoot";
                 if [ -f "${ROOTFS_DIR}/boot/boot.scr" ] && [ -f "${ROOTFS_DIR}/boot/script.bin" ];then
@@ -678,17 +756,6 @@ do
                     installKernel
                 fi
                 echoRed "Kernel installed";
-                echoRed "Config Network";
-                    configNetwork
-                echoRed "Net work configed";
-                echoRed "Config System";
-                    configSys
-                echoRed "System configed";
-                echoRed "Make a backup of the system";
-                if [ -f ${BASESYS_CONFIG_BACKUP} ];then
-                    rm ${BASESYS_CONFIG_BACKUP}
-                fi
-                tar -czPf ${BASESYS_CONFIG_BACKUP} ${ROOTFS_DIR}
             else
                 echo "[E] rootfs is not existed at ${ROOTFS_DIR}"
             fi
@@ -696,13 +763,7 @@ do
             echoRed "Done";
             show_menu
             ;;
-        9) clear;
-            echoRed "Install Utilites and personal stuff"
-            finalConfig
-            echoRed "Done";
-            show_menu
-            ;;
-        10) clear;
+        104) clear;
             echoRed "Install to your device ${SD_PATH}"
             echoRed "Device info"
             fdisk -l | grep ${SD_PATH}
@@ -723,7 +784,7 @@ do
             fi
             show_menu
             ;;
-        11) clear;
+        105) clear;
             echoRed "make disk image 4GB"
             IMAGE_FILE="${CWD}/${DEB_HOSTNAME}-base-r${RELEASE_VERSION}-arm.img"
             IMAGE_FILESIZE=3686 #
@@ -778,10 +839,6 @@ do
             fi
             show_menu
             ;;
-       13) clear;
-           echoRed "Not implemented yet"
-           show_menu
-           ;;
         *) clear;
             show_menu "$opt is invalid. please enter a number from menu."
             ;;
