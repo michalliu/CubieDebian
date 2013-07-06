@@ -5,6 +5,7 @@ rootfs/
 argon.basesys.cleanbackup.tar.gz
 argon.basesys.pkg.cleanbackup.tar.gz
 argon.basesys.config.cleanbackup.tar.gz
+argon.basesys.final.cleanbackup.tar.gz
 boot
 
 mnt/
