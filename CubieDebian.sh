@@ -23,6 +23,7 @@ SCRIPT_VERSION="1.0"
 RELEASE_VERSION="3"
 DEVELOPMENT_CODE="argon"
 
+LINUX_CONFIG_BASE="${CWD}/kernelConfig/linux_cubian_config_base"
 # This will be the hostname of the cubieboard
 DEB_HOSTNAME="Cubian"
 
@@ -748,7 +749,7 @@ do
                 git $gitOpt checkout $LINUX_A10
             fi
             echoRed "Copy configuration file";
-            cp -f ${CWD}/kernelConfig/a10_base_release ${LINUX_REPO}/.config
+            cp -f $LINUX_CONFIG_BASE ${LINUX_REPO}/.config
             if promptyn "Reconfigure kernel?"; then
                 make -C $LINUX_REPO ARCH=arm menuconfig
             fi
@@ -864,7 +865,7 @@ do
                 git $gitOpt checkout $LINUX_A20
             fi
             echoRed "Copy configuration file";
-            cp -f ${CWD}/kernelConfig/a10_base_release ${LINUX_REPO_A20}/.config
+            cp -f $LINUX_CONFIG_BASE ${LINUX_REPO_A20}/.config
             if promptyn "Reconfigure kernel?"; then
                 make -C $LINUX_REPO_A20 ARCH=arm menuconfig
             fi
