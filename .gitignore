@@ -1,6 +1,8 @@
 *.swp
 argon.rootfs.cleanbackup.tar.gz
 rootfs/
+u-boot-sunxi-a20/
+linux-sunxi-a20/
 
 argon.basesys.cleanbackup.tar.gz
 argon.basesys.pkg.cleanbackup.tar.gz
