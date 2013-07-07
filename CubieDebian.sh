@@ -103,6 +103,20 @@ apt-get update
 installpackages "debootstrap" "qemu-user-static" "build-essential" "u-boot-tools" "git" "binfmt-support" "libusb-1.0-0-dev" "pkg-config" "libncurses5-dev" "debian-archive-keyring" "expect" "kpartx" "p7zip-full"
 }
 
+setupLinaroToolchain(){
+gitOpt="--git-dir=${TOOLCHAIN_LINARO_REPO}/.git --work-tree=${TOOLCHAIN_LINARO_REPO}/"
+if [ ! -d $TOOLCHAIN_LINARO_REPO ];then
+    git clone $TOOLCHAIN $TOOLCHAIN_LINARO_REPO
+fi
+branchName=$(git $gitOpt rev-parse --abbrev-ref HEAD)
+if [ $branchName != $UBOOT_A20 ]; then
+    echoRed "Switch branch to ${TOOLCHAIN_LINARO}"
+    git $gitOpt checkout .
+    git $gitOpt clean -df
+    git $gitOpt checkout ${TOOLCHAIN_LINARO}
+fi
+}
+
 initRepo() {
 git submodule init
 git submodule update
@@ -110,23 +124,14 @@ git submodule update
 
 buildUBoot() {
 if [ "$1" == "$UBOOT_REPO_A20" ];then
-    gitOpt="--git-dir=${TOOLCHAIN_LINARO_REPO}/.git --work-tree=${TOOLCHAIN_LINARO_REPO}/"
-    if [ ! -d $TOOLCHAIN_LINARO_REPO ];then
-        git clone $TOOLCHAIN $TOOLCHAIN_LINARO_REPO
-    fi
-    branchName=$(git $gitOpt rev-parse --abbrev-ref HEAD)
-    if [ $branchName != $UBOOT_A20 ]; then
-        echoRed "Switch branch to ${TOOLCHAIN_LINARO}"
-        git $gitOpt checkout .
-        git $gitOpt clean -df
-        git $gitOpt checkout ${TOOLCHAIN_LINARO}
-    fi
-CROSS_COMPILER=arm-linux-gnueabihf-
+CROSS_COMPILER=arm-none-linux-gnueabi-
+make -C $1 distclean CROSS_COMPILE=$CROSS_COMPILER
+make -C $1 cubieboard2 CROSS_COMPILE=$CROSS_COMPILER
 else
 CROSS_COMPILER=arm-none-linux-gnueabi-
-fi
 make -C $1 distclean CROSS_COMPILE=$CROSS_COMPILER
 make -C $1 cubieboard CROSS_COMPILE=$CROSS_COMPILER
+fi
 }
 
 buildKernel() {

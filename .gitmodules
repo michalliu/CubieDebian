@@ -82,3 +82,6 @@
 [submodule "u-boot-sunxi"]
 	path = u-boot-sunxi
 	url = git@github.com:mmplayer/u-boot-sunxi.git
+[submodule "toolchain"]
+	path = toolchain
+	url = git@github.com:cubieplayer/Toolchain.git
