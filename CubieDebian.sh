@@ -716,8 +716,7 @@ do
             if promptyn "Reconfigure kernel?"; then
                 make -C $LINUX_REPO ARCH=arm menuconfig
             fi
-            #make -j4 -C $LINUX_REPO ARCH=arm CROSS_COMPILE=arm-none-linux-gnueabi- uImage modules
-            make -C $LINUX_REPO ARCH=arm CROSS_COMPILE=arm-none-linux-gnueabi- uImage modules
+            make -j4 -C $LINUX_REPO ARCH=arm CROSS_COMPILE=arm-none-linux-gnueabi- uImage modules
             echoRed "Done";
             show_menu
             ;;
@@ -834,8 +833,7 @@ do
             if promptyn "Reconfigure kernel?"; then
                 make -C $LINUX_REPO_A20 ARCH=arm menuconfig
             fi
-            #make -j4 -C $LINUX_REPO_A20 ARCH=arm CROSS_COMPILE=arm-none-linux-gnueabi- uImage modules
-            make -C $LINUX_REPO_A20 ARCH=arm CROSS_COMPILE=arm-none-linux-gnueabi- uImage modules
+            make -j4 -C $LINUX_REPO_A20 ARCH=arm CROSS_COMPILE=arm-none-linux-gnueabi- uImage modules
             echoRed "Done";
             show_menu
             ;;
@@ -877,13 +875,13 @@ do
                 umountSDSafe
                 echoRed "Done";
                 echoRed "Formating"
-                #formatSD 2662
+                formatSD 2662
                 echoRed "Done";
                 echoRed "Transferring data, it may take a while, please be patient, DO NOT UNPLUG YOUR DEVICE, it will be removed automaticlly when finished";
-                #installRoot
+                installRoot
                 CURRENT_UBOOT="$UBOOT_REPO_A20"
                 installMBR
-                #removeSD
+                removeSD
                 echoRed "Done";
                 echoRed "Congratulations,you can safely remove your sd card";
                 echoRed "Now press Enter to quit the program";
