@@ -9,9 +9,9 @@ argon.basesys.tar.gz
 argon.basesys.pkg.tar.gz
 argon.basesys.config.tar.gz
 argon.basesys.final.tar.gz
-boot
 
 mnt/
+toolchain-linaro/
 
 *.img
 *.img.bz2

@@ -90,8 +90,11 @@ DEFAULT_PASSWD="cubie"
 ########################
 set -e
 
-TOOLCHAIN="${CWD}/toolchain/arm-2010.09"
+TOOLCHAIN="${CWD}/toolchain"
+TOOLCHAIN_LINARO="arm-linaro-2013.04"
+TOOLCHAIN_LINARO_REPO="${CWD}/toolchain-linaro"
 export PATH=${TOOLCHAIN}/bin:$PATH
+export PATH=${TOOLCHAIN_LINARO}/bin:$PATH
 
 setupTools() {
 sudo add-apt-repository ppa:linaro-maintainers/tools
@@ -106,8 +109,24 @@ git submodule update
 }
 
 buildUBoot() {
-make -C $1 distclean CROSS_COMPILE=arm-none-linux-gnueabi-
-make -C $1 cubieboard CROSS_COMPILE=arm-none-linux-gnueabi-
+if [ "$1" == "$UBOOT_REPO_A20" ];then
+    gitOpt="--git-dir=${TOOLCHAIN_LINARO_REPO}/.git --work-tree=${TOOLCHAIN_LINARO_REPO}/"
+    if [ ! -d $TOOLCHAIN_LINARO_REPO ];then
+        git clone $TOOLCHAIN $TOOLCHAIN_LINARO_REPO
+    fi
+    branchName=$(git $gitOpt rev-parse --abbrev-ref HEAD)
+    if [ $branchName != $UBOOT_A20 ]; then
+        echoRed "Switch branch to ${TOOLCHAIN_LINARO}"
+        git $gitOpt checkout .
+        git $gitOpt clean -df
+        git $gitOpt checkout ${TOOLCHAIN_LINARO}
+    fi
+CROSS_COMPILER=arm-linux-gnueabihf-
+else
+CROSS_COMPILER=arm-none-linux-gnueabi-
+fi
+make -C $1 distclean CROSS_COMPILE=$CROSS_COMPILER
+make -C $1 cubieboard CROSS_COMPILE=$CROSS_COMPILER
 }
 
 buildKernel() {
@@ -409,8 +428,12 @@ cd ${PWD}
 }
 
 installMBR(){
-dd if=${CURRENT_UBOOT}/spl/sunxi-spl.bin of=${SD_PATH} bs=1024 seek=8
-dd if=${CURRENT_UBOOT}/u-boot.bin of=${SD_PATH} bs=1024 seek=32
+sunxispl="${CURRENT_UBOOT}/spl/sunxi-spl.bin"
+uboot="${CURRENT_UBOOT}/u-boot.bin"
+echoRed "install spl from ${sunxispl}"
+dd if=$sunxispl of=${SD_PATH} bs=1024 seek=8
+echoRed "install uboot from ${uboot}"
+dd if=$uboot of=${SD_PATH} bs=1024 seek=32
 }
 
 removeSD(){
@@ -777,7 +800,6 @@ do
             gitOpt="--git-dir=${UBOOT_REPO_A20}/.git --work-tree=${UBOOT_REPO_A20}/"
             if [ ! -d $UBOOT_REPO_A20 ];then
                 git clone $UBOOT_REPO $UBOOT_REPO_A20
-                git $gitOpt checkout $UBOOT_A20
             fi
             branchName=$(git $gitOpt rev-parse --abbrev-ref HEAD)
             if [ $branchName != $UBOOT_A20 ]; then
@@ -795,7 +817,6 @@ do
             gitOpt="--git-dir=${LINUX_REPO_A20}/.git --work-tree=${LINUX_REPO_A20}/"
             if [ ! -d $LINUX_REPO_A20 ];then
                 git clone $LINUX_REPO $LINUX_REPO_A20
-                git $gitOpt checkout $LINUX_A20
             fi
             branchName=$(git $gitOpt rev-parse --abbrev-ref HEAD)
             if [ $branchName != $LINUX_A20 ]; then
