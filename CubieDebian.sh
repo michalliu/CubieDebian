@@ -23,6 +23,8 @@ SCRIPT_VERSION="1.0"
 RELEASE_VERSION="3"
 DEVELOPMENT_CODE="argon"
 
+FEX_FILE=cubieboard_${DEVELOPMENT_CODE}.fex
+
 LINUX_CONFIG_BASE="${CWD}/kernelConfig/linux_cubian_config_base"
 # This will be the hostname of the cubieboard
 DEB_HOSTNAME="Cubian"
@@ -36,7 +38,6 @@ DEB_TEXT_UTILITIES="locales ssh expect sudo"
 DEB_ADMIN_UTILITIES="inotify-tools ifplugd ntpdate rsync parted lsof psmisc dosfstools"
 DEB_SOUND="alsa-base alsa-utils"
 DEB_EXTRAPACKAGES="${DEB_TEXT_EDITORS} ${DEB_TEXT_UTILITIES} ${DEB_WIRELESS_TOOLS} ${DEB_ADMIN_UTILITIES} ${DEB_SOUND}" 
-
 # Not all packages can (or should be) reconfigured this way.
 DPKG_RECONFIG="locales tzdata"
 
@@ -57,19 +58,19 @@ ETH0_MODE="dhcp"
 ROOTFS_DIR="${CWD}/rootfs/${DEVELOPMENT_CODE}-armfs"
 
 # Rootfs backup
-ROOTFS_BACKUP="${DEVELOPMENT_CODE}.rootfs.cleanbackup.tar.gz"
+ROOTFS_BACKUP="${DEVELOPMENT_CODE}.rootfs.tar.gz"
 
 # Base system backup
-BASESYS_BACKUP="${DEVELOPMENT_CODE}.basesys.cleanbackup.tar.gz"
+BASESYS_BACKUP="${DEVELOPMENT_CODE}.basesys.tar.gz"
 
 # Base system has package backup
-BASESYS_PKG_BACKUP="${DEVELOPMENT_CODE}.basesys.pkg.cleanbackup.tar.gz"
+BASESYS_PKG_BACKUP="${DEVELOPMENT_CODE}.basesys.pkg.tar.gz"
 
 # Base system with basic standard config without personal stuff
-BASESYS_CONFIG_BACKUP="${DEVELOPMENT_CODE}.basesys.config.cleanbackup.tar.gz"
+BASESYS_CONFIG_BACKUP="${DEVELOPMENT_CODE}.basesys.config.tar.gz"
 
 # Base system with basic standard config without personal stuff
-BASESYS_FINAL_BACKUP="${DEVELOPMENT_CODE}.basesys.final.cleanbackup.tar.gz"
+BASESYS_FINAL_BACKUP="${DEVELOPMENT_CODE}.basesys.final.tar.gz"
 
 # Accounts
 DEFAULT_USERNAME="cubie"
@@ -166,7 +167,7 @@ LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get -y install ${DEB_EXTRAPA
 fi
 }
 
-installUBoot() {
+installBoot() {
 cat > ${ROOTFS_DIR}/boot/boot.cmd <<END
 setenv bootargs console=tty0 console=ttyS0,115200 hdmi.audio=EDID:0 disp.screen0_output_mode=EDID:1280x800p60 root=/dev/mmcblk0p1 rootwait panic=10 ${extra}
 ext2load mmc 0 0x43000000 boot/script.bin
@@ -175,8 +176,7 @@ bootm 0x48000000
 END
 mkimage -C none -A arm -T script -d ${ROOTFS_DIR}/boot/boot.cmd ${ROOTFS_DIR}/boot/boot.scr
 
-FEX_FILE=cubieboard_${DEVELOPMENT_CODE}.fex
-cp ${CWD}/sunxi-boards/sys_config/a10/${FEX_FILE} ${ROOTFS_DIR}/boot/
+cp ${CWD}/sunxi-boards/sys_config/${CPU}/${FEX_FILE} ${ROOTFS_DIR}/boot/
 cat >> ${ROOTFS_DIR}/boot/${FEX_FILE} <<END
 
 [dynamic]
@@ -190,8 +190,8 @@ ${CWD}/sunxi-tools/fex2bin ${ROOTFS_DIR}/boot/${FEX_FILE} ${ROOTFS_DIR}/boot/scr
 }
 
 installKernel() {
-cp ${CWD}/linux-sunxi/arch/arm/boot/uImage ${ROOTFS_DIR}/boot
-make -C ${CWD}/linux-sunxi INSTALL_MOD_PATH=${ROOTFS_DIR} ARCH=arm CROSS_COMPILE=arm-none-linux-gnueabi- modules_install
+cp ${CURRENT_KERNEL}/arch/arm/boot/uImage ${ROOTFS_DIR}/boot
+make -C ${CURRENT_KERNEL} INSTALL_MOD_PATH=${ROOTFS_DIR} ARCH=arm CROSS_COMPILE=arm-none-linux-gnueabi- modules_install
 }
 
 configNetwork() {
@@ -409,8 +409,8 @@ cd ${PWD}
 }
 
 installMBR(){
-dd if=${CWD}/u-boot-sunxi/spl/sunxi-spl.bin of=${SD_PATH} bs=1024 seek=8
-dd if=${CWD}/u-boot-sunxi/u-boot.bin of=${SD_PATH} bs=1024 seek=32
+dd if=${CURRENT_UBOOT}/spl/sunxi-spl.bin of=${SD_PATH} bs=1024 seek=8
+dd if=${CURRENT_UBOOT}/u-boot.bin of=${SD_PATH} bs=1024 seek=32
 }
 
 removeSD(){
@@ -423,73 +423,6 @@ echo ""
 echo "-- Stage $1 : $2"
 echo "----------------------------------------------------------------------"
 echo ""
-}
-
-automaticBuild () {
-if [ -b ${SD_PATH} ]; then
-  echo ""
-  echo "CubieDebian SD Creator by Hywkar"
-  echo "--------------------------------"
-  echo ""
-  echo "The device in ${SD_PATH} will be erased by this script."
-  echo ""
-  echo "Configuration :"
-  echo "                 Hostname : ${DEB_HOSTNAME}"
-  
-  if [ -n "${DEB_EXTRAPACKAGES}" ]; then
-    echo "           Extra Packages : ${DEB_EXTRAPACKAGES}"
-  fi
-  if [ -n "${DPKG_RECONFIG}" ]; then
-    echo "    Reconfigured Packages : ${DPKG_RECONFIG}"
-  fi
-  echo ""
-  if [ "${ETH0_MODE}" = "dhcp" ]; then
-    echo "               IP Address : Assigned by DHCP"
-  else
-    echo "               IP Address : ${ETH0_IP}"
-    echo "              Subnet Mask : ${ETH0_MASK}"
-    echo "          Default Gateway : ${ETH0_GW}"
-    echo "                      DNS : ${DNS1} ${DNS2}"
-    echo "            Search Domain : ${DNS_SEARCH}"  
-  fi
-  echo "              Mac Address : ${MAC_ADDRESS}"
-  echo ""
-  if promptyn "Shall we proceed?"; then
-    echoStage 1 "Setting up build environment"
-    setupTools
-    echoStage 2 "Cloning repositories"
-    initRepo
-    echoStage 3 "Building U-Boot"
-    buildUBoot
-    echoStage 4 "Building Kernel"
-    buildKernel
-    echoStage 5 "Building Tools"
-    buildTools
-    echoStage 6 "Installing BootStrap and Packages"
-    downloadSys
-    installBaseSys
-    echoStage 7 "Installing Kernel"
-    installKernel
-    echoStage 8 "Configuring U-Boot"
-    installUBoot
-    echoStage 9 "Configuring Networking"
-    configNetwork
-    echoStage 10 "Formatting SD Card"
-    formatSD 2048
-    echoStage 11 "Transfering Debian to SD Card"
-    installRoot  
-    installMBR  
-    removeSD
-    echo ""
-    echo "All done"
-    echo ""
-  else
-    echo "Nothing done..."
-  fi
-else
-  echo "Please edit the configuration section of this script and set"
-  echo "SD_PATH to the device path of your SD card."
-fi
 }
 
 show_menu(){
@@ -528,6 +461,8 @@ show_menu(){
     echo "${NORMAL}    A20${NORMAL}"
     echo "${MENU}${NUMBER} 201)${MENU} Build u-boot for A20 ${NORMAL}"
     echo "${MENU}${NUMBER} 202)${MENU} Build Linux kernel for A20 ${NORMAL}"
+    echo "${MENU}${NUMBER} 203)${MENU} Install UBoot & kernel & modules${NORMAL}"
+    echo "${MENU}${NUMBER} 204)${MENU} Install to device ${SD_PATH} ${NORMAL}"
     echo ""
 
     echo ""
@@ -761,15 +696,17 @@ do
         103) clear;
             if [ -d ${ROOTFS_DIR} ];then
                 echoRed "Install UBoot";
+                CPU="a10"
                 if [ -f "${ROOTFS_DIR}/boot/boot.scr" ] && [ -f "${ROOTFS_DIR}/boot/script.bin" ];then
                     if promptyn "UBoot has been installed, reinstall?"; then
-                        installUBoot
+                        installBoot
                     fi
                 else
-                    installUBoot
+                    installBoot
                 fi
                 echoRed "UBoot installed";
                 echoRed "Install linux kernel";
+                CURRENT_KERNEL="$LINUX_REPO"
                 if [ -f "${ROOTFS_DIR}/boot/uImage" ];then
                     if promptyn "Kernel has been installed, reinstall?"; then
                         installKernel
@@ -798,6 +735,7 @@ do
                 echoRed "Done";
                 echoRed "Transferring data, it may take a while, please be patient, DO NOT UNPLUG YOUR DEVICE, it will be removed automaticlly when finished";
                 installRoot
+                CURRENT_UBOOT="$UBOOT_REPO"
                 installMBR
                 removeSD
                 echoRed "Done";
@@ -808,8 +746,8 @@ do
             ;;
         105) clear;
             echoRed "make disk image 4GB"
-            IMAGE_FILE="${CWD}/${DEB_HOSTNAME}-base-r${RELEASE_VERSION}-arm.img"
-            IMAGE_FILESIZE=3686 #
+            IMAGE_FILE="${CWD}/${DEB_HOSTNAME}-base-v${RELEASE_VERSION}-ARM-A10.img"
+            IMAGE_FILESIZE=3686
             echo "create disk file ${IMAGE_FILE}"
             dd if=/dev/zero of=$IMAGE_FILE bs=1M count=$IMAGE_FILESIZE
             SD_PATH_OLD=${SD_PATH}
@@ -823,6 +761,7 @@ do
             installRoot
             SD_PATH=${SD_PATH_RAW}
             echo "Install MBR"
+            CURRENT_UBOOT="$UBOOT_REPO"
             installMBR
             echo "umount device ${SD_PATH}"
             umountSDSafe
@@ -874,14 +813,66 @@ do
             echoRed "Done";
             show_menu
             ;;
+        203) clear;
+            if [ -d ${ROOTFS_DIR} ];then
+                echoRed "Install UBoot";
+                CPU="a20"
+                if [ -f "${ROOTFS_DIR}/boot/boot.scr" ] && [ -f "${ROOTFS_DIR}/boot/script.bin" ];then
+                    if promptyn "UBoot has been installed, reinstall?"; then
+                        installBoot
+                    fi
+                else
+                    installBoot
+                fi
+                echoRed "UBoot installed";
+                echoRed "Install linux kernel";
+                CURRENT_KERNEL="$LINUX_REPO_A20"
+                if [ -f "${ROOTFS_DIR}/boot/uImage" ];then
+                    if promptyn "Kernel has been installed, reinstall?"; then
+                        installKernel
+                    fi
+                else
+                    installKernel
+                fi
+                echoRed "Kernel installed";
+            else
+                echo "[E] rootfs is not existed at ${ROOTFS_DIR}"
+            fi
+
+            echoRed "Done";
+            show_menu
+            ;;
+        204) clear;
+            echoRed "Install to your device ${SD_PATH}"
+            echoRed "Device info"
+            fdisk -l | grep ${SD_PATH}
+            if promptyn "All the data on ${SD_PATH} will be destoried, continue?"; then
+                echoRed "umount ${SD_PATH}"
+                umountSDSafe
+                echoRed "Done";
+                echoRed "Formating"
+                #formatSD 2662
+                echoRed "Done";
+                echoRed "Transferring data, it may take a while, please be patient, DO NOT UNPLUG YOUR DEVICE, it will be removed automaticlly when finished";
+                #installRoot
+                CURRENT_UBOOT="$UBOOT_REPO_A20"
+                installMBR
+                #removeSD
+                echoRed "Done";
+                echoRed "Congratulations,you can safely remove your sd card";
+                echoRed "Now press Enter to quit the program";
+            fi
+            show_menu
+            ;;
         12) clear;
-            echoRed "recompile cubieboard.fex to script.bin on ${SD_PATH}1 /boot ${NORMAL}"
+            FEX_FILE="cubieboard_${DEVELOPMENT_CODE}.fex"
+            echoRed "recompile ${FEX_FILE} to script.bin on ${SD_PATH}1 /boot ${NORMAL}"
             umountSDSafe
             sleep 1
             mountRoot
             if promptyn "start recompile?"; then
                 SD_BOOT_DIR="${SD_MNT_POINT}/boot"
-                SD_FEX_FILE="${SD_BOOT_DIR}/cubieboard.fex"
+                SD_FEX_FILE="${SD_BOOT_DIR}/${FEX_FILE}"
                 SD_SCRIPT_BIN_FILE="${SD_BOOT_DIR}/script.bin"
 
                 if [ -f ${SD_FEX_FILE} ];then

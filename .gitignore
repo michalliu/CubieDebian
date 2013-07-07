@@ -4,10 +4,11 @@ rootfs/
 u-boot-sunxi-a20/
 linux-sunxi-a20/
 
-argon.basesys.cleanbackup.tar.gz
-argon.basesys.pkg.cleanbackup.tar.gz
-argon.basesys.config.cleanbackup.tar.gz
-argon.basesys.final.cleanbackup.tar.gz
+argon.rootfs.tar.gz
+argon.basesys.tar.gz
+argon.basesys.pkg.tar.gz
+argon.basesys.config.tar.gz
+argon.basesys.final.tar.gz
 boot
 
 mnt/
