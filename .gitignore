@@ -1,8 +1,9 @@
-*.swp
-argon.rootfs.cleanbackup.tar.gz
 rootfs/
 u-boot-sunxi-a20/
 linux-sunxi-a20/
+toolchain-linaro/
+
+mnt/
 
 argon.rootfs.tar.gz
 argon.basesys.tar.gz
@@ -10,9 +11,7 @@ argon.basesys.pkg.tar.gz
 argon.basesys.config.tar.gz
 argon.basesys.final.tar.gz
 
-mnt/
-toolchain-linaro/
-
+*.swp
 *.img
 *.img.bz2
 *.7z
