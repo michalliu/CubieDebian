@@ -5,6 +5,7 @@
 #################
 PWD="`pwd`"
 CWD=$(cd "$(dirname "$0")"; pwd)
+CPU_CORES=$(grep -m1 cpu\ cores /proc/cpuinfo | cut -d : -f 2)
 
 source ${CWD}/fns.sh
 
@@ -92,10 +93,11 @@ DEFAULT_PASSWD="cubie"
 set -e
 
 TOOLCHAIN="${CWD}/toolchain"
-TOOLCHAIN_LINARO="arm-linaro-2013.04"
 TOOLCHAIN_LINARO_REPO="${CWD}/toolchain-linaro"
+LINARO_BRANCH="arm-linaro-2013.06"
+
 export PATH=${TOOLCHAIN}/bin:$PATH
-export PATH=${TOOLCHAIN_LINARO}/bin:$PATH
+export PATH=${TOOLCHAIN_LINARO_REPO}/bin:$PATH
 
 setupTools() {
 sudo add-apt-repository ppa:linaro-maintainers/tools
@@ -110,11 +112,11 @@ if [ ! -d $TOOLCHAIN_LINARO_REPO ];then
     git clone $TOOLCHAIN $TOOLCHAIN_LINARO_REPO
 fi
 branchName=$(git $gitOpt rev-parse --abbrev-ref HEAD)
-if [ $branchName != $UBOOT_A20 ]; then
-    echoRed "Switch branch to ${TOOLCHAIN_LINARO}"
+if [ "$branchName" != "$LINARO_BRANCH" ]; then
+    echoRed "Switch branch to ${LINARO_BRANCH}"
     git $gitOpt checkout .
     git $gitOpt clean -df
-    git $gitOpt checkout ${TOOLCHAIN_LINARO}
+    git $gitOpt checkout ${LINARO_BRANCH}
 fi
 }
 
@@ -133,12 +135,6 @@ CROSS_COMPILER=arm-none-linux-gnueabi-
 make -C $1 distclean CROSS_COMPILE=$CROSS_COMPILER
 make -C $1 cubieboard CROSS_COMPILE=$CROSS_COMPILER
 fi
-}
-
-buildKernel() {
-cp linux-sunxi/arch/arm/configs/sun4i_defconfig linux-sunxi/.config
-make -C ${CWD}/linux-sunxi/ ARCH=arm menuconfig
-make -j4 -C ${CWD}/linux-sunxi/ ARCH=arm CROSS_COMPILE=arm-none-linux-gnueabi- uImage modules
 }
 
 buildTools() {
@@ -201,7 +197,7 @@ bootm 0x48000000
 END
 mkimage -C none -A arm -T script -d ${ROOTFS_DIR}/boot/boot.cmd ${ROOTFS_DIR}/boot/boot.scr
 
-cp ${CWD}/sunxi-boards/sys_config/${CPU}/${FEX_FILE} ${ROOTFS_DIR}/boot/
+cp ${CWD}/sunxi-boards/sys_config/${ARM_CPU}/${FEX_FILE} ${ROOTFS_DIR}/boot/
 cat >> ${ROOTFS_DIR}/boot/${FEX_FILE} <<END
 
 [dynamic]
@@ -712,19 +708,19 @@ do
                 git $gitOpt clean -df
                 git $gitOpt checkout $LINUX_A10
             fi
-            echoRed "Copy configuration file";
+            echoRed "Copy configuration file $LINUX_CONFIG_BASE_SUN4I";
             cp -f $LINUX_CONFIG_BASE_SUN4I ${LINUX_REPO}/.config
             if promptyn "Reconfigure kernel?"; then
                 make -C $LINUX_REPO ARCH=arm menuconfig
             fi
-            make -j4 -C $LINUX_REPO ARCH=arm CROSS_COMPILE=arm-none-linux-gnueabi- uImage modules
+            make -j${CPU_CORES} -C $LINUX_REPO ARCH=arm CROSS_COMPILE=arm-none-linux-gnueabi- uImage modules
             echoRed "Done";
             show_menu
             ;;
         103) clear;
             if [ -d ${ROOTFS_DIR} ];then
                 echoRed "Install UBoot";
-                CPU="a10"
+                ARM_CPU="a10"
                 if [ -f "${ROOTFS_DIR}/boot/boot.scr" ] && [ -f "${ROOTFS_DIR}/boot/script.bin" ];then
                     if promptyn "UBoot has been installed, reinstall?"; then
                         installBoot
@@ -829,19 +825,21 @@ do
                 git $gitOpt clean -df
                 git $gitOpt checkout $LINUX_A20
             fi
-            echoRed "Copy configuration file";
+            echoRed "Using configuration file $LINUX_CONFIG_BASE_SUN7I";
+            setupLinaroToolchain
             cp -f $LINUX_CONFIG_BASE_SUN7I ${LINUX_REPO_A20}/.config
             if promptyn "Reconfigure kernel?"; then
                 make -C $LINUX_REPO_A20 ARCH=arm menuconfig
             fi
-            make -j4 -C $LINUX_REPO_A20 ARCH=arm CROSS_COMPILE=arm-none-linux-gnueabi- uImage modules
+            #make -j${CPU_CORES} -C $LINUX_REPO_A20 ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- uImage modules
+            make -j${CPU_CORES} -C $LINUX_REPO_A20 ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- uImage
             echoRed "Done";
             show_menu
             ;;
         203) clear;
             if [ -d ${ROOTFS_DIR} ];then
                 echoRed "Install UBoot";
-                CPU="a20"
+                ARM_CPU="a20"
                 if [ -f "${ROOTFS_DIR}/boot/boot.scr" ] && [ -f "${ROOTFS_DIR}/boot/script.bin" ];then
                     if promptyn "UBoot has been installed, reinstall?"; then
                         installBoot
