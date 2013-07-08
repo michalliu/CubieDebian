@@ -85,3 +85,6 @@
 [submodule "toolchain"]
 	path = toolchain
 	url = git@github.com:cubieplayer/Toolchain.git
+[submodule "kernel-config"]
+	path = kernel-config
+	url = git@github.com:mmplayer/sunxi-kernel-config.git

@@ -26,8 +26,8 @@ DEVELOPMENT_CODE="argon"
 
 FEX_FILE=cubieboard_${DEVELOPMENT_CODE}.fex
 
-LINUX_CONFIG_BASE_SUN4I="${CWD}/kernelConfig/linux_cubian_config_base_sun4i"
-LINUX_CONFIG_BASE_SUN7I="${CWD}/kernelConfig/linux_cubian_config_base_sun7i"
+LINUX_CONFIG_BASE_SUN4I="${CWD}/kernel-config/cubian_config_base_sun4i"
+LINUX_CONFIG_BASE_SUN7I="${CWD}/kernel-config/cubian_config_base_sun7i"
 # This will be the hostname of the cubieboard
 DEB_HOSTNAME="Cubian"
 
@@ -831,6 +831,19 @@ do
             if promptyn "Reconfigure kernel?"; then
                 make -C $LINUX_REPO_A20 ARCH=arm menuconfig
             fi
+
+            ## fix missing header files ###
+            missingPMConfigDotH="${LINUX_REPO_A20}/arch/arm/mach-sun7i/pm/standby/pm_config.h"
+            if [ ! -f $missingPMConfigDotH ];then
+                ln -s ${LINUX_REPO_A20}/arch/arm/mach-sun7i/pm/pm_config.h $missingPMConfigDotH 
+            fi
+
+            ## fix missing header files ###
+            missingPMDebugDotH="${LINUX_REPO_A20}/arch/arm/mach-sun7i/pm/pm_debug.h"
+            if [ ! -f $missingPMDebugDotH ];then
+                ln -s ${LINUX_REPO_A20}/arch/arm/mach-sun7i/pm/standby/pm_debug.h $missingPMDebugDotH 
+            fi
+
             #make -j${CPU_CORES} -C $LINUX_REPO_A20 ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- uImage modules
             make -j${CPU_CORES} -C $LINUX_REPO_A20 ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- uImage
             echoRed "Done";
