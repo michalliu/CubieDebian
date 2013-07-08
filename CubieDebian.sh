@@ -24,10 +24,11 @@ SCRIPT_VERSION="1.0"
 RELEASE_VERSION="3"
 DEVELOPMENT_CODE="argon"
 
-FEX_FILE=cubieboard_${DEVELOPMENT_CODE}.fex
+LINUX_CONFIG_BASE_SUN4I="${CWD}/kernel-config/config-cubian-base-sun4i"
+LINUX_CONFIG_BASE_SUN7I="${CWD}/kernel-config/config-cubian-base-sun7i"
+FEX_SUN4I="${CWD}/sunxi-boards/sys_config/a10/cubieboard_${DEVELOPMENT_CODE}.fex"
+FEX_SUN7I="${CWD}/sunxi-boards/sys_config/a10/cubieboard2_${DEVELOPMENT_CODE}.fex"
 
-LINUX_CONFIG_BASE_SUN4I="${CWD}/kernel-config/cubian_config_base_sun4i"
-LINUX_CONFIG_BASE_SUN7I="${CWD}/kernel-config/cubian_config_base_sun7i"
 # This will be the hostname of the cubieboard
 DEB_HOSTNAME="Cubian"
 
@@ -188,7 +189,7 @@ LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get -y install ${DEB_EXTRAPA
 fi
 }
 
-installBoot() {
+installBootscr() {
 cat > ${ROOTFS_DIR}/boot/boot.cmd <<END
 setenv bootargs console=tty0 console=ttyS0,115200 hdmi.audio=EDID:0 disp.screen0_output_mode=EDID:1280x800p60 root=/dev/mmcblk0p1 rootwait panic=10 ${extra}
 ext2load mmc 0 0x43000000 boot/script.bin
@@ -196,16 +197,16 @@ ext2load mmc 0 0x48000000 boot/uImage
 bootm 0x48000000
 END
 mkimage -C none -A arm -T script -d ${ROOTFS_DIR}/boot/boot.cmd ${ROOTFS_DIR}/boot/boot.scr
+}
 
-cp ${CWD}/sunxi-boards/sys_config/${ARM_CPU}/${FEX_FILE} ${ROOTFS_DIR}/boot/
+installFex(){
+echoRed "using fex $1"
+cp $1 ${ROOTFS_DIR}/boot/
 cat >> ${ROOTFS_DIR}/boot/${FEX_FILE} <<END
 
 [dynamic]
 MAC = "${MAC_ADDRESS}"
 END
-
-# overlock memory
-#sed -i 's/^dram_clk = 480$/dram_clk = 500/' ${ROOTFS_DIR}/boot/cubieboard.fex
 
 ${CWD}/sunxi-tools/fex2bin ${ROOTFS_DIR}/boot/${FEX_FILE} ${ROOTFS_DIR}/boot/script.bin
 }
@@ -493,8 +494,6 @@ show_menu(){
     echo ""
     echo "${NORMAL}    Test Commands (Use them only if you know what you are doing)${NORMAL}"
     echo ""
-
-    echo "${MENU}${NUMBER} 12)${MENU} recompile cubieboard.fex to script.bin on ${SD_PATH}1 /boot ${NORMAL}"
     echo ""
     echo "${ENTER_LINE}Please enter the option and enter or ${RED_TEXT}enter to exit. ${NORMAL}"
     if [ ! -z "$1" ]
@@ -720,13 +719,14 @@ do
         103) clear;
             if [ -d ${ROOTFS_DIR} ];then
                 echoRed "Install UBoot";
-                ARM_CPU="a10"
                 if [ -f "${ROOTFS_DIR}/boot/boot.scr" ] && [ -f "${ROOTFS_DIR}/boot/script.bin" ];then
                     if promptyn "UBoot has been installed, reinstall?"; then
-                        installBoot
+                        installBootscr
+                        installFex $FEX_SUN4I
                     fi
                 else
-                    installBoot
+                    installBootscr
+                    installFex $FEX_SUN4I
                 fi
                 echoRed "UBoot installed";
                 echoRed "Install linux kernel";
@@ -852,13 +852,14 @@ do
         203) clear;
             if [ -d ${ROOTFS_DIR} ];then
                 echoRed "Install UBoot";
-                ARM_CPU="a20"
                 if [ -f "${ROOTFS_DIR}/boot/boot.scr" ] && [ -f "${ROOTFS_DIR}/boot/script.bin" ];then
                     if promptyn "UBoot has been installed, reinstall?"; then
-                        installBoot
+                        installBootscr
+                        installFex $FEX_SUN7I
                     fi
                 else
-                    installBoot
+                    installBootscr
+                    installFex $FEX_SUN7I
                 fi
                 echoRed "UBoot installed";
                 echoRed "Install linux kernel";
@@ -897,36 +898,6 @@ do
                 echoRed "Done";
                 echoRed "Congratulations,you can safely remove your sd card";
                 echoRed "Now press Enter to quit the program";
-            fi
-            show_menu
-            ;;
-        12) clear;
-            FEX_FILE="cubieboard_${DEVELOPMENT_CODE}.fex"
-            echoRed "recompile ${FEX_FILE} to script.bin on ${SD_PATH}1 /boot ${NORMAL}"
-            umountSDSafe
-            sleep 1
-            mountRoot
-            if promptyn "start recompile?"; then
-                SD_BOOT_DIR="${SD_MNT_POINT}/boot"
-                SD_FEX_FILE="${SD_BOOT_DIR}/${FEX_FILE}"
-                SD_SCRIPT_BIN_FILE="${SD_BOOT_DIR}/script.bin"
-
-                if [ -f ${SD_FEX_FILE} ];then
-                    echoRed "hash `md5sum ${SD_SCRIPT_BIN_FILE}`"
-                else
-                    echoRed "[W] script.bin not founded"
-                fi
-
-                # recompile cubieboard.fex to script.bin
-                ${CWD}/sunxi-tools/fex2bin ${SD_FEX_FILE} ${SD_SCRIPT_BIN_FILE}
-                echoRed "hash `md5sum ${SD_SCRIPT_BIN_FILE}`"
-                echoRed "Done"
-            fi
-            if promptyn "remove ${SD_PATH}?"; then
-                umountSDSafe
-                sleep 1
-                ejectSD
-                echoRed "Your disk removed"
             fi
             show_menu
             ;;
