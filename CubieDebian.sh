@@ -25,7 +25,8 @@ DEVELOPMENT_CODE="argon"
 
 FEX_FILE=cubieboard_${DEVELOPMENT_CODE}.fex
 
-LINUX_CONFIG_BASE="${CWD}/kernelConfig/linux_cubian_config_base"
+LINUX_CONFIG_BASE_SUN4I="${CWD}/kernelConfig/linux_cubian_config_base_sun4i"
+LINUX_CONFIG_BASE_SUN7I="${CWD}/kernelConfig/linux_cubian_config_base_sun7i"
 # This will be the hostname of the cubieboard
 DEB_HOSTNAME="Cubian"
 
@@ -712,7 +713,7 @@ do
                 git $gitOpt checkout $LINUX_A10
             fi
             echoRed "Copy configuration file";
-            cp -f $LINUX_CONFIG_BASE ${LINUX_REPO}/.config
+            cp -f $LINUX_CONFIG_BASE_SUN4I ${LINUX_REPO}/.config
             if promptyn "Reconfigure kernel?"; then
                 make -C $LINUX_REPO ARCH=arm menuconfig
             fi
@@ -829,7 +830,7 @@ do
                 git $gitOpt checkout $LINUX_A20
             fi
             echoRed "Copy configuration file";
-            cp -f $LINUX_CONFIG_BASE ${LINUX_REPO_A20}/.config
+            cp -f $LINUX_CONFIG_BASE_SUN7I ${LINUX_REPO_A20}/.config
             if promptyn "Reconfigure kernel?"; then
                 make -C $LINUX_REPO_A20 ARCH=arm menuconfig
             fi
