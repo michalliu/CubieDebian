@@ -17,7 +17,7 @@ LINUX_REPO_A20="${CWD}/linux-sunxi-a20"
 UBOOT_A10="sunxi"
 LINUX_A10="sunxi-3.4"
 UBOOT_A20="hno-a20"
-LINUX_A20="sunxi-3.4-a20"
+LINUX_A20="sunxi-3.4-a20-wip"
 
 # This is the script verion
 SCRIPT_VERSION="1.0"
