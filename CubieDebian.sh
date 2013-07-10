@@ -426,7 +426,7 @@ parted ${SD_PATH} --script -- mkpartfs primary linux-swap $1 $(($1+1024))
 
 installRoot() {
 mkfs.ext4 -O ^has_journal ${SD_PATH}1
-e2label ${SD_PATH}1 cb2
+e2label ${SD_PATH}1 cubieboard
 mkswap ${SD_PATH}2
 sync
 partprobe
