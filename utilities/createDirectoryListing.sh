@@ -3,6 +3,7 @@ PWD="`pwd`"
 CWD=$(cd "$(dirname "$0")"; pwd)
 FOLDER=$1
 ABS_FOLDER="${CWD}/${FOLDER}"
+EXEC_COMMAND="exec_command"
 
 echo "Generate directy list ${ABS_FOLDER}"
 
@@ -38,16 +39,26 @@ else if ($10 ~ /\/$/) {\
 printf "\t<tr>\n\t\t<td><a class=\"icon dir\" href=\"%s\">%s</a></td>\n\t\t<td class=\"detailsColumn\"></td>\n\t\t<td class=\"detailsColumn\">%s %s</td>\n\t\t<td class=\"detailsColumn\"></td>\n\t</tr>\n",$10,$10,$7,substr($8,0,9)\
 }\
  else {\
-printf "\t<tr>\n\t\t<td><a class=\"icon file\" href=\"%s\">%s</a></td>\n\t\t<td class=\"detailsColumn\">%s</td>\n\t\t<td class=\"detailsColumn\">%s %s</td>\n\t\t<td class=\"detailsColumn monospace\">\nmd5sum %s/%s\n</td>\n\t</tr>\n",$10,$10,$1,$7,substr($8,0,9),dir,$10\
+printf "\t<tr>\n\t\t<td><a class=\"icon file\" href=\"%s\">%s</a></td>\n\t\t<td class=\"detailsColumn\">%s</td>\n\t\t<td class=\"detailsColumn\">%s %s</td>\n\t\t<td class=\"detailsColumn monospace\">\n%s md5sum %s/%s\n</td>\n\t</tr>\n",$10,$10,$1,$7,substr($8,0,9),command,dir,$10\
 }\
-}' dir=$DIR relative_dir=$RELATIVE_DIR
+}' dir=$DIR relative_dir=$RELATIVE_DIR command=$EXEC_COMMAND
     echo -e '</table>\n</body>\n</html>'
-  ) | while read line; do 
-    if [[ "$line" =~ "md5sum" ]];then
-        HASH=(`eval "$line"`)
-        echo "${HASH[0]}"
+  ) | while read line; do #while IFS= read line; do 
+    if [[ "$line" =~ "$EXEC_COMMAND" ]];then
+        commandLine=($line)
+        command="${commandLine[1]}"
+        case "$command" in
+            "md5sum")
+                fileName="${commandLine[2]}"
+                md5Result=($(md5sum $fileName))
+                echo "${md5Result[0]}"
+                ;;
+            *)
+                echo ""
+                ;;
+        esac
     else
-        printf "%s" "$line"
+        echo "$line"
     fi
-done > "${DIR}/index.html"
+    done > "${DIR}/index.html"
 done
