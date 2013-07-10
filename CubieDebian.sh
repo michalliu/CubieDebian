@@ -17,7 +17,8 @@ LINUX_REPO_A20="${CWD}/linux-sunxi-a20"
 UBOOT_A10="sunxi"
 LINUX_A10="sunxi-3.4"
 UBOOT_A20="hno-a20"
-LINUX_A20="sunxi-3.4-a20-wip"
+LINUX_A20_3_4="sunxi-3.4-a20-wip"
+LINUX_A20_3_3="sunxi-3.3-a20"
 
 # This is the script verion
 SCRIPT_VERSION="1.0"
@@ -25,9 +26,12 @@ RELEASE_VERSION="3"
 DEVELOPMENT_CODE="argon"
 
 LINUX_CONFIG_BASE_SUN4I="${CWD}/kernel-config/config-cubian-base-sun4i"
-LINUX_CONFIG_BASE_SUN7I="${CWD}/kernel-config/config-cubian-base-sun7i"
+LINUX_CONFIG_BASE_SUN7I_3_4="${CWD}/kernel-config/config-cubian-base-sun7i"
+LINUX_CONFIG_BASE_SUN7I_3_3="${CWD}/kernel-config/config-cubian-base-sun7i-3.3"
 FEX_SUN4I="${CWD}/sunxi-boards/sys_config/a10/cubieboard_${DEVELOPMENT_CODE}.fex"
-FEX_SUN7I="${CWD}/sunxi-boards/sys_config/a10/cubieboard2_${DEVELOPMENT_CODE}.fex"
+FEX_SUN7I="${CWD}/sunxi-boards/sys_config/a20/cubieboard2_${DEVELOPMENT_CODE}.fex"
+
+FEX2BIN="${CWD}/sunxi-tools/fex2bin"
 
 # This will be the hostname of the cubieboard
 DEB_HOSTNAME="Cubian"
@@ -104,7 +108,7 @@ setupTools() {
 sudo add-apt-repository ppa:linaro-maintainers/tools
 apt-get update
 
-installpackages "debootstrap" "qemu-user-static" "build-essential" "u-boot-tools" "git" "binfmt-support" "libusb-1.0-0-dev" "pkg-config" "libncurses5-dev" "debian-archive-keyring" "expect" "kpartx" "p7zip-full"
+installpackages "debootstrap" "qemu-user-static" "build-essential" "u-boot-tools" "git" "binfmt-support" "libusb-1.0-0-dev" "pkg-config" "libncurses5-dev" "debian-archive-keyring" "expect" "kpartx" "p7zip-full" "e2fsprogs"
 }
 
 setupLinaroToolchain(){
@@ -191,7 +195,8 @@ fi
 
 installBootscr() {
 cat > ${ROOTFS_DIR}/boot/boot.cmd <<END
-setenv bootargs console=tty0 console=ttyS0,115200 hdmi.audio=EDID:0 disp.screen0_output_mode=EDID:1280x800p60 root=/dev/mmcblk0p1 rootwait panic=10 ${extra}
+setenv bootargs console=tty0 console=ttyS0,115200 hdmi.audio=EDID:0 disp.screen0_output_mode=EDID:1280x800p60 root=/dev/mmcblk0p1 rootwait panic=10
+setenv machid 0f35
 ext2load mmc 0 0x43000000 boot/script.bin
 ext2load mmc 0 0x48000000 boot/uImage
 bootm 0x48000000
@@ -201,19 +206,21 @@ mkimage -C none -A arm -T script -d ${ROOTFS_DIR}/boot/boot.cmd ${ROOTFS_DIR}/bo
 
 installFex(){
 echoRed "using fex $1"
-cp $1 ${ROOTFS_DIR}/boot/
-cat >> ${ROOTFS_DIR}/boot/${FEX_FILE} <<END
+scriptSrc="${ROOTFS_DIR}/boot/script.fex"
+scriptBinary="${ROOTFS_DIR}/boot/script.bin"
+cp $1 $scriptSrc
+cat >> $scriptSrc <<END
 
 [dynamic]
 MAC = "${MAC_ADDRESS}"
 END
 
-${CWD}/sunxi-tools/fex2bin ${ROOTFS_DIR}/boot/${FEX_FILE} ${ROOTFS_DIR}/boot/script.bin
+$FEX2BIN $scriptSrc $scriptBinary
 }
 
 installKernel() {
 cp ${CURRENT_KERNEL}/arch/arm/boot/uImage ${ROOTFS_DIR}/boot
-make -C ${CURRENT_KERNEL} INSTALL_MOD_PATH=${ROOTFS_DIR} ARCH=arm CROSS_COMPILE=arm-none-linux-gnueabi- modules_install
+make -C ${CURRENT_KERNEL} INSTALL_MOD_PATH=${ROOTFS_DIR} ARCH=arm modules_install
 }
 
 configNetwork() {
@@ -418,7 +425,8 @@ parted ${SD_PATH} --script -- mkpartfs primary linux-swap $1 $(($1+1024))
 }
 
 installRoot() {
-mkfs.ext4 ${SD_PATH}1
+mkfs.ext4 -O ^has_journal ${SD_PATH}1
+e2label ${SD_PATH}1 cb2
 mkswap ${SD_PATH}2
 sync
 partprobe
@@ -486,9 +494,10 @@ show_menu(){
     echo ""
     echo "${NORMAL}    A20${NORMAL}"
     echo "${MENU}${NUMBER} 201)${MENU} Build u-boot for A20 ${NORMAL}"
-    echo "${MENU}${NUMBER} 202)${MENU} Build Linux kernel for A20 ${NORMAL}"
-    echo "${MENU}${NUMBER} 203)${MENU} Install UBoot & kernel & modules${NORMAL}"
-    echo "${MENU}${NUMBER} 204)${MENU} Install to device ${SD_PATH} ${NORMAL}"
+    echo "${MENU}${NUMBER} 202)${MENU} Build Linux kernel 3.3 for A20 ${NORMAL}"
+    echo "${MENU}${NUMBER} 203)${MENU} Build Linux kernel 3.4(inComplete) for A20 ${NORMAL}"
+    echo "${MENU}${NUMBER} 204)${MENU} Install UBoot & kernel & modules${NORMAL}"
+    echo "${MENU}${NUMBER} 205)${MENU} Install to device ${SD_PATH} ${NORMAL}"
     echo ""
 
     echo ""
@@ -814,20 +823,41 @@ do
             show_menu
             ;;
         202) clear;
-            echoRed "Build Linux kernel for A20";
+            echoRed "Build Linux kernel 3.3 for A20";
             gitOpt="--git-dir=${LINUX_REPO_A20}/.git --work-tree=${LINUX_REPO_A20}/"
             if [ ! -d $LINUX_REPO_A20 ];then
                 git clone $LINUX_REPO $LINUX_REPO_A20
             fi
             branchName=$(git $gitOpt rev-parse --abbrev-ref HEAD)
-            if [ $branchName != $LINUX_A20 ]; then
+            if [ $branchName != $LINUX_A20_3_3 ]; then
                 git $gitOpt checkout .
                 git $gitOpt clean -df
-                git $gitOpt checkout $LINUX_A20
+                git $gitOpt checkout $LINUX_A20_3_3
             fi
-            echoRed "Using configuration file $LINUX_CONFIG_BASE_SUN7I";
+            echoRed "Using configuration file $LINUX_CONFIG_BASE_SUN7I_3_3";
+            cp -f $LINUX_CONFIG_BASE_SUN7I_3_3 ${LINUX_REPO_A20}/.config
+            if promptyn "Reconfigure kernel?"; then
+                make -C $LINUX_REPO_A20 ARCH=arm menuconfig
+            fi
+            make -j${CPU_CORES} -C $LINUX_REPO_A20 ARCH=arm CROSS_COMPILE=arm-none-linux-gnueabi- uImage modules
+            echoRed "Done";
+            show_menu
+            ;;
+        203) clear;
+            echoRed "Build Linux kernel 3.4(inComplete) for A20";
+            gitOpt="--git-dir=${LINUX_REPO_A20}/.git --work-tree=${LINUX_REPO_A20}/"
+            if [ ! -d $LINUX_REPO_A20 ];then
+                git clone $LINUX_REPO $LINUX_REPO_A20
+            fi
+            branchName=$(git $gitOpt rev-parse --abbrev-ref HEAD)
+            if [ $branchName != $LINUX_A20_3_4 ]; then
+                git $gitOpt checkout .
+                git $gitOpt clean -df
+                git $gitOpt checkout $LINUX_A20_3_4
+            fi
+            echoRed "Using configuration file $LINUX_CONFIG_BASE_SUN7I_3_4";
             setupLinaroToolchain
-            cp -f $LINUX_CONFIG_BASE_SUN7I ${LINUX_REPO_A20}/.config
+            cp -f $LINUX_CONFIG_BASE_SUN7I_3_4 ${LINUX_REPO_A20}/.config
             if promptyn "Reconfigure kernel?"; then
                 make -C $LINUX_REPO_A20 ARCH=arm menuconfig
             fi
@@ -844,12 +874,11 @@ do
                 ln -s ${LINUX_REPO_A20}/arch/arm/mach-sun7i/pm/standby/pm_debug.h $missingPMDebugDotH 
             fi
 
-            #make -j${CPU_CORES} -C $LINUX_REPO_A20 ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- uImage modules
-            make -j${CPU_CORES} -C $LINUX_REPO_A20 ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- uImage
+            make -j${CPU_CORES} -C $LINUX_REPO_A20 ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- uImage modules
             echoRed "Done";
             show_menu
             ;;
-        203) clear;
+        204) clear;
             if [ -d ${ROOTFS_DIR} ];then
                 echoRed "Install UBoot";
                 if [ -f "${ROOTFS_DIR}/boot/boot.scr" ] && [ -f "${ROOTFS_DIR}/boot/script.bin" ];then
@@ -879,7 +908,7 @@ do
             echoRed "Done";
             show_menu
             ;;
-        204) clear;
+        205) clear;
             echoRed "Install to your device ${SD_PATH}"
             echoRed "Device info"
             fdisk -l | grep ${SD_PATH}
