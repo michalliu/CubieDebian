@@ -418,7 +418,7 @@ fi
 }
 
 formatSD() {
-dd if=/dev/zero of=${SD_PATH} bs=1M count=2
+dd if=/dev/zero of=${SD_PATH} bs=1M count=1
 parted ${SD_PATH} --script mklabel msdos
 parted ${SD_PATH} --script -- mkpart primary 1 $1
 parted ${SD_PATH} --script -- mkpartfs primary linux-swap $1 $(($1+1024))
