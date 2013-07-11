@@ -88,3 +88,6 @@
 [submodule "kernel-config"]
 	path = kernel-config
 	url = git@github.com:mmplayer/sunxi-kernel-config.git
+[submodule "nandinstall"]
+	path = nandinstall
+	url = git@github.com:mmplayer/nandinstall.git

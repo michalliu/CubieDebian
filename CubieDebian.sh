@@ -13,12 +13,15 @@ UBOOT_REPO="${CWD}/u-boot-sunxi"
 LINUX_REPO="${CWD}/linux-sunxi"
 UBOOT_REPO_A20="${CWD}/u-boot-sunxi-a20"
 LINUX_REPO_A20="${CWD}/linux-sunxi-a20"
+NAND_INSTALL_REPO="${CWD}/nandinstall"
 
 UBOOT_A10="sunxi"
 LINUX_A10="sunxi-3.4"
 UBOOT_A20="hno-a20"
 LINUX_A20_3_4="sunxi-3.4-a20-wip"
 LINUX_A20_3_3="sunxi-3.3-a20"
+NAND_INSTALL_A10="a10"
+NAND_INSTALL_A20="a20"
 
 # This is the script verion
 SCRIPT_VERSION="1.0"
@@ -105,9 +108,6 @@ export PATH=${TOOLCHAIN}/bin:$PATH
 export PATH=${TOOLCHAIN_LINARO_REPO}/bin:$PATH
 
 setupTools() {
-sudo add-apt-repository ppa:linaro-maintainers/tools
-apt-get update
-
 installpackages "debootstrap" "qemu-user-static" "build-essential" "u-boot-tools" "git" "binfmt-support" "libusb-1.0-0-dev" "pkg-config" "libncurses5-dev" "debian-archive-keyring" "expect" "kpartx" "p7zip-full" "e2fsprogs"
 }
 
@@ -209,13 +209,14 @@ echoRed "using fex $1"
 scriptSrc="${ROOTFS_DIR}/boot/script.fex"
 scriptBinary="${ROOTFS_DIR}/boot/script.bin"
 cp $1 $scriptSrc
-cat >> $scriptSrc <<END
-
-[dynamic]
-MAC = "${MAC_ADDRESS}"
-END
-
 $FEX2BIN $scriptSrc $scriptBinary
+}
+
+installNandScript(){
+gitOpt="--git-dir=${NAND_INSTALL_REPO}/.git --work-tree=${NAND_INSTALL_REPO}/"
+nandInstallDir="${ROOTFS_DIR}/home/${DEFAULT_USERNAME}/nandinstall"
+mkdir -p $nandInstallDir
+git $gitOpt archive $1 | tar -x -C $nandInstallDir
 }
 
 installKernel() {
@@ -370,9 +371,6 @@ backupFile ${ROOTFS_DIR}/etc/ifplugd/ifplugd.action
 # copy scripts
 cp -r ${CWD}/scripts/* ${ROOTFS_DIR}
 
-# copy nandinstaller
-cp -r ${CWD}/nandinstall ${ROOTFS_DIR}/home/cubie
-
 # green led ctrl
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} update-rc.d bootlightctrl defaults
 # network time
@@ -486,7 +484,7 @@ show_menu(){
     echo "${NORMAL}    A10${NORMAL}"
     echo ""
     echo "${MENU}${NUMBER} 101)${MENU} Build u-boot for A10 ${NORMAL}"
-    echo "${MENU}${NUMBER} 102)${MENU} Build Linux kernel for A10 ${NORMAL}"
+    echo "${MENU}${NUMBER} 102)${MENU} Build Linux kernel(3.4.43) for A10 ${NORMAL}"
     echo "${MENU}${NUMBER} 103)${MENU} Install UBoot & kernel & modules${NORMAL}"
     echo "${MENU}${NUMBER} 104)${MENU} Install to device ${SD_PATH} ${NORMAL}"
     echo "${MENU}${NUMBER} 105)${MENU} Make disk image"
@@ -748,6 +746,9 @@ do
                     installKernel
                 fi
                 echoRed "Kernel installed";
+                echoRed "install nand installation helper script"
+                installNandScript $NAND_INSTALL_A10
+                echoRed "nand installation helper script installed"
             else
                 echo "[E] rootfs is not existed at ${ROOTFS_DIR}"
             fi
@@ -901,10 +902,12 @@ do
                     installKernel
                 fi
                 echoRed "Kernel installed";
+                echoRed "install nand installation helper script"
+                installNandScript $NAND_INSTALL_A20
+                echoRed "nand installation helper script installed"
             else
                 echo "[E] rootfs is not existed at ${ROOTFS_DIR}"
             fi
-
             echoRed "Done";
             show_menu
             ;;

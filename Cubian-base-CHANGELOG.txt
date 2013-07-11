@@ -1,3 +1,6 @@
+[2013.6.27] r4
+* disable ext journal to improve speed
+* improve nandinstall script
 [2013.6.27] r3
 + full gpio support (SD card only)
 + alsa sound driver
