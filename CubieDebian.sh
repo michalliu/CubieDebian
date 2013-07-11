@@ -216,6 +216,7 @@ installNandScript(){
 gitOpt="--git-dir=${NAND_INSTALL_REPO}/.git --work-tree=${NAND_INSTALL_REPO}/"
 nandInstallDir="${ROOTFS_DIR}/home/${DEFAULT_USERNAME}/nandinstall"
 mkdir -p $nandInstallDir
+git $gitOpt checkout $1
 git $gitOpt archive $1 | tar -x -C $nandInstallDir
 }
 
