@@ -6,6 +6,8 @@
 PWD="`pwd`"
 CWD=$(cd "$(dirname "$0")"; pwd)
 CPU_CORES=$(grep -m1 cpu\ cores /proc/cpuinfo | cut -d : -f 2)
+A10="a10"
+A20="a20"
 
 source ${CWD}/fns.sh
 
@@ -20,8 +22,8 @@ LINUX_A10="sunxi-3.4"
 UBOOT_A20="hno-a20"
 LINUX_A20_3_4="sunxi-3.4-a20-wip"
 LINUX_A20_3_3="sunxi-3.3-a20"
-NAND_INSTALL_A10="a10"
-NAND_INSTALL_A20="a20"
+NAND_INSTALL_A10="$A10"
+NAND_INSTALL_A20="$A20"
 
 # This is the script verion
 SCRIPT_VERSION="1.0"
@@ -372,7 +374,7 @@ backupFile ${ROOTFS_DIR}/etc/default/ntpdate
 backupFile ${ROOTFS_DIR}/etc/ifplugd/ifplugd.action
 
 # copy scripts
-cp -r ${CWD}/scripts/* ${ROOTFS_DIR}
+cp -r ${CWD}/scripts/common/* ${ROOTFS_DIR}
 
 # green led ctrl
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} update-rc.d bootlightctrl defaults
@@ -388,12 +390,15 @@ if promptyn "Install Personal Stuff?"; then
 fi
 }
 
-patchRootfsA20(){
+patchRootfs(){
+if[[ "$1" = "$A20" ]];then
 cat >> ${ROOTFS_DIR}/etc/modules <<END
 
 # NAND driver
 nand
 END
+fi
+cp -r ${CWD}/scripts/$1/* ${ROOTFS_DIR}
 }
 
 umountSDSafe() {
@@ -760,6 +765,9 @@ do
                 echoRed "install nand installation helper script"
                 installNandScript $NAND_INSTALL_A10
                 echoRed "nand installation helper script installed"
+                echoRed "Patch rootfs for A10"
+                patchRootfs $A10
+                echoRed "Done"
             else
                 echo "[E] rootfs is not existed at ${ROOTFS_DIR}"
             fi
@@ -915,8 +923,10 @@ do
                 echoRed "Kernel installed";
                 echoRed "install nand installation helper script"
                 installNandScript $NAND_INSTALL_A20
-                patchRootfsA20
                 echoRed "nand installation helper script installed"
+                echoRed "Patch rootfs for A20"
+                patchRootfs $A20
+                echoRed "Done"
             else
                 echo "[E] rootfs is not existed at ${ROOTFS_DIR}"
             fi
