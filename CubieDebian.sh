@@ -374,7 +374,7 @@ backupFile ${ROOTFS_DIR}/etc/default/ntpdate
 backupFile ${ROOTFS_DIR}/etc/ifplugd/ifplugd.action
 
 # copy scripts
-cp -r ${CWD}/scripts/common/* ${ROOTFS_DIR}
+cp -r ${CWD}/patches/common/* ${ROOTFS_DIR}
 
 # green led ctrl
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} update-rc.d bootlightctrl defaults
@@ -391,7 +391,7 @@ fi
 }
 
 patchRootfs(){
-if[[ "$1" = "$A20" ]];then
+if [[ "$1" = "$A20" ]];then
 cat >> ${ROOTFS_DIR}/etc/modules <<END
 
 # NAND driver
