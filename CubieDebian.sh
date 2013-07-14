@@ -398,7 +398,7 @@ cat >> ${ROOTFS_DIR}/etc/modules <<END
 nand
 END
 fi
-cp -r ${CWD}/scripts/$1/* ${ROOTFS_DIR}
+cp -r ${CWD}/patches/$1/* ${ROOTFS_DIR}
 }
 
 umountSDSafe() {
@@ -767,7 +767,6 @@ do
                 echoRed "nand installation helper script installed"
                 echoRed "Patch rootfs for A10"
                 patchRootfs $A10
-                echoRed "Done"
             else
                 echo "[E] rootfs is not existed at ${ROOTFS_DIR}"
             fi
@@ -926,7 +925,6 @@ do
                 echoRed "nand installation helper script installed"
                 echoRed "Patch rootfs for A20"
                 patchRootfs $A20
-                echoRed "Done"
             else
                 echo "[E] rootfs is not existed at ${ROOTFS_DIR}"
             fi
