@@ -124,6 +124,7 @@ if [ "$branchName" != "$LINARO_BRANCH" ]; then
     git $gitOpt checkout ${LINARO_BRANCH}
 fi
 }
+#setupLinaroToolchain
 
 initRepo() {
 git submodule init
@@ -147,8 +148,9 @@ make -C ${CWD}/sunxi-tools/ clean
 make -C ${CWD}/sunxi-tools/ all
 }
 
-crossCompileNandpart(){
+crossCompileSunxiTools(){
 make -C ${CWD}/sunxi-tools/ clean
+make -C ${CWD}/sunxi-tools/ CC=arm-none-linux-gnueabi-gcc CFLAGS='-Wall -static -Iinclude/' nand-part
 make -C ${CWD}/sunxi-tools/ CC=arm-none-linux-gnueabi-gcc CFLAGS='-Wall -static -Iinclude/' nand-part2
 }
 
@@ -320,13 +322,13 @@ END
 
 cat >> ${ROOTFS_DIR}/etc/modules <<END
 
-#GPIO
+# GPIO
 gpio_sunxi
 
-#For SATA Support
+# For SATA Support
 sw_ahci_platform
 
-#Display and GPU
+# Display and GPU
 lcd
 hdmi
 ump
@@ -384,6 +386,14 @@ LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get clean
 if promptyn "Install Personal Stuff?"; then
     installPersonalStuff
 fi
+}
+
+patchRootfsA20(){
+cat >> ${ROOTFS_DIR}/etc/modules <<END
+
+# NAND driver
+nand
+END
 }
 
 umountSDSafe() {
@@ -905,6 +915,7 @@ do
                 echoRed "Kernel installed";
                 echoRed "install nand installation helper script"
                 installNandScript $NAND_INSTALL_A20
+                patchRootfsA20
                 echoRed "nand installation helper script installed"
             else
                 echo "[E] rootfs is not existed at ${ROOTFS_DIR}"

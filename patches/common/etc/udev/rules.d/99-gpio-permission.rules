@@ -1,0 +1,3 @@
+# Allow user cubie or users in gpio group to control GPIO
+
+SUBSYSTEM=="gpio", ACTION=="add", PROGRAM="/bin/sh -c 'chmod -R g+rw /sys%p && chgrp -R gpio /sys%p'"
