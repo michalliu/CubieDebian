@@ -20,7 +20,7 @@ NAND_INSTALL_REPO="${CWD}/nandinstall"
 UBOOT_A10="sunxi"
 LINUX_A10="sunxi-3.4"
 UBOOT_A20="hno-a20"
-LINUX_A20_3_4="sunxi-3.4-a20-wip"
+LINUX_A20_3_4="sunxi-3.4-a20"
 LINUX_A20_3_3="sunxi-3.3-a20"
 NAND_INSTALL_A10="$A10"
 NAND_INSTALL_A20="$A20"
@@ -529,433 +529,414 @@ show_menu(){
 isRoot
 clear
 show_menu
-while [ ! -z "$opt" ]
-do
-    if [ -z "$opt" ]
-    then
-        exit;
-    else
-        case $opt in
-        1) clear;
-            echoRed "Set up your enviroment `uname -v`";
-            setupTools
-            echoRed "Done";
-            show_menu
-            ;;
-        2) clear;
-            echoRed "Clone repository uBoot,kernel,tools,boards from github";
-            initRepo
-            if promptyn "Do you want update these repositories?"; then
-                git submodule foreach git pull
-            fi
-            echoRed "Done";
-            show_menu
-            ;;
-        3) clear;
-            echoRed "Start build sunxi-tools";
-            buildTools
-            echoRed "Done";
-            show_menu
-            ;;
-        4) clear;
-            echoRed "Download rootfs";
-            if [ -d ${ROOTFS_DIR} ];then
-               if promptyn "The rootfs exists, do you want delete it?"; then
+while [ ! -z "$opt" ];do
+    case $opt in
+    1) clear;
+        echoRed "Set up your enviroment `uname -v`";
+        setupTools
+        echoRed "Done";
+        show_menu
+        ;;
+    2) clear;
+        echoRed "Clone repository uBoot,kernel,tools,boards from github";
+        initRepo
+        if promptyn "Do you want update these repositories?"; then
+            git submodule foreach git pull
+        fi
+        echoRed "Done";
+        show_menu
+        ;;
+    3) clear;
+        echoRed "Start build sunxi-tools";
+        buildTools
+        echoRed "Done";
+        show_menu
+        ;;
+    4) clear;
+        echoRed "Download rootfs";
+        if [ -d ${ROOTFS_DIR} ];then
+           if promptyn "The rootfs exists, do you want delete it?"; then
+               rm -rf ${ROOTFS_DIR}
+           fi
+        fi
+        if [ -f ${ROOTFS_BACKUP} ];then
+           if promptyn "Found a backup of rootfs, restore from it?"; then
+               if [ -d ${ROOTFS_DIR} ];then
                    rm -rf ${ROOTFS_DIR}
                fi
-            fi
+               echoRed "Restore from rootfs";
+               tar -xzPf ${ROOTFS_BACKUP}
+               echoRed "Done";
+               show_menu
+               continue
+           fi
+        fi
+        if promptyn "Download rootfs, it may take a few minutes, continue?"; then
+            echoRed "Start download rootfs";
+            downloadSys
+            echoRed "Make a backup of the clean rootfs";
             if [ -f ${ROOTFS_BACKUP} ];then
-               if promptyn "Found a backup of rootfs, restore from it?"; then
-                   if [ -d ${ROOTFS_DIR} ];then
-                       rm -rf ${ROOTFS_DIR}
-                   fi
-                   echoRed "Restore from rootfs";
-                   tar -xzPf ${ROOTFS_BACKUP}
-                   echoRed "Done";
-                   show_menu
-                   continue
+                rm ${ROOTFS_BACKUP}
+            fi
+            tar -czPf ${ROOTFS_BACKUP} ${ROOTFS_DIR}
+        fi
+        echoRed "Done";
+        show_menu
+        ;;
+    5) clear;
+        echoRed "Install base system";
+        if [ -f ${BASESYS_BACKUP} ];then
+           if promptyn "Found a backup of base system, restore from it?"; then
+               if [ -d ${ROOTFS_DIR} ];then
+                   rm -rf ${ROOTFS_DIR}
                fi
+               echoRed "Restore basesystem, please wait";
+               tar -xzPf ${BASESYS_BACKUP}
+               echoRed "Base System Restored";
+               show_menu
+               continue
+           fi
+        fi
+        if [ -d ${ROOTFS_DIR} ];then
+            if promptyn "Are you sure to install the base system?"; then
+               echoRed "Installing base system, it may take a while";
+               installBaseSys
+               echoRed "Base system installed";
             fi
-            if promptyn "Download rootfs, it may take a few minutes, continue?"; then
-                echoRed "Start download rootfs";
-                downloadSys
-                echoRed "Make a backup of the clean rootfs";
-                if [ -f ${ROOTFS_BACKUP} ];then
-                    rm ${ROOTFS_BACKUP}
-                fi
-                tar -czPf ${ROOTFS_BACKUP} ${ROOTFS_DIR}
-            fi
-            echoRed "Done";
-            show_menu
-            ;;
-        5) clear;
-            echoRed "Install base system";
+            echoRed "Make a backup of the clean base system";
             if [ -f ${BASESYS_BACKUP} ];then
-               if promptyn "Found a backup of base system, restore from it?"; then
-                   if [ -d ${ROOTFS_DIR} ];then
-                       rm -rf ${ROOTFS_DIR}
-                   fi
-                   echoRed "Restore basesystem, please wait";
-                   tar -xzPf ${BASESYS_BACKUP}
-                   echoRed "Base System Restored";
-                   show_menu
-                   continue
+                rm ${BASESYS_BACKUP}
+            fi
+            tar -czPf ${BASESYS_BACKUP} ${ROOTFS_DIR}
+        else
+            echo "[E] rootfs is not existed at ${ROOTFS_DIR}"
+        fi
+        echoRed "Done";
+        show_menu
+        ;;
+    6) clear;
+        echoRed "Install packages";
+        if [ -f ${BASESYS_PKG_BACKUP} ];then
+           if promptyn "Found a backup of base system with packages, restore from it?"; then
+               if [ -d ${ROOTFS_DIR} ];then
+                   rm -rf ${ROOTFS_DIR}
                fi
-            fi
-            if [ -d ${ROOTFS_DIR} ];then
-                if promptyn "Are you sure to install the base system?"; then
-                   echoRed "Installing base system, it may take a while";
-                   installBaseSys
-                   echoRed "Base system installed";
-                fi
-                echoRed "Make a backup of the clean base system";
-                if [ -f ${BASESYS_BACKUP} ];then
-                    rm ${BASESYS_BACKUP}
-                fi
-                tar -czPf ${BASESYS_BACKUP} ${ROOTFS_DIR}
-            else
-                echo "[E] rootfs is not existed at ${ROOTFS_DIR}"
-            fi
-            echoRed "Done";
-            show_menu
-            ;;
-        6) clear;
-            echoRed "Install packages";
+               echoRed "Restore basesystem with packages, please wait";
+               tar -xzPf ${BASESYS_PKG_BACKUP}
+               echoRed "Base System with packages Restored";
+               show_menu
+               continue
+           fi
+        fi
+        if [ -d ${ROOTFS_DIR} ];then
+            echoRed "${DEB_EXTRAPACKAGES}";
+            installPackages
+            echoRed "Package ${DEB_EXTRAPACKAGES} installed to the system";
+            echoRed "Make a backup of the system";
             if [ -f ${BASESYS_PKG_BACKUP} ];then
-               if promptyn "Found a backup of base system with packages, restore from it?"; then
-                   if [ -d ${ROOTFS_DIR} ];then
-                       rm -rf ${ROOTFS_DIR}
-                   fi
-                   echoRed "Restore basesystem with packages, please wait";
-                   tar -xzPf ${BASESYS_PKG_BACKUP}
-                   echoRed "Base System with packages Restored";
-                   show_menu
-                   continue
+                rm ${BASESYS_PKG_BACKUP}
+            fi
+            tar -czPf ${BASESYS_PKG_BACKUP} ${ROOTFS_DIR}
+        else
+            echo "[E] rootfs is not existed at ${ROOTFS_DIR}"
+        fi
+        echoRed "Done";
+        show_menu
+        ;;
+    7) clear;
+        if [ -f ${BASESYS_CONFIG_BACKUP} ];then
+           if promptyn "Found a backup of standard configed system, restore from it?"; then
+               if [ -d ${ROOTFS_DIR} ];then
+                   rm -rf ${ROOTFS_DIR}
                fi
-            fi
-            if [ -d ${ROOTFS_DIR} ];then
-                echoRed "${DEB_EXTRAPACKAGES}";
-                installPackages
-                echoRed "Package ${DEB_EXTRAPACKAGES} installed to the system";
-                echoRed "Make a backup of the system";
-                if [ -f ${BASESYS_PKG_BACKUP} ];then
-                    rm ${BASESYS_PKG_BACKUP}
-                fi
-                tar -czPf ${BASESYS_PKG_BACKUP} ${ROOTFS_DIR}
-            else
-                echo "[E] rootfs is not existed at ${ROOTFS_DIR}"
-            fi
-            echoRed "Done";
-            show_menu
-            ;;
-        7) clear;
+               echoRed "Restore basesystem with standard configed, please wait";
+               tar -xzPf ${BASESYS_CONFIG_BACKUP}
+               echoRed "Base System with standard configed Restored";
+               show_menu
+               continue
+           fi
+        fi
+        if [ -d ${ROOTFS_DIR} ];then
+            echoRed "Config Network";
+                configNetwork
+            echoRed "Net work configed";
+            echoRed "Config System";
+                configSys
+            echoRed "System configed";
+            echoRed "Make a backup of the system";
             if [ -f ${BASESYS_CONFIG_BACKUP} ];then
-               if promptyn "Found a backup of standard configed system, restore from it?"; then
-                   if [ -d ${ROOTFS_DIR} ];then
-                       rm -rf ${ROOTFS_DIR}
-                   fi
-                   echoRed "Restore basesystem with standard configed, please wait";
-                   tar -xzPf ${BASESYS_CONFIG_BACKUP}
-                   echoRed "Base System with standard configed Restored";
-                   show_menu
-                   continue
-               fi
+                rm ${BASESYS_CONFIG_BACKUP}
             fi
-            if [ -d ${ROOTFS_DIR} ];then
-                echoRed "Config Network";
-                    configNetwork
-                echoRed "Net work configed";
-                echoRed "Config System";
-                    configSys
-                echoRed "System configed";
-                echoRed "Make a backup of the system";
-                if [ -f ${BASESYS_CONFIG_BACKUP} ];then
-                    rm ${BASESYS_CONFIG_BACKUP}
-                fi
-                tar -czPf ${BASESYS_CONFIG_BACKUP} ${ROOTFS_DIR}
-            else
-                echo "[E] rootfs is not existed at ${ROOTFS_DIR}"
-            fi
+            tar -czPf ${BASESYS_CONFIG_BACKUP} ${ROOTFS_DIR}
+        else
+            echo "[E] rootfs is not existed at ${ROOTFS_DIR}"
+        fi
 
-            echoRed "Done";
-            show_menu
-            ;;
-        8) clear;
+        echoRed "Done";
+        show_menu
+        ;;
+    8) clear;
+        if [ -f ${BASESYS_FINAL_BACKUP} ];then
+           if promptyn "Found a backup of final configed system, restore from it?"; then
+               if [ -d ${ROOTFS_DIR} ];then
+                   rm -rf ${ROOTFS_DIR}
+               fi
+               echoRed "Restore basesystem with final configed, please wait";
+               tar -xzPf ${BASESYS_FINAL_BACKUP}
+               echoRed "Base System with final configed Restored";
+               show_menu
+               continue
+           fi
+        fi
+        if [ -d ${ROOTFS_DIR} ];then
+            echoRed "Install Utilites and personal stuff"
+            finalConfig
+            echoRed "Make a backup of the system";
             if [ -f ${BASESYS_FINAL_BACKUP} ];then
-               if promptyn "Found a backup of final configed system, restore from it?"; then
-                   if [ -d ${ROOTFS_DIR} ];then
-                       rm -rf ${ROOTFS_DIR}
-                   fi
-                   echoRed "Restore basesystem with final configed, please wait";
-                   tar -xzPf ${BASESYS_FINAL_BACKUP}
-                   echoRed "Base System with final configed Restored";
-                   show_menu
-                   continue
-               fi
+                rm ${BASESYS_FINAL_BACKUP}
             fi
-            if [ -d ${ROOTFS_DIR} ];then
-                echoRed "Install Utilites and personal stuff"
-                finalConfig
-                echoRed "Make a backup of the system";
-                if [ -f ${BASESYS_FINAL_BACKUP} ];then
-                    rm ${BASESYS_FINAL_BACKUP}
-                fi
-                tar -czPf ${BASESYS_FINAL_BACKUP} ${ROOTFS_DIR}
-            else
-                echo "[E] rootfs is not existed at ${ROOTFS_DIR}"
-            fi
-            echoRed "Done";
-            show_menu
-            ;;
+            tar -czPf ${BASESYS_FINAL_BACKUP} ${ROOTFS_DIR}
+        else
+            echo "[E] rootfs is not existed at ${ROOTFS_DIR}"
+        fi
+        echoRed "Done";
+        show_menu
+        ;;
 
-        101) clear;
-            echoRed "Start build u-boot";
-            gitOpt="--git-dir=${UBOOT_REPO}/.git --work-tree=${UBOOT_REPO}"
-            branchName=$(git $gitOpt rev-parse --abbrev-ref HEAD)
-            if [ $branchName != $UBOOT_A10 ]; then
-                git $gitOpt checkout .
-                git $gitOpt clean -df
-                git $gitOpt checkout $UBOOT_A10
-            fi
-            buildUBoot $UBOOT_REPO
-            echoRed "Done";
-            show_menu
-            ;;
-        102) clear;
-            echoRed "Build Linux kernel";
-            gitOpt="--git-dir=${LINUX_REPO}/.git --work-tree=${LINUX_REPO}/"
-            branchName=$(git $gitOpt rev-parse --abbrev-ref HEAD)
-            if [ $branchName != $LINUX_A10 ]; then
-                git $gitOpt checkout .
-                git $gitOpt clean -df
-                git $gitOpt checkout $LINUX_A10
-            fi
-            echoRed "Copy configuration file $LINUX_CONFIG_BASE_SUN4I";
-            cp -f $LINUX_CONFIG_BASE_SUN4I ${LINUX_REPO}/.config
-            if promptyn "Reconfigure kernel?"; then
-                make -C $LINUX_REPO ARCH=arm menuconfig
-            fi
-            make -j${CPU_CORES} -C $LINUX_REPO ARCH=arm CROSS_COMPILE=arm-none-linux-gnueabi- uImage modules
-            echoRed "Done";
-            show_menu
-            ;;
-        103) clear;
-            if [ -d ${ROOTFS_DIR} ];then
-                echoRed "Install UBoot";
-                if [ -f "${ROOTFS_DIR}/boot/boot.scr" ] && [ -f "${ROOTFS_DIR}/boot/script.bin" ];then
-                    if promptyn "UBoot has been installed, reinstall?"; then
-                        installBootscr
-                        installFex $FEX_SUN4I
-                    fi
-                else
+    101) clear;
+        echoRed "Start build u-boot";
+        gitOpt="--git-dir=${UBOOT_REPO}/.git --work-tree=${UBOOT_REPO}"
+        branchName=$(git $gitOpt rev-parse --abbrev-ref HEAD)
+        if [ $branchName != $UBOOT_A10 ]; then
+            git $gitOpt checkout .
+            git $gitOpt clean -df
+            git $gitOpt checkout $UBOOT_A10
+        fi
+        buildUBoot $UBOOT_REPO
+        echoRed "Done";
+        show_menu
+        ;;
+    102) clear;
+        echoRed "Build Linux kernel";
+        gitOpt="--git-dir=${LINUX_REPO}/.git --work-tree=${LINUX_REPO}/"
+        branchName=$(git $gitOpt rev-parse --abbrev-ref HEAD)
+        if [ $branchName != $LINUX_A10 ]; then
+            git $gitOpt checkout .
+            git $gitOpt clean -df
+            git $gitOpt checkout $LINUX_A10
+        fi
+        echoRed "Copy configuration file $LINUX_CONFIG_BASE_SUN4I";
+        cp -f $LINUX_CONFIG_BASE_SUN4I ${LINUX_REPO}/.config
+        if promptyn "Reconfigure kernel?"; then
+            make -C $LINUX_REPO ARCH=arm menuconfig
+        fi
+        make -j${CPU_CORES} -C $LINUX_REPO ARCH=arm CROSS_COMPILE=arm-none-linux-gnueabi- uImage modules
+        echoRed "Done";
+        show_menu
+        ;;
+    103) clear;
+        if [ -d ${ROOTFS_DIR} ];then
+            echoRed "Install UBoot";
+            if [ -f "${ROOTFS_DIR}/boot/boot.scr" ] && [ -f "${ROOTFS_DIR}/boot/script.bin" ];then
+                if promptyn "UBoot has been installed, reinstall?"; then
                     installBootscr
                     installFex $FEX_SUN4I
                 fi
-                echoRed "UBoot installed";
-                echoRed "Install linux kernel";
-                CURRENT_KERNEL="$LINUX_REPO"
-                if [ -f "${ROOTFS_DIR}/boot/uImage" ];then
-                    if promptyn "Kernel has been installed, reinstall?"; then
-                        installKernel
-                    fi
-                else
+            else
+                installBootscr
+                installFex $FEX_SUN4I
+            fi
+            echoRed "UBoot installed";
+            echoRed "Install linux kernel";
+            CURRENT_KERNEL="$LINUX_REPO"
+            if [ -f "${ROOTFS_DIR}/boot/uImage" ];then
+                if promptyn "Kernel has been installed, reinstall?"; then
                     installKernel
                 fi
-                echoRed "Kernel installed";
-                echoRed "install nand installation helper script"
-                installNandScript $NAND_INSTALL_A10
-                echoRed "nand installation helper script installed"
-                echoRed "Patch rootfs for A10"
-                patchRootfs $A10
             else
-                echo "[E] rootfs is not existed at ${ROOTFS_DIR}"
+                installKernel
             fi
+            echoRed "Kernel installed";
+            echoRed "install nand installation helper script"
+            installNandScript $NAND_INSTALL_A10
+            echoRed "nand installation helper script installed"
+            echoRed "Patch rootfs for A10"
+            patchRootfs $A10
+        else
+            echo "[E] rootfs is not existed at ${ROOTFS_DIR}"
+        fi
 
+        echoRed "Done";
+        show_menu
+        ;;
+    104) clear;
+        echoRed "Install to your device ${SD_PATH}"
+        echoRed "Device info"
+        fdisk -l | grep ${SD_PATH}
+        if promptyn "All the data on ${SD_PATH} will be destoried, continue?"; then
+            echoRed "umount ${SD_PATH}"
+            umountSDSafe
             echoRed "Done";
-            show_menu
-            ;;
-        104) clear;
-            echoRed "Install to your device ${SD_PATH}"
-            echoRed "Device info"
-            fdisk -l | grep ${SD_PATH}
-            if promptyn "All the data on ${SD_PATH} will be destoried, continue?"; then
-                echoRed "umount ${SD_PATH}"
-                umountSDSafe
-                echoRed "Done";
-                echoRed "Formating"
-                formatSD 2662
-                echoRed "Done";
-                echoRed "Transferring data, it may take a while, please be patient, DO NOT UNPLUG YOUR DEVICE, it will be removed automaticlly when finished";
-                installRoot
-                CURRENT_UBOOT="$UBOOT_REPO"
-                installMBR
-                removeSD
-                echoRed "Done";
-                echoRed "Congratulations,you can safely remove your sd card";
-                echoRed "Now press Enter to quit the program";
-            fi
-            show_menu
-            ;;
-        105) clear;
-            echoRed "make disk image 4GB"
-            IMAGE_FILE="${CWD}/${DEB_HOSTNAME}-base-v${RELEASE_VERSION}-ARM-A10.img"
-            IMAGE_FILESIZE=3686
-            echo "create disk file ${IMAGE_FILE}"
-            dd if=/dev/zero of=$IMAGE_FILE bs=1M count=$IMAGE_FILESIZE
-            SD_PATH_OLD=${SD_PATH}
-            SD_PATH_RAW=`losetup -f --show ${IMAGE_FILE}`
-            echo "create device ${SD_PATH_RAW}"
-            SD_PATH=${SD_PATH_RAW}
-            echo "format device"
+            echoRed "Formating"
             formatSD 2662
-	    SD_PATH="${SD_PATH}p"
-            echo "Transferring system"
+            echoRed "Done";
+            echoRed "Transferring data, it may take a while, please be patient, DO NOT UNPLUG YOUR DEVICE, it will be removed automaticlly when finished";
             installRoot
-            SD_PATH=${SD_PATH_RAW}
-            echo "Install MBR"
             CURRENT_UBOOT="$UBOOT_REPO"
             installMBR
-            echo "umount device ${SD_PATH}"
-            umountSDSafe
-            losetup -d ${SD_PATH}
-            SD_PATH=${SD_PATH_OLD}
-            echo  "compressing image"
-            7z a -mx=9 ${IMAGE_FILE}.7z $IMAGE_FILE
-            show_menu
-            ;;
-
-        201) clear;
-            echoRed "Start build u-boot for A20";
-            gitOpt="--git-dir=${UBOOT_REPO_A20}/.git --work-tree=${UBOOT_REPO_A20}/"
-            if [ ! -d $UBOOT_REPO_A20 ];then
-                git clone $UBOOT_REPO $UBOOT_REPO_A20
-            fi
-            branchName=$(git $gitOpt rev-parse --abbrev-ref HEAD)
-            if [ $branchName != $UBOOT_A20 ]; then
-                echoRed "Switch branch to A20"
-                git $gitOpt checkout .
-                git $gitOpt clean -df
-                git $gitOpt checkout $UBOOT_A20
-            fi
-            buildUBoot $UBOOT_REPO_A20
+            removeSD
             echoRed "Done";
-            show_menu
-            ;;
-        202) clear;
-            echoRed "Build Linux kernel 3.3 for A20";
-            gitOpt="--git-dir=${LINUX_REPO_A20}/.git --work-tree=${LINUX_REPO_A20}/"
-            if [ ! -d $LINUX_REPO_A20 ];then
-                git clone $LINUX_REPO $LINUX_REPO_A20
-            fi
-            branchName=$(git $gitOpt rev-parse --abbrev-ref HEAD)
-            if [ $branchName != $LINUX_A20_3_3 ]; then
-                git $gitOpt checkout .
-                git $gitOpt clean -df
-                git $gitOpt checkout $LINUX_A20_3_3
-            fi
-            echoRed "Using configuration file $LINUX_CONFIG_BASE_SUN7I_3_3";
-            cp -f $LINUX_CONFIG_BASE_SUN7I_3_3 ${LINUX_REPO_A20}/.config
-            if promptyn "Reconfigure kernel?"; then
-                make -C $LINUX_REPO_A20 ARCH=arm menuconfig
-            fi
-            make -j${CPU_CORES} -C $LINUX_REPO_A20 ARCH=arm CROSS_COMPILE=arm-none-linux-gnueabi- uImage modules
-            echoRed "Done";
-            show_menu
-            ;;
-        203) clear;
-            echoRed "Build Linux kernel 3.4(inComplete) for A20";
-            gitOpt="--git-dir=${LINUX_REPO_A20}/.git --work-tree=${LINUX_REPO_A20}/"
-            if [ ! -d $LINUX_REPO_A20 ];then
-                git clone $LINUX_REPO $LINUX_REPO_A20
-            fi
-            branchName=$(git $gitOpt rev-parse --abbrev-ref HEAD)
-            if [ $branchName != $LINUX_A20_3_4 ]; then
-                git $gitOpt checkout .
-                git $gitOpt clean -df
-                git $gitOpt checkout $LINUX_A20_3_4
-            fi
-            echoRed "Using configuration file $LINUX_CONFIG_BASE_SUN7I_3_4";
-            setupLinaroToolchain
-            cp -f $LINUX_CONFIG_BASE_SUN7I_3_4 ${LINUX_REPO_A20}/.config
-            if promptyn "Reconfigure kernel?"; then
-                make -C $LINUX_REPO_A20 ARCH=arm menuconfig
-            fi
+            echoRed "Congratulations,you can safely remove your sd card";
+            echoRed "Now press Enter to quit the program";
+        fi
+        show_menu
+        ;;
+    105) clear;
+        echoRed "make disk image 4GB"
+        IMAGE_FILE="${CWD}/${DEB_HOSTNAME}-base-v${RELEASE_VERSION}-ARM-A10.img"
+        IMAGE_FILESIZE=3686
+        echo "create disk file ${IMAGE_FILE}"
+        dd if=/dev/zero of=$IMAGE_FILE bs=1M count=$IMAGE_FILESIZE
+        SD_PATH_OLD=${SD_PATH}
+        SD_PATH_RAW=`losetup -f --show ${IMAGE_FILE}`
+        echo "create device ${SD_PATH_RAW}"
+        SD_PATH=${SD_PATH_RAW}
+        echo "format device"
+        formatSD 2662
+        SD_PATH="${SD_PATH}p"
+        echo "Transferring system"
+        installRoot
+        SD_PATH=${SD_PATH_RAW}
+        echo "Install MBR"
+        CURRENT_UBOOT="$UBOOT_REPO"
+        installMBR
+        echo "umount device ${SD_PATH}"
+        umountSDSafe
+        losetup -d ${SD_PATH}
+        SD_PATH=${SD_PATH_OLD}
+        echo  "compressing image"
+        7z a -mx=9 ${IMAGE_FILE}.7z $IMAGE_FILE
+        show_menu
+        ;;
 
-            ## fix missing header files ###
-            missingPMConfigDotH="${LINUX_REPO_A20}/arch/arm/mach-sun7i/pm/standby/pm_config.h"
-            if [ ! -f $missingPMConfigDotH ];then
-                ln -s ${LINUX_REPO_A20}/arch/arm/mach-sun7i/pm/pm_config.h $missingPMConfigDotH 
-            fi
-
-            ## fix missing header files ###
-            missingPMDebugDotH="${LINUX_REPO_A20}/arch/arm/mach-sun7i/pm/pm_debug.h"
-            if [ ! -f $missingPMDebugDotH ];then
-                ln -s ${LINUX_REPO_A20}/arch/arm/mach-sun7i/pm/standby/pm_debug.h $missingPMDebugDotH 
-            fi
-
-            make -j${CPU_CORES} -C $LINUX_REPO_A20 ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- uImage modules
-            echoRed "Done";
-            show_menu
-            ;;
-        204) clear;
-            if [ -d ${ROOTFS_DIR} ];then
-                echoRed "Install UBoot";
-                if [ -f "${ROOTFS_DIR}/boot/boot.scr" ] && [ -f "${ROOTFS_DIR}/boot/script.bin" ];then
-                    if promptyn "UBoot has been installed, reinstall?"; then
-                        installBootscr
-                        installFex $FEX_SUN7I
-                    fi
-                else
+    201) clear;
+        echoRed "Start build u-boot for A20";
+        gitOpt="--git-dir=${UBOOT_REPO_A20}/.git --work-tree=${UBOOT_REPO_A20}/"
+        if [ ! -d $UBOOT_REPO_A20 ];then
+            git clone $UBOOT_REPO $UBOOT_REPO_A20
+        fi
+        branchName=$(git $gitOpt rev-parse --abbrev-ref HEAD)
+        if [ $branchName != $UBOOT_A20 ]; then
+            echoRed "Switch branch to A20"
+            git $gitOpt checkout .
+            git $gitOpt clean -df
+            git $gitOpt checkout $UBOOT_A20
+        fi
+        buildUBoot $UBOOT_REPO_A20
+        echoRed "Done";
+        show_menu
+        ;;
+    202) clear;
+        echoRed "Build Linux kernel 3.3 for A20";
+        gitOpt="--git-dir=${LINUX_REPO_A20}/.git --work-tree=${LINUX_REPO_A20}/"
+        if [ ! -d $LINUX_REPO_A20 ];then
+            git clone $LINUX_REPO $LINUX_REPO_A20
+        fi
+        branchName=$(git $gitOpt rev-parse --abbrev-ref HEAD)
+        if [ $branchName != $LINUX_A20_3_3 ]; then
+            git $gitOpt checkout .
+            git $gitOpt clean -df
+            git $gitOpt checkout $LINUX_A20_3_3
+        fi
+        echoRed "Using configuration file $LINUX_CONFIG_BASE_SUN7I_3_3";
+        cp -f $LINUX_CONFIG_BASE_SUN7I_3_3 ${LINUX_REPO_A20}/.config
+        if promptyn "Reconfigure kernel?"; then
+            make -C $LINUX_REPO_A20 ARCH=arm menuconfig
+        fi
+        make -j${CPU_CORES} -C $LINUX_REPO_A20 ARCH=arm CROSS_COMPILE=arm-none-linux-gnueabi- uImage modules
+        echoRed "Done";
+        show_menu
+        ;;
+    203) clear;
+        echoRed "Build Linux kernel 3.4(inComplete) for A20";
+        gitOpt="--git-dir=${LINUX_REPO_A20}/.git --work-tree=${LINUX_REPO_A20}/"
+        if [ ! -d $LINUX_REPO_A20 ];then
+            git clone $LINUX_REPO $LINUX_REPO_A20
+        fi
+        branchName=$(git $gitOpt rev-parse --abbrev-ref HEAD)
+        if [ $branchName != $LINUX_A20_3_4 ]; then
+            git $gitOpt checkout .
+            git $gitOpt clean -df
+            git $gitOpt checkout $LINUX_A20_3_4
+        fi
+        echoRed "Using configuration file $LINUX_CONFIG_BASE_SUN7I_3_4";
+        cp -f $LINUX_CONFIG_BASE_SUN7I_3_4 ${LINUX_REPO_A20}/.config
+        if promptyn "Reconfigure kernel?"; then
+            make -C $LINUX_REPO_A20 ARCH=arm menuconfig
+        fi
+        setupLinaroToolchain
+        make -j${CPU_CORES} -C $LINUX_REPO_A20 ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- uImage modules
+        echoRed "Done";
+        show_menu
+        ;;
+    204) clear;
+        if [ -d ${ROOTFS_DIR} ];then
+            echoRed "Install UBoot";
+            if [ -f "${ROOTFS_DIR}/boot/boot.scr" ] && [ -f "${ROOTFS_DIR}/boot/script.bin" ];then
+                if promptyn "UBoot has been installed, reinstall?"; then
                     installBootscr
                     installFex $FEX_SUN7I
                 fi
-                echoRed "UBoot installed";
-                echoRed "Install linux kernel";
-                CURRENT_KERNEL="$LINUX_REPO_A20"
-                if [ -f "${ROOTFS_DIR}/boot/uImage" ];then
-                    if promptyn "Kernel has been installed, reinstall?"; then
-                        installKernel
-                    fi
-                else
+            else
+                installBootscr
+                installFex $FEX_SUN7I
+            fi
+            echoRed "UBoot installed";
+            echoRed "Install linux kernel";
+            CURRENT_KERNEL="$LINUX_REPO_A20"
+            if [ -f "${ROOTFS_DIR}/boot/uImage" ];then
+                if promptyn "Kernel has been installed, reinstall?"; then
                     installKernel
                 fi
-                echoRed "Kernel installed";
-                echoRed "install nand installation helper script"
-                installNandScript $NAND_INSTALL_A20
-                echoRed "nand installation helper script installed"
-                echoRed "Patch rootfs for A20"
-                patchRootfs $A20
             else
-                echo "[E] rootfs is not existed at ${ROOTFS_DIR}"
+                installKernel
             fi
+            echoRed "Kernel installed";
+            echoRed "install nand installation helper script"
+            installNandScript $NAND_INSTALL_A20
+            echoRed "nand installation helper script installed"
+            echoRed "Patch rootfs for A20"
+            patchRootfs $A20
+        else
+            echo "[E] rootfs is not existed at ${ROOTFS_DIR}"
+        fi
+        echoRed "Done";
+        show_menu
+        ;;
+    205) clear;
+        echoRed "Install to your device ${SD_PATH}"
+        echoRed "Device info"
+        fdisk -l | grep ${SD_PATH}
+        if promptyn "All the data on ${SD_PATH} will be destoried, continue?"; then
+            echoRed "umount ${SD_PATH}"
+            umountSDSafe
             echoRed "Done";
-            show_menu
-            ;;
-        205) clear;
-            echoRed "Install to your device ${SD_PATH}"
-            echoRed "Device info"
-            fdisk -l | grep ${SD_PATH}
-            if promptyn "All the data on ${SD_PATH} will be destoried, continue?"; then
-                echoRed "umount ${SD_PATH}"
-                umountSDSafe
-                echoRed "Done";
-                echoRed "Formating"
-                formatSD 2662
-                echoRed "Done";
-                echoRed "Transferring data, it may take a while, please be patient, DO NOT UNPLUG YOUR DEVICE, it will be removed automaticlly when finished";
-                installRoot
-                CURRENT_UBOOT="$UBOOT_REPO_A20"
-                installMBR
-                removeSD
-                echoRed "Done";
-                echoRed "Congratulations,you can safely remove your sd card";
-                echoRed "Now press Enter to quit the program";
-            fi
-            show_menu
-            ;;
-        *) clear;
-            show_menu "$opt is invalid. please enter a number from menu."
-            ;;
-        esac
-    fi
+            echoRed "Formating"
+            formatSD 2662
+            echoRed "Done";
+            echoRed "Transferring data, it may take a while, please be patient, DO NOT UNPLUG YOUR DEVICE, it will be removed automaticlly when finished";
+            installRoot
+            CURRENT_UBOOT="$UBOOT_REPO_A20"
+            installMBR
+            removeSD
+            echoRed "Done";
+            echoRed "Congratulations,you can safely remove your sd card";
+            echoRed "Now press Enter to quit the program";
+        fi
+        show_menu
+        ;;
+    *) clear;
+        show_menu "$opt is invalid. please enter a number from menu."
+        ;;
+    esac
 done
