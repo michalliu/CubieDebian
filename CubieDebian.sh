@@ -392,10 +392,25 @@ fi
 
 patchRootfs(){
 if [[ "$1" = "$A20" ]];then
+restoreFile ${ROOTFS_DIR}/etc/modules
 cat >> ${ROOTFS_DIR}/etc/modules <<END
 
+# GPIO
+# gpio_sunxi
+
+# For SATA Support
+# sw_ahci_platform
+
+# Display and GPU
+# lcd
+# hdmi
+# ump
+# disp
+# mali
+# mali_drm
+
 # NAND driver
-nand
+# nand
 END
 fi
 cp -r ${CWD}/patches/$1/* ${ROOTFS_DIR}
