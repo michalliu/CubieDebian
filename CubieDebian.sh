@@ -551,7 +551,7 @@ show_menu(){
     echo ""
     echo "${NORMAL}    Test Commands (Use them only if you know what you are doing)${NORMAL}"
     echo ""
-    echo "${MENU}${NUMBER} 301)${MENU}  Build u-boot for A20 NAND${SD_PATH} ${NORMAL}"
+    echo "${MENU}${NUMBER} 301)${MENU}  Build u-boot for A20 NAND ${NORMAL}"
     echo ""
     echo "${ENTER_LINE}Please enter the option and enter or ${RED_TEXT}enter to exit. ${NORMAL}"
     if [ ! -z "$1" ]
