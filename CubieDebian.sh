@@ -403,21 +403,18 @@ restoreFile ${ROOTFS_DIR}/etc/modules
 cat >> ${ROOTFS_DIR}/etc/modules <<END
 
 # GPIO
-# gpio_sunxi
+gpio_sunxi
 
 # For SATA Support
-# sw_ahci_platform
+sw_ahci_platform
 
 # Display and GPU
-# lcd
-# hdmi
-# ump
-# disp
+lcd
+hdmi
+ump
+disp
 # mali
 # mali_drm
-
-# NAND driver
-# nand
 END
 fi
 cp -r ${CWD}/patches/$1/* ${ROOTFS_DIR}
