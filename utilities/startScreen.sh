@@ -28,7 +28,7 @@ show_menu(){
     echo "${NORMAL}    Select Port${NORMAL}"
 
     for i in "${!ports[@]}";do
-    echo "${MENU}${NUMBER} "$i")${MENU} ${ports[0]} ${NORMAL}"
+    echo "${MENU}${NUMBER} "$i")${MENU} ${ports[$i]} ${NORMAL}"
     done
 
     echo "${ENTER_LINE}Please enter the option and enter or ${RED_TEXT}enter to exit. ${NORMAL}"

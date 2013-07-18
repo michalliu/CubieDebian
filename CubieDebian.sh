@@ -12,14 +12,17 @@ A20="a20"
 source ${CWD}/fns.sh
 
 UBOOT_REPO="${CWD}/u-boot-sunxi"
-LINUX_REPO="${CWD}/linux-sunxi"
 UBOOT_REPO_A20="${CWD}/u-boot-sunxi-a20"
+UBOOT_REPO_A20_NAND="${CWD}/u-boot-sunxi-a20-nand"
+LINUX_REPO="${CWD}/linux-sunxi"
 LINUX_REPO_A20="${CWD}/linux-sunxi-a20"
+LINUX_REPO_A20_3_3="${CWD}/linux-sunxi-a20-3.3"
 NAND_INSTALL_REPO="${CWD}/nandinstall"
 
 UBOOT_A10="sunxi"
 LINUX_A10="sunxi-3.4"
 UBOOT_A20="hno-a20"
+UBOOT_A20_NAND="hno-a20-nand"
 LINUX_A20_3_4="sunxi-3.4-a20"
 LINUX_A20_3_3="sunxi-3.3-a20"
 NAND_INSTALL_A10="$A10"
@@ -138,6 +141,10 @@ if [ "$1" == "$UBOOT_REPO_A20" ];then
 CROSS_COMPILER=arm-none-linux-gnueabi-
 make -C $1 distclean CROSS_COMPILE=$CROSS_COMPILER
 make -C $1 cubieboard2 CROSS_COMPILE=$CROSS_COMPILER
+elif [ "$1" == "$UBOOT_REPO_A20_NAND" ];then
+CROSS_COMPILER=arm-none-linux-gnueabi-
+make -C $1 distclean CROSS_COMPILE=$CROSS_COMPILER
+make -C $1 sun7i CROSS_COMPILE=$CROSS_COMPILER
 else
 CROSS_COMPILER=arm-none-linux-gnueabi-
 make -C $1 distclean CROSS_COMPILE=$CROSS_COMPILER
@@ -532,6 +539,7 @@ show_menu(){
     echo ""
     echo "${NORMAL}    Test Commands (Use them only if you know what you are doing)${NORMAL}"
     echo ""
+    echo "${MENU}${NUMBER} 301)${MENU}  Build u-boot for A20 NAND${SD_PATH} ${NORMAL}"
     echo ""
     echo "${ENTER_LINE}Please enter the option and enter or ${RED_TEXT}enter to exit. ${NORMAL}"
     if [ ! -z "$1" ]
@@ -853,9 +861,9 @@ while [ ! -z "$opt" ];do
         ;;
     202) clear;
         echoRed "Build Linux kernel 3.3 for A20";
-        gitOpt="--git-dir=${LINUX_REPO_A20}/.git --work-tree=${LINUX_REPO_A20}/"
-        if [ ! -d $LINUX_REPO_A20 ];then
-            git clone $LINUX_REPO $LINUX_REPO_A20
+        gitOpt="--git-dir=${LINUX_REPO_A20_3_3}/.git --work-tree=${LINUX_REPO_A20_3_3}/"
+        if [ ! -d $LINUX_REPO_A20_3_3 ];then
+            git clone $LINUX_REPO $LINUX_REPO_A20_3_3
         fi
         branchName=$(git $gitOpt rev-parse --abbrev-ref HEAD)
         if [ $branchName != $LINUX_A20_3_3 ]; then
@@ -864,16 +872,17 @@ while [ ! -z "$opt" ];do
             git $gitOpt checkout $LINUX_A20_3_3
         fi
         echoRed "Using configuration file $LINUX_CONFIG_BASE_SUN7I_3_3";
-        cp -f $LINUX_CONFIG_BASE_SUN7I_3_3 ${LINUX_REPO_A20}/.config
+        cp -f $LINUX_CONFIG_BASE_SUN7I_3_3 ${LINUX_REPO_A20_3_3}/.config
         if promptyn "Reconfigure kernel?"; then
-            make -C $LINUX_REPO_A20 ARCH=arm menuconfig
+            make -C $LINUX_REPO_A20_3_3 ARCH=arm menuconfig
         fi
-        make -j${CPU_CORES} -C $LINUX_REPO_A20 ARCH=arm CROSS_COMPILE=arm-none-linux-gnueabi- uImage modules
+        make -j${CPU_CORES} -C $LINUX_REPO_A20_3_3 ARCH=arm CROSS_COMPILE=arm-none-linux-gnueabi- uImage modules
+        CURRENT_KERNEL="$LINUX_REPO_A20_3_3"
         echoRed "Done";
         show_menu
         ;;
     203) clear;
-        echoRed "Build Linux kernel 3.4(inComplete) for A20";
+        echoRed "Build Linux kernel 3.4 for A20";
         gitOpt="--git-dir=${LINUX_REPO_A20}/.git --work-tree=${LINUX_REPO_A20}/"
         if [ ! -d $LINUX_REPO_A20 ];then
             git clone $LINUX_REPO $LINUX_REPO_A20
@@ -891,6 +900,7 @@ while [ ! -z "$opt" ];do
         fi
         setupLinaroToolchain
         make -j${CPU_CORES} -C $LINUX_REPO_A20 ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- uImage modules
+        CURRENT_KERNEL="$LINUX_REPO_A20"
         echoRed "Done";
         show_menu
         ;;
@@ -908,7 +918,6 @@ while [ ! -z "$opt" ];do
             fi
             echoRed "UBoot installed";
             echoRed "Install linux kernel";
-            CURRENT_KERNEL="$LINUX_REPO_A20"
             if [ -f "${ROOTFS_DIR}/boot/uImage" ];then
                 if promptyn "Kernel has been installed, reinstall?"; then
                     installKernel
@@ -948,6 +957,23 @@ while [ ! -z "$opt" ];do
             echoRed "Congratulations,you can safely remove your sd card";
             echoRed "Now press Enter to quit the program";
         fi
+        show_menu
+        ;;
+    301) clear;
+        echoRed "Start build u-boot for A20 NAND";
+        gitOpt="--git-dir=${UBOOT_REPO_A20_NAND}/.git --work-tree=${UBOOT_REPO_A20_NAND}/"
+        if [ ! -d $UBOOT_REPO_A20_NAND ];then
+            git clone $UBOOT_REPO $UBOOT_REPO_A20_NAND
+        fi
+        branchName=$(git $gitOpt rev-parse --abbrev-ref HEAD)
+        if [ $branchName != $UBOOT_A20_NAND ]; then
+            echoRed "Switch branch to A20 NAND"
+            git $gitOpt checkout .
+            git $gitOpt clean -df
+            git $gitOpt checkout $UBOOT_A20_NAND
+        fi
+        buildUBoot $UBOOT_REPO_A20_NAND
+        echoRed "Done";
         show_menu
         ;;
     *) clear;
