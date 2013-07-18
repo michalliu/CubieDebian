@@ -234,6 +234,21 @@ git $gitOpt archive $1 | tar -x -C $nandInstallDir
 installKernel() {
 cp ${CURRENT_KERNEL}/arch/arm/boot/uImage ${ROOTFS_DIR}/boot
 make -C ${CURRENT_KERNEL} INSTALL_MOD_PATH=${ROOTFS_DIR} ARCH=arm modules_install
+if [ "$CURRENT_KERNEL" = "$LINUX_REPO" ];then
+kernelVersion="3.4.43"
+elif [ "$CURRENT_KERNEL" = "$LINUX_REPO_A20_3_3" ];then
+kernelVersion="3.3.0+"
+elif [ "$CURRENT_KERNEL" = "$LINUX_REPO_A20" ];then
+kernelVersion="3.4.43.sun7i+"
+fi
+kernelSourceLocation="/usr/src/linux-headers-${kernelVersion}"
+kernelSourcePointer1="${ROOTFS_DIR}/lib/modules/${kernelVersion}/build"
+kernelSourcePointer2="${ROOTFS_DIR}/lib/modules/${kernelVersion}/source"
+echo "create kernel headers link"
+rm $kernelSourcePointer1
+rm $kernelSourcePointer2
+ln -sf "$kernelSourceLocation" "$kernelSourcePointer1" 
+ln -sf "$kernelSourceLocation" "$kernelSourcePointer2"
 }
 
 configNetwork() {
