@@ -2,8 +2,15 @@ rootfs/
 u-boot-sunxi-a20/
 linux-sunxi-a20/
 toolchain-linaro/
+
+linux-sunxi-a10/
+linux-sunxi-a20-3.4/
 linux-sunxi-a20-3.3/
+
 u-boot-sunxi-a20-nand/
+u-boot-sunxi-a20-mmc/
+u-boot-sunxi-a10-nand/
+u-boot-sunxi-a10-mmc/
 
 mnt/
 
