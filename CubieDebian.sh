@@ -17,12 +17,13 @@ UBOOT_REPO_A20_NAND="${CWD}/u-boot-sunxi-a20-nand"
 LINUX_REPO="${CWD}/linux-sunxi"
 LINUX_REPO_A20="${CWD}/linux-sunxi-a20"
 LINUX_REPO_A20_3_3="${CWD}/linux-sunxi-a20-3.3"
+
 NAND_INSTALL_REPO="${CWD}/nandinstall"
 
-UBOOT_A10="sunxi"
-LINUX_A10="sunxi-3.4"
-UBOOT_A20="hno-a20"
-UBOOT_A20_NAND="hno-a20-nand"
+UBOOT_A10="imported/sunxi-a10"
+UBOOT_A20="imported/hno-a20"
+UBOOT_A20_NAND="a20-nand"
+LINUX_A10="sunxi-3.4-10"
 LINUX_A20_3_4="sunxi-3.4-a20"
 LINUX_A20_3_3="sunxi-3.3-a20"
 NAND_INSTALL_A10="$A10"
@@ -305,7 +306,7 @@ fi
 }
 
 installPersonalStuff(){
-NETWORK_CFG=`${CWD}/network_cfg.sh`
+NETWORK_CFG=`${CWD}/utilities/network_cfg.sh`
 cat >> ${ROOTFS_DIR}/etc/network/interfaces <<END
 
 #
