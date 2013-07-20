@@ -20,7 +20,8 @@ UBOOT_REPO_A20_NAND="${CWD}/u-boot-sunxi-a20-nand"
 
 UBOOT_A10_MMC="stage/a10-mmc"
 UBOOT_A20_MMC="stage/a20-mmc"
-UBOOT_A20_NAND="dev/a20-nand-ext4-v2"
+UBOOT_A20_NAND="stage/a20-nand"
+UBOOT_A10_NAND="stage/a10-nand"
 
 LINUX_REPO="${CWD}/linux-sunxi"
 LINUX_REPO_A10="${CWD}/linux-sunxi-a10"
@@ -219,7 +220,6 @@ fi
 installBootscr() {
 cat > ${ROOTFS_DIR}/boot/boot.cmd <<END
 setenv bootargs console=tty0 console=ttyS0,115200 hdmi.audio=EDID:0 disp.screen0_output_mode=EDID:1280x800p60 root=/dev/mmcblk0p1 rootwait panic=10
-setenv machid 0f35
 ext2load mmc 0 0x43000000 boot/script.bin
 ext2load mmc 0 0x48000000 boot/uImage
 bootm 0x48000000
@@ -247,7 +247,7 @@ installKernel() {
 cp ${CURRENT_KERNEL}/arch/arm/boot/uImage ${ROOTFS_DIR}/boot
 make -C ${CURRENT_KERNEL} INSTALL_MOD_PATH=${ROOTFS_DIR} ARCH=arm modules_install
 if [ "$CURRENT_KERNEL" = "$LINUX_REPO_A10" ];then
-kernelVersion="3.4.43"
+kernelVersion="3.4.43+"
 elif [ "$CURRENT_KERNEL" = "$LINUX_REPO_A20_3_3" ];then
 kernelVersion="3.3.0+"
 elif [ "$CURRENT_KERNEL" = "$LINUX_REPO_A20_3_4" ];then
@@ -744,7 +744,7 @@ while [ ! -z "$opt" ];do
                 rm ${BASESYS_FINAL_BACKUP}
             fi
             tar -czPf ${BASESYS_FINAL_BACKUP} ${ROOTFS_DIR}
-1       else
+        else
             echo "[E] rootfs is not existed at ${ROOTFS_DIR}"
         fi
         echoRed "Done";
@@ -763,6 +763,7 @@ while [ ! -z "$opt" ];do
             git $gitOpt clean -df
             git $gitOpt checkout $UBOOT_A10_MMC
         fi
+        git $gitOpt pull
         buildUBoot $UBOOT_REPO_A10_MMC
         echoRed "Done";
         show_menu
@@ -780,6 +781,7 @@ while [ ! -z "$opt" ];do
             git $gitOpt clean -df
             git $gitOpt checkout $LINUX_A10
         fi
+        git $gitOpt pull
         echoRed "Copy configuration file $LINUX_CONFIG_BASE_SUN4I";
         cp -f $LINUX_CONFIG_BASE_SUN4I ${LINUX_REPO_A10}/.config
         if promptyn "Reconfigure kernel?"; then
@@ -887,6 +889,7 @@ while [ ! -z "$opt" ];do
             git $gitOpt clean -df
             git $gitOpt checkout $UBOOT_A20_MMC
         fi
+        git $gitOpt pull
         buildUBoot $UBOOT_REPO_A20_MMC
         echoRed "Done";
         show_menu
@@ -903,6 +906,7 @@ while [ ! -z "$opt" ];do
             git $gitOpt clean -df
             git $gitOpt checkout $LINUX_A20_3_3
         fi
+        git $gitOpt pull
         echoRed "Using configuration file $LINUX_CONFIG_BASE_SUN7I_3_3";
         cp -f $LINUX_CONFIG_BASE_SUN7I_3_3 ${LINUX_REPO_A20_3_3}/.config
         if promptyn "Reconfigure kernel?"; then
@@ -925,6 +929,7 @@ while [ ! -z "$opt" ];do
             git $gitOpt clean -df
             git $gitOpt checkout $LINUX_A20_3_4
         fi
+        git $gitOpt pull
         echoRed "Using configuration file $LINUX_CONFIG_BASE_SUN7I_3_4";
         cp -f $LINUX_CONFIG_BASE_SUN7I_3_4 ${LINUX_REPO_A20_3_4}/.config
         if promptyn "Reconfigure kernel?"; then
@@ -1004,6 +1009,7 @@ while [ ! -z "$opt" ];do
             git $gitOpt clean -df
             git $gitOpt checkout $UBOOT_A10_NAND
         fi
+        git $gitOpt pull
         buildUBoot $UBOOT_REPO_A10_NAND
         echoRed "Done";
         show_menu
@@ -1021,6 +1027,7 @@ while [ ! -z "$opt" ];do
             git $gitOpt clean -df
             git $gitOpt checkout $UBOOT_A20_NAND
         fi
+        git $gitOpt pull
         buildUBoot $UBOOT_REPO_A20_NAND
         echoRed "Done";
         show_menu
