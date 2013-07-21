@@ -1,4 +1,4 @@
-#! /bin/sh
+#! /bin/bash
 
 for interface in $(ls /sys/class/net/ | grep -v 'lo\|tunl[0-9][0-9]*\|gre[0-9][0-9]*\|ip6tnl[0-9][0-9]*\|sit[0-9][0-9]*');do
     hasNetWork=$(cat /sys/class/net/$interface/carrier 2>/dev/null)
