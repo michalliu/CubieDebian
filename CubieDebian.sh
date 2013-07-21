@@ -59,9 +59,10 @@ DEB_HOSTNAME="Cubian"
 DEB_WIRELESS_TOOLS="wireless-tools wpasupplicant"
 DEB_TEXT_EDITORS="nvi vim"
 DEB_TEXT_UTILITIES="locales ssh expect sudo"
-DEB_ADMIN_UTILITIES="inotify-tools ifplugd ntpdate rsync parted lsof psmisc dosfstools cpufrequtils sysfsutils"
+DEB_ADMIN_UTILITIES="inotify-tools ifplugd ntpdate rsync parted lsof psmisc dosfstools"
+DEB_CPU_UTILITIES="cpufrequtils sysfsutils"
 DEB_SOUND="alsa-base alsa-utils"
-DEB_EXTRAPACKAGES="${DEB_TEXT_EDITORS} ${DEB_TEXT_UTILITIES} ${DEB_WIRELESS_TOOLS} ${DEB_ADMIN_UTILITIES} ${DEB_SOUND}" 
+DEB_EXTRAPACKAGES="${DEB_TEXT_EDITORS} ${DEB_TEXT_UTILITIES} ${DEB_WIRELESS_TOOLS} ${DEB_ADMIN_UTILITIES} ${DEB_CPU_UTILITIES} ${DEB_SOUND}" 
 # Not all packages can (or should be) reconfigured this way.
 DPKG_RECONFIG="locales tzdata"
 
