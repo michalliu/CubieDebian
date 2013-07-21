@@ -11,7 +11,11 @@
 #
 # By default this script does nothing.
 
+# /sys/class/gpio belongs to root by default, change it to gpio group
 chgrp -R gpio /sys/class/gpio
 chmod -R g+rw /sys/class/gpio
+
+# show timer trigger on blue led, will be handled later by ifplugdown
+echo "timer" > /sys/class/leds/blue\:ph21\:led2/trigger
 
 exit 0
