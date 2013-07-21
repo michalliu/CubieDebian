@@ -367,6 +367,9 @@ cat >> ${ROOTFS_DIR}/etc/ssh/sshd_config <<END
 MaxStartups 5
 END
 
+# modify user path
+sed -i '7s/.*/ PATH="\/usr\/local\/sbin:\/usr\/local\/bin:\/usr\/sbin:\/usr\/bin:\/sbin:\/bin:\/usr\/local\/games:\/usr\/games"/' ${ROOTFS_DIR}/etc/profile
+
 # config user accounts
 cat > ${ROOTFS_DIR}/tmp/initsys.sh <<END
 #!/bin/bash
