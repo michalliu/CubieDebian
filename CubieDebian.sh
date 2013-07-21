@@ -331,26 +331,10 @@ prepareEnv
 echo ${DEB_HOSTNAME} > ${ROOTFS_DIR}/etc/hostname
 
 # the backfile file only create one time
-backupFile ${ROOTFS_DIR}/etc/inittab
-backupFile ${ROOTFS_DIR}/etc/fstab
 backupFile ${ROOTFS_DIR}/etc/modules
-backupFile ${ROOTFS_DIR}/etc/hosts
-backupFile ${ROOTFS_DIR}/etc/ssh/sshd_config
 
 # restore from initial file
-restoreFile ${ROOTFS_DIR}/etc/inittab
-restoreFile ${ROOTFS_DIR}/etc/fstab
 restoreFile ${ROOTFS_DIR}/etc/modules
-restoreFile ${ROOTFS_DIR}/etc/hosts
-restoreFile ${ROOTFS_DIR}/etc/ssh/sshd_config
-
-echo "T0:2345:respawn:/sbin/getty -L ttyS0 115200 vt100" >> ${ROOTFS_DIR}/etc/inittab
-
-cat >> ${ROOTFS_DIR}/etc/fstab <<END
-#<file system>	<mount point>	<type>	<options>	<dump>	<pass>
-/dev/mmcblk0p1	/		ext4	defaults	0	1
-/dev/mmcblk0p2	swap		swap	defaults	0	0
-END
 
 cat >> ${ROOTFS_DIR}/etc/hosts <<END
 127.0.0.1 ${DEB_HOSTNAME}
@@ -401,11 +385,6 @@ END
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} chmod +x /tmp/initsys.sh
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} /tmp/initsys.sh
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} rm /tmp/initsys.sh
-
-# backup some scripts
-backupFile ${ROOTFS_DIR}/etc/default/ifplugd
-backupFile ${ROOTFS_DIR}/etc/default/ntpdate
-backupFile ${ROOTFS_DIR}/etc/ifplugd/ifplugd.action
 
 # copy scripts
 cp -r ${CWD}/patches/common/* ${ROOTFS_DIR}
