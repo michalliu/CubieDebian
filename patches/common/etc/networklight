@@ -1,23 +1,23 @@
 #! /bin/sh
 
-for interface in $(ls /sys/class/net/ | grep -v 'lo\|tunl[0-9]*\|gre[0-9]*\|ip6tnl[0-9]*\|sit[0-9]*');do
+for interface in $(ls /sys/class/net/ | grep -v 'lo\|tunl[0-9][0-9]*\|gre[0-9][0-9]*\|ip6tnl[0-9][0-9]*\|sit[0-9][0-9]*');do
     hasNetWork=$(cat /sys/class/net/$interface/carrier 2>/dev/null)
     if [[ "$hasNetWork" = "1" ]];then
         break
     fi
 done
 if [[ "$hasNetWork" = "1" ]];then
-    echo "0" > /sys/class/leds/blue\:ph21\:led2/brightness
+    echo -n 0 > /sys/class/leds/blue\:ph21\:led2/brightness
     sleep 30
     #indicates the morse code start to begin
-    echo "1" > /sys/class/leds/green\:ph20\:led1/brightness
+    echo -n 1 > /sys/class/leds/green\:ph20\:led1/brightness
     sleep 3
-    echo "0" > /sys/class/leds/green\:ph20\:led1/brightness
+    echo -n 0 > /sys/class/leds/green\:ph20\:led1/brightness
     sleep 1
     /etc/morseshowip-reversed.sh
     #echo "online"
 else
-    echo "timer" > /sys/class/leds/blue\:ph21\:led2/trigger
+    echo -n timer > /sys/class/leds/blue\:ph21\:led2/trigger
     #echo "offline"
 fi
 
