@@ -395,9 +395,6 @@ cp -r ${CWD}/patches/common/* ${ROOTFS_DIR}
 
 # green led ctrl
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} update-rc.d bootlightctrl defaults
-# network time
-LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} update-rc.d ntpdate defaults
-
 
 # clean cache
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get clean
