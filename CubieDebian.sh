@@ -463,15 +463,13 @@ formatSD() {
 dd if=/dev/zero of=${SD_PATH} bs=1M count=1
 parted ${SD_PATH} --script mklabel msdos
 parted ${SD_PATH} --script -- mkpart primary 1 $1
-parted ${SD_PATH} --script -- mkpartfs primary linux-swap $1 $(($1+1024))
 }
 
 installRoot() {
+partprobe
 mkfs.ext4 -O ^has_journal ${SD_PATH}1
 e2label ${SD_PATH}1 cubieboard
-mkswap ${SD_PATH}2
 sync
-partprobe
 
 mountRoot
 cd ${ROOTFS_DIR}
@@ -817,7 +815,7 @@ while [ ! -z "$opt" ];do
             umountSDSafe
             echoRed "Done";
             echoRed "Formating"
-            formatSD 2662
+            formatSD 1024
             echoRed "Done";
             echoRed "Transferring data, it may take a while, please be patient, DO NOT UNPLUG YOUR DEVICE, it will be removed automaticlly when finished";
             installRoot
@@ -841,7 +839,7 @@ while [ ! -z "$opt" ];do
         echo "create device ${SD_PATH_RAW}"
         SD_PATH=${SD_PATH_RAW}
         echo "format device"
-        formatSD 2662
+        formatSD 1024
         SD_PATH="${SD_PATH}p"
         echo "Transferring system"
         installRoot
@@ -965,7 +963,7 @@ while [ ! -z "$opt" ];do
             umountSDSafe
             echoRed "Done";
             echoRed "Formating"
-            formatSD 2662
+            formatSD 1024
             echoRed "Done";
             echoRed "Transferring data, it may take a while, please be patient, DO NOT UNPLUG YOUR DEVICE, it will be removed automaticlly when finished";
             installRoot
