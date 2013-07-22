@@ -394,7 +394,11 @@ LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} rm /tmp/initsys.sh
 cp -r ${CWD}/patches/common/* ${ROOTFS_DIR}
 
 # green led ctrl
-LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} update-rc.d bootlightctrl defaults
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} update-rc.d bootled defaults
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} update-rc.d blinknetworkled defaults
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} update-rc.d cubianinit defaults
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} update-rc.d ondemandcpufreq start 80 2 3 4 5 . stop
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} update-rc.d gpiopermission start 80 2 3 4 5 . stop
 
 # clean cache
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get clean

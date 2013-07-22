@@ -1,7 +1,7 @@
 #! /bin/sh
 
 ### BEGIN INIT INFO
-# Provides:          bootlightctrl
+# Provides:          bootled
 # Required-Start:    
 # Required-Stop:
 # Should-Start:      $all
@@ -12,7 +12,7 @@
 #	Turn off the green LED light when system started up
 ### END INIT INFO
 
-N=/etc/init.d/bootlightctrl
+N=/etc/init.d/bootled
 
 set -e
 
