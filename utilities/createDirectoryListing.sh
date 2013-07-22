@@ -17,7 +17,7 @@ for DIR in $(find ${ABS_FOLDER} -type d | grep -v ".git"); do
     echo -e '</head>\n<body>'
     echo -e "<h1 id=\"header\">Index of ${RELATIVE_DIR}</h1>"
     echo -e '<table id="table">\n\t<tbody>\n\t    <tr class="header">\n                <td i18n-content="headerName">File</td>\n                <td class="detailsColumn">Size</td>\n                <td class="detailsColumn">Date Modified</td>\n                <td class="detailsColumn">MD5</td>\n            </tr>\n        </tbody>'
-    ls -1pash "${DIR}" --full-time \
+    ls -1pash "${DIR}" --group-directories-first --full-time \
         | grep -v "^\./$" \
         | grep -v "index\.html$" \
         | grep -v ".git/$" \

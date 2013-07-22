@@ -157,6 +157,7 @@ if [ "$branchName" != "$FS_UPDATE_BASE" ]; then
     git $gitOpt clean -df
     git $gitOpt checkout ${FS_UPDATE_BASE}
 fi
+git $gitOpt pull
 }
 
 initRepo() {
