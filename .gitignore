@@ -12,6 +12,10 @@ u-boot-sunxi-a20-mmc/
 u-boot-sunxi-a10-nand/
 u-boot-sunxi-a10-mmc/
 
+fsupdatebase/
+fsupdatedesktop/
+fsupdateserver/
+
 mnt/
 
 argon.rootfs.tar.gz

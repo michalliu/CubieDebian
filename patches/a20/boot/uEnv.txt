@@ -1,2 +1,0 @@
-console=tty0
-extraargs=console=ttyS0,115200 hdmi.audio=EDID:0 disp.screen0_output_mode=EDID:1280x800p60 root=/dev/nand3 rootwait panic=10

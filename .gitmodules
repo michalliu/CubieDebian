@@ -91,3 +91,6 @@
 [submodule "nandinstall"]
 	path = nandinstall
 	url = git@github.com:mmplayer/nandinstall.git
+[submodule "fsupdate"]
+	path = fsupdate
+	url = git@github.com:mmplayer/fsupdate.git
