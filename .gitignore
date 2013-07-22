@@ -13,8 +13,6 @@ u-boot-sunxi-a10-nand/
 u-boot-sunxi-a10-mmc/
 
 fsupdatebase/
-fsupdatedesktop/
-fsupdateserver/
 
 mnt/
 

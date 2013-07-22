@@ -36,6 +36,11 @@ LINUX_CONFIG_BASE_SUN4I="${CWD}/kernel-config/config-cubian-base-sun4i"
 LINUX_CONFIG_BASE_SUN7I_3_4="${CWD}/kernel-config/config-cubian-base-sun7i-3.4"
 LINUX_CONFIG_BASE_SUN7I_3_3="${CWD}/kernel-config/config-cubian-base-sun7i-3.3"
 
+FS_UPDATE_REPO="${CWD}/fsupdate"
+FS_UPDATE_REPO_BASE="${CWD}/fsupdatebase"
+
+FS_UPDATE_BASE="base"
+
 NAND_INSTALL_REPO="${CWD}/nandinstall"
 NAND_INSTALL_A10="$A10"
 NAND_INSTALL_A20="$A20"
@@ -139,7 +144,20 @@ if [ "$branchName" != "$LINARO_BRANCH" ]; then
     git $gitOpt checkout ${LINARO_BRANCH}
 fi
 }
-#setupLinaroToolchain
+
+setupfsupdatebase(){
+gitOpt="--git-dir=${FS_UPDATE_REPO_BASE}/.git --work-tree=${FS_UPDATE_REPO_BASE}/"
+if [ ! -d $FS_UPDATE_REPO_BASE ];then
+    git clone $FS_UPDATE_REPO $FS_UPDATE_REPO_BASE
+fi
+branchName=$(git $gitOpt rev-parse --abbrev-ref HEAD)
+if [ "$branchName" != "$FS_UPDATE_BASE" ]; then
+    echoRed "Switch branch to ${FS_UPDATE_BASE}"
+    git $gitOpt checkout .
+    git $gitOpt clean -df
+    git $gitOpt checkout ${FS_UPDATE_BASE}
+fi
+}
 
 initRepo() {
 git submodule init
@@ -391,7 +409,8 @@ LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} /tmp/initsys.sh
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} rm /tmp/initsys.sh
 
 # copy scripts
-cp -r ${CWD}/patches/common/* ${ROOTFS_DIR}
+setupfsupdatebase
+cp -r ${FS_UPDATE_REPO_BASE}/common/* ${ROOTFS_DIR}
 
 # green led ctrl
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} update-rc.d bootled defaults
@@ -428,7 +447,8 @@ disp
 # mali_drm
 END
 fi
-cp -r ${CWD}/patches/$1/* ${ROOTFS_DIR}
+setupfsupdatebase
+cp -r ${FS_UPDATE_REPO_BASE}/$1/* ${ROOTFS_DIR}
 }
 
 umountSDSafe() {
