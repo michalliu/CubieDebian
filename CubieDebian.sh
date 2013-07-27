@@ -47,7 +47,8 @@ NAND_INSTALL_A20="$A20"
 
 # This is the script verion
 SCRIPT_VERSION="1.0"
-RELEASE_VERSION="3"
+RELEASE_VERSION_A10="4"
+RELEASE_VERSION_A20="1"
 DEVELOPMENT_CODE="argon"
 
 FEX_SUN4I="${CWD}/sunxi-boards/sys_config/a10/cubieboard_${DEVELOPMENT_CODE}.fex"
@@ -360,23 +361,6 @@ cat >> ${ROOTFS_DIR}/etc/hosts <<END
 127.0.0.1 ${DEB_HOSTNAME}
 END
 
-cat >> ${ROOTFS_DIR}/etc/modules <<END
-
-# GPIO
-gpio_sunxi
-
-# For SATA Support
-sw_ahci_platform
-
-# Display and GPU
-lcd
-hdmi
-ump
-disp
-mali
-mali_drm
-END
-
 # prohibit root user ssh
 sed -i 's/^PermitRootLogin yes$/PermitRootLogin no/' ${ROOTFS_DIR}/etc/ssh/sshd_config
 # change default ssh port
@@ -434,7 +418,7 @@ restoreFile ${ROOTFS_DIR}/etc/modules
 cat >> ${ROOTFS_DIR}/etc/modules <<END
 
 # GPIO
-gpio_sunxi
+# gpio_sunxi
 
 # For SATA Support
 sw_ahci_platform
@@ -446,6 +430,24 @@ ump
 disp
 # mali
 # mali_drm
+END
+elif [[ "$1" = "$A10" ]];then
+restoreFile ${ROOTFS_DIR}/etc/modules
+cat >> ${ROOTFS_DIR}/etc/modules <<END
+
+# GPIO
+gpio_sunxi
+
+# For SATA Support
+sw_ahci_platform
+
+# Display and GPU
+lcd
+hdmi
+ump
+disp
+mali
+mali_drm
 END
 fi
 setupfsupdatebase
@@ -552,7 +554,7 @@ show_menu(){
     echo "${MENU}${NUMBER} 102)${MENU} Build Linux kernel(3.4.43) for A10 ${NORMAL}"
     echo "${MENU}${NUMBER} 103)${MENU} Install UBoot & kernel & modules${NORMAL}"
     echo "${MENU}${NUMBER} 104)${MENU} Install to device ${SD_PATH} ${NORMAL}"
-    echo "${MENU}${NUMBER} 105)${MENU} Make disk image"
+    echo "${MENU}${NUMBER} 105)${MENU} Make disk image A10"
 
     echo ""
     echo "${NORMAL}    A20${NORMAL}"
@@ -561,6 +563,7 @@ show_menu(){
     echo "${MENU}${NUMBER} 203)${MENU} Build Linux kernel 3.4(inComplete) for A20 ${NORMAL}"
     echo "${MENU}${NUMBER} 204)${MENU} Install UBoot & kernel & modules${NORMAL}"
     echo "${MENU}${NUMBER} 205)${MENU} Install to device ${SD_PATH} ${NORMAL}"
+    echo "${MENU}${NUMBER} 206)${MENU} Make disk image A20"
     echo ""
 
     echo ""
@@ -785,8 +788,8 @@ while [ ! -z "$opt" ];do
             git $gitOpt checkout $LINUX_A10
         fi
         git $gitOpt pull
-        echoRed "Copy configuration file $LINUX_CONFIG_BASE_SUN4I";
-        cp -f $LINUX_CONFIG_BASE_SUN4I ${LINUX_REPO_A10}/.config
+        #echoRed "Copy configuration file $LINUX_CONFIG_BASE_SUN4I";
+        #cp -f $LINUX_CONFIG_BASE_SUN4I ${LINUX_REPO_A10}/.config
         if promptyn "Reconfigure kernel?"; then
             make -C $LINUX_REPO_A10 ARCH=arm menuconfig
         fi
@@ -852,9 +855,9 @@ while [ ! -z "$opt" ];do
         show_menu
         ;;
     105) clear;
-        echoRed "make disk image 4GB"
-        IMAGE_FILE="${CWD}/${DEB_HOSTNAME}-base-v${RELEASE_VERSION}-ARM-A10.img"
-        IMAGE_FILESIZE=3686
+        echoRed "make disk image 1GB"
+        IMAGE_FILE="${CWD}/${DEB_HOSTNAME}-base-r${RELEASE_VERSION_A10}-arm-a10.img"
+        IMAGE_FILESIZE=1024
         echo "create disk file ${IMAGE_FILE}"
         dd if=/dev/zero of=$IMAGE_FILE bs=1M count=$IMAGE_FILESIZE
         SD_PATH_OLD=${SD_PATH}
@@ -862,7 +865,7 @@ while [ ! -z "$opt" ];do
         echo "create device ${SD_PATH_RAW}"
         SD_PATH=${SD_PATH_RAW}
         echo "format device"
-        formatSD 1024
+        formatSD 1001
         SD_PATH="${SD_PATH}p"
         echo "Transferring system"
         installRoot
@@ -997,6 +1000,33 @@ while [ ! -z "$opt" ];do
             echoRed "Congratulations,you can safely remove your sd card";
             echoRed "Now press Enter to quit the program";
         fi
+        show_menu
+        ;;
+    206) clear;
+        echoRed "make disk image 1GB"
+        IMAGE_FILE="${CWD}/${DEB_HOSTNAME}-base-r${RELEASE_VERSION_A20}-arm-a20.img"
+        IMAGE_FILESIZE=1024
+        echo "create disk file ${IMAGE_FILE}"
+        dd if=/dev/zero of=$IMAGE_FILE bs=1M count=$IMAGE_FILESIZE
+        SD_PATH_OLD=${SD_PATH}
+        SD_PATH_RAW=`losetup -f --show ${IMAGE_FILE}`
+        echo "create device ${SD_PATH_RAW}"
+        SD_PATH=${SD_PATH_RAW}
+        echo "format device"
+        formatSD 1001
+        SD_PATH="${SD_PATH}p"
+        echo "Transferring system"
+        installRoot
+        SD_PATH=${SD_PATH_RAW}
+        echo "Install MBR"
+        CURRENT_UBOOT="$UBOOT_REPO_A20_MMC"
+        installMBR
+        echo "umount device ${SD_PATH}"
+        umountSDSafe
+        losetup -d ${SD_PATH}
+        SD_PATH=${SD_PATH_OLD}
+        echo  "compressing image"
+        7z a -mx=9 ${IMAGE_FILE}.7z $IMAGE_FILE
         show_menu
         ;;
     301) clear;
