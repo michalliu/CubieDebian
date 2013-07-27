@@ -346,33 +346,18 @@ ${NETWORK_CFG}
 END
 }
 
+applyPatch(){
+patch "${ROOTFS_DIR}/${2:${#1}:-6}" < "$2"
+}
+
 finalConfig(){
 prepareEnv
 
 echo ${DEB_HOSTNAME} > ${ROOTFS_DIR}/etc/hostname
 
-# the backfile file only create one time
-backupFile ${ROOTFS_DIR}/etc/modules
-
-# restore from initial file
-restoreFile ${ROOTFS_DIR}/etc/modules
-
 cat >> ${ROOTFS_DIR}/etc/hosts <<END
 127.0.0.1 ${DEB_HOSTNAME}
 END
-
-# prohibit root user ssh
-sed -i 's/^PermitRootLogin yes$/PermitRootLogin no/' ${ROOTFS_DIR}/etc/ssh/sshd_config
-# change default ssh port
-sed -i 's/^Port 22$/Port 36000/' ${ROOTFS_DIR}/etc/ssh/sshd_config
-# allow 5 unauthenticated clients maximium
-cat >> ${ROOTFS_DIR}/etc/ssh/sshd_config <<END
-
-MaxStartups 5
-END
-
-# modify user path
-sed -i '7s/.*/ PATH="\/usr\/local\/sbin:\/usr\/local\/bin:\/usr\/sbin:\/usr\/bin:\/sbin:\/bin:\/usr\/local\/games:\/usr\/games"/' ${ROOTFS_DIR}/etc/profile
 
 # config user accounts
 cat > ${ROOTFS_DIR}/tmp/initsys.sh <<END
@@ -393,9 +378,12 @@ LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} chmod +x /tmp/initsys.sh
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} /tmp/initsys.sh
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} rm /tmp/initsys.sh
 
-# copy scripts
+# copy new files common
 setupfsupdatebase
-cp -r ${FS_UPDATE_REPO_BASE}/common/* ${ROOTFS_DIR}
+rsync --exclude *.patch -av ${FS_UPDATE_REPO_BASE}/common/* ${ROOTFS_DIR}
+
+# patch common files
+find ${FS_UPDATE_REPO_BASE}/common/ -type f -name "*.patch" | while read patch; do applyPatch "${FS_UPDATE_REPO_BASE}/common/" "$patch";done
 
 # green led ctrl
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} update-rc.d bootled defaults
@@ -413,45 +401,12 @@ fi
 }
 
 patchRootfs(){
-if [[ "$1" = "$A20" ]];then
-restoreFile ${ROOTFS_DIR}/etc/modules
-cat >> ${ROOTFS_DIR}/etc/modules <<END
-
-# GPIO
-# gpio_sunxi
-
-# For SATA Support
-sw_ahci_platform
-
-# Display and GPU
-lcd
-hdmi
-ump
-disp
-# mali
-# mali_drm
-END
-elif [[ "$1" = "$A10" ]];then
-restoreFile ${ROOTFS_DIR}/etc/modules
-cat >> ${ROOTFS_DIR}/etc/modules <<END
-
-# GPIO
-gpio_sunxi
-
-# For SATA Support
-sw_ahci_platform
-
-# Display and GPU
-lcd
-hdmi
-ump
-disp
-mali
-mali_drm
-END
-fi
+# copy new files from $1
 setupfsupdatebase
-cp -r ${FS_UPDATE_REPO_BASE}/$1/* ${ROOTFS_DIR}
+rsync --exclude *.patch -av ${FS_UPDATE_REPO_BASE}/$1/* ${ROOTFS_DIR}
+
+# patch common files
+find ${FS_UPDATE_REPO_BASE}/$1/ -type f -name "*.patch" | while read patch; do applyPatch "${FS_UPDATE_REPO_BASE}/$1/" "$patch";done
 }
 
 umountSDSafe() {
@@ -745,11 +700,11 @@ while [ ! -z "$opt" ];do
         if [ -d ${ROOTFS_DIR} ];then
             echoRed "Install Utilites and personal stuff"
             finalConfig
-            echoRed "Make a backup of the system";
-            if [ -f ${BASESYS_FINAL_BACKUP} ];then
-                rm ${BASESYS_FINAL_BACKUP}
-            fi
-            tar -czPf ${BASESYS_FINAL_BACKUP} ${ROOTFS_DIR}
+            # echoRed "Make a backup of the system";
+            # if [ -f ${BASESYS_FINAL_BACKUP} ];then
+            #     rm ${BASESYS_FINAL_BACKUP}
+            # fi
+            # tar -czPf ${BASESYS_FINAL_BACKUP} ${ROOTFS_DIR}
         else
             echo "[E] rootfs is not existed at ${ROOTFS_DIR}"
         fi
