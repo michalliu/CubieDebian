@@ -15,6 +15,7 @@ u-boot-sunxi-a10-mmc/
 fsupdatebase/
 
 mnt/
+packages/
 
 argon.rootfs.tar.gz
 argon.basesys.tar.gz

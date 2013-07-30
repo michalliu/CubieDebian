@@ -28,6 +28,10 @@ LINUX_REPO_A10="${CWD}/linux-sunxi-a10"
 LINUX_REPO_A20_3_4="${CWD}/linux-sunxi-a20-3.4"
 LINUX_REPO_A20_3_3="${CWD}/linux-sunxi-a20-3.3"
 
+LINUX_PACKAGES="${CWD}/packages"
+LINUX_HEADER_A10_3_3="${LINUX_PACKAGES}/linux-header-3.3.0"
+LINUX_HEADER_A20_3_4="${LINUX_PACKAGES}/linux-header-3.4.43"
+
 LINUX_A10="stage/sunxi-3.4-a10"
 LINUX_A20_3_4="dev/sunxi-3.4-a20"
 LINUX_A20_3_3="stage/sunxi-3.3-a20"
@@ -531,6 +535,7 @@ show_menu(){
     echo "${NORMAL}    Extra Commands${NORMAL}"
     echo ""
     echo "${MENU}${NUMBER} 401)${MENU}  Create linux-headers-3.3.0 ${NORMAL}"
+    echo "${MENU}${NUMBER} 402)${MENU}  Create linux-headers-3.4.43 ${NORMAL}"
     echo ""
     echo "${ENTER_LINE}Please enter the option and enter or ${RED_TEXT}enter to exit. ${NORMAL}"
     if [ ! -z "$1" ]
@@ -1026,8 +1031,21 @@ while [ ! -z "$opt" ];do
         show_menu
         ;;
 	401) clear;
-		echo $($CWD/utilities/createFileList.sh /usr/src/linux-headers-3.5.0-23)
+		if [[ ! -d $LINUX_HEADER_A10_3_3 ]];then
+			mkdir -p $LINUX_HEADER_A10_3_3
+		fi
+		for file in $($CWD/utilities/createFileList.sh /usr/src/linux-headers-3.5.0-23); do
+			linux_header_src="${LINUX_REPO_A20_3_3}/${file}"
+			linux_header_dst="${LINUX_HEADER_A10_3_3}/${file}"
+			mkdir -p $(dirname $linux_header_dst)
+			if [[ -f ${linux_header_src} ]];then
+				cp $linux_header_src $linux_header_dst
+			else
+				echo "! $linux_header_src"
+			fi
+		done
         #show_menu
+		exit
         ;;
     *) clear;
         show_menu "$opt is invalid. please enter a number from menu."
