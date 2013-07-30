@@ -386,11 +386,11 @@ rsync --exclude *.patch -av ${FS_UPDATE_REPO_BASE}/common/* ${ROOTFS_DIR}
 find ${FS_UPDATE_REPO_BASE}/common/ -type f -name "*.patch" | while read patch; do applyPatch "${FS_UPDATE_REPO_BASE}/common/" "$patch";done
 
 # green led ctrl
-LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} update-rc.d bootled defaults
-LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} update-rc.d blinknetworkled defaults
-LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} update-rc.d cubianinit defaults
-LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} update-rc.d ondemandcpufreq start 80 2 3 4 5 . stop
-LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} update-rc.d gpiopermission start 80 2 3 4 5 . stop
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} update-rc.d "cubian-bootled" defaults
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} update-rc.d "cubian-blinknetworkled" defaults
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} update-rc.d "cubian-local" defaults
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} update-rc.d "cubian-ondemandcpufreq" start 80 2 3 4 5 . stop
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} update-rc.d "cubian-gpiopermission" start 80 2 3 4 5 . stop
 
 # clean cache
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get clean
@@ -522,10 +522,15 @@ show_menu(){
     echo ""
 
     echo ""
-    echo "${NORMAL}    Test Commands (Use them only if you know what you are doing)${NORMAL}"
+    echo "${NORMAL}    Extra Commands${NORMAL}"
     echo ""
     echo "${MENU}${NUMBER} 301)${MENU}  Build u-boot for A10 NAND ${NORMAL}"
     echo "${MENU}${NUMBER} 302)${MENU}  Build u-boot for A20 NAND ${NORMAL}"
+    echo ""
+    echo ""
+    echo "${NORMAL}    Extra Commands${NORMAL}"
+    echo ""
+    echo "${MENU}${NUMBER} 401)${MENU}  Create linux-headers-3.3.0 ${NORMAL}"
     echo ""
     echo "${ENTER_LINE}Please enter the option and enter or ${RED_TEXT}enter to exit. ${NORMAL}"
     if [ ! -z "$1" ]
@@ -743,8 +748,8 @@ while [ ! -z "$opt" ];do
             git $gitOpt checkout $LINUX_A10
         fi
         git $gitOpt pull
-        #echoRed "Copy configuration file $LINUX_CONFIG_BASE_SUN4I";
-        #cp -f $LINUX_CONFIG_BASE_SUN4I ${LINUX_REPO_A10}/.config
+        echoRed "Using configuration file $LINUX_CONFIG_BASE_SUN4I";
+        cp -f $LINUX_CONFIG_BASE_SUN4I ${LINUX_REPO_A10}/.config
         if promptyn "Reconfigure kernel?"; then
             make -C $LINUX_REPO_A10 ARCH=arm menuconfig
         fi
@@ -833,7 +838,7 @@ while [ ! -z "$opt" ];do
         losetup -d ${SD_PATH}
         SD_PATH=${SD_PATH_OLD}
         echo  "compressing image"
-        7z a -mx=9 ${IMAGE_FILE}.7z $IMAGE_FILE
+        #7z a -mx=9 ${IMAGE_FILE}.7z $IMAGE_FILE
         show_menu
         ;;
 
@@ -981,7 +986,7 @@ while [ ! -z "$opt" ];do
         losetup -d ${SD_PATH}
         SD_PATH=${SD_PATH_OLD}
         echo  "compressing image"
-        7z a -mx=9 ${IMAGE_FILE}.7z $IMAGE_FILE
+        #7z a -mx=9 ${IMAGE_FILE}.7z $IMAGE_FILE
         show_menu
         ;;
     301) clear;
@@ -1019,6 +1024,10 @@ while [ ! -z "$opt" ];do
         buildUBoot $UBOOT_REPO_A20_NAND
         echoRed "Done";
         show_menu
+        ;;
+	401) clear;
+		echo $($CWD/utilities/createFileList.sh /usr/src/linux-headers-3.5.0-23)
+        #show_menu
         ;;
     *) clear;
         show_menu "$opt is invalid. please enter a number from menu."
