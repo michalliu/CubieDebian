@@ -243,10 +243,21 @@ fi
 }
 
 installBootscr() {
+extra_cmd=
+if [[ "$CURRENT_KERNEL" = "$LINUX_REPO_A20_3_3" ]];then
+	extra_cmd="setenv machid 0f35"
+fi
+
+if [[ -n extra_cmd ]];then
 cat > ${ROOTFS_DIR}/boot/boot.cmd <<END
+$extra_cmd
+END
+fi
+
+cat >> ${ROOTFS_DIR}/boot/boot.cmd <<END
 setenv bootargs console=tty0 console=ttyS0,115200 hdmi.audio=EDID:0 disp.screen0_output_mode=EDID:1280x800p60 root=/dev/mmcblk0p1 rootwait panic=10
-ext2load mmc 0 0x43000000 boot/script.bin
-ext2load mmc 0 0x48000000 boot/uImage
+ext2load mmc 0:1 0x43000000 boot/script.bin
+ext2load mmc 0:1 0x48000000 boot/uImage
 bootm 0x48000000
 END
 mkimage -C none -A arm -T script -d ${ROOTFS_DIR}/boot/boot.cmd ${ROOTFS_DIR}/boot/boot.scr
