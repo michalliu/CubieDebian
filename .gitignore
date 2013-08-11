@@ -1,4 +1,6 @@
 rootfs/
+rootfs-a10/
+rootfs-a20/
 u-boot-sunxi-a20/
 linux-sunxi-a20/
 toolchain-linaro/
@@ -22,6 +24,8 @@ argon.basesys.tar.gz
 argon.basesys.pkg.tar.gz
 argon.basesys.config.tar.gz
 argon.basesys.final.tar.gz
+rootfs-a10.gz
+rootfs-a20.gz
 
 *.swp
 *.img

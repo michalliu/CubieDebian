@@ -133,7 +133,7 @@ export PATH=${TOOLCHAIN}/bin:$PATH
 export PATH=${TOOLCHAIN_LINARO_REPO}/bin:$PATH
 
 setupTools() {
-installpackages "debootstrap" "qemu-user-static" "build-essential" "u-boot-tools" "git" "binfmt-support" "libusb-1.0-0-dev" "pkg-config" "libncurses5-dev" "debian-archive-keyring" "expect" "kpartx" "p7zip-full" "e2fsprogs"
+installpackages "debootstrap" "qemu-user-static" "build-essential" "u-boot-tools" "git" "binfmt-support" "libusb-1.0-0-dev" "pkg-config" "libncurses5-dev" "debian-archive-keyring" "expect" "kpartx" "p7zip-full" "e2fsprogs" "dch" "lintian"
 }
 
 setupLinaroToolchain(){
@@ -710,11 +710,11 @@ while [ ! -z "$opt" ];do
         if [ -d ${ROOTFS_DIR} ];then
             echoRed "Install Utilites and personal stuff"
             finalConfig
-            # echoRed "Make a backup of the system";
-            # if [ -f ${BASESYS_FINAL_BACKUP} ];then
-            #     rm ${BASESYS_FINAL_BACKUP}
-            # fi
-            # tar -czPf ${BASESYS_FINAL_BACKUP} ${ROOTFS_DIR}
+            echoRed "Make a backup of the system";
+            if [ -f ${BASESYS_FINAL_BACKUP} ];then
+                rm ${BASESYS_FINAL_BACKUP}
+            fi
+            tar -czPf ${BASESYS_FINAL_BACKUP} ${ROOTFS_DIR}
         else
             echo "[E] rootfs is not existed at ${ROOTFS_DIR}"
         fi
@@ -1041,7 +1041,7 @@ while [ ! -z "$opt" ];do
 			if [[ -f ${linux_header_src} ]];then
 				cp $linux_header_src $linux_header_dst
 			else
-				echo "! $linux_header_src"
+				echo "!$linux_header_src" >> 1.txt
 			fi
 		done
         #show_menu
