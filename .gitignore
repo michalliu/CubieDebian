@@ -1,18 +1,20 @@
 rootfs/
 rootfs-a10/
 rootfs-a20/
-u-boot-sunxi-a20/
-linux-sunxi-a20/
+rootfs-a20-3.4/
+
 toolchain-linaro/
 
 linux-sunxi-a10/
 linux-sunxi-a20-3.4/
 linux-sunxi-a20-3.3/
+linux-sunxi-a20/
 
-u-boot-sunxi-a20-nand/
-u-boot-sunxi-a20-mmc/
 u-boot-sunxi-a10-nand/
 u-boot-sunxi-a10-mmc/
+u-boot-sunxi-a20-nand/
+u-boot-sunxi-a20-mmc/
+u-boot-sunxi-a20-mmc-fixed-machid/
 
 fsupdatebase/
 
@@ -24,6 +26,7 @@ argon.basesys.tar.gz
 argon.basesys.pkg.tar.gz
 argon.basesys.config.tar.gz
 argon.basesys.final.tar.gz
+
 rootfs-a10.gz
 rootfs-a20.gz
 

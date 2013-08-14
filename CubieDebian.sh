@@ -16,12 +16,15 @@ UBOOT_REPO_A10_MMC="${CWD}/u-boot-sunxi-a10-mmc"
 UBOOT_REPO_A10_NAND="${CWD}/u-boot-sunxi-a10-nand"
 
 UBOOT_REPO_A20_MMC="${CWD}/u-boot-sunxi-a20-mmc"
+UBOOT_REPO_A20_MMC_FIXED_MACHID="${CWD}/u-boot-sunxi-a20-mmc-fixed-machid"
 UBOOT_REPO_A20_NAND="${CWD}/u-boot-sunxi-a20-nand"
 
 UBOOT_A10_MMC="stage/a10-mmc"
-UBOOT_A20_MMC="stage/a20-mmc"
-UBOOT_A20_NAND="stage/a20-nand"
 UBOOT_A10_NAND="stage/a10-nand"
+
+UBOOT_A20_MMC="stage/a20-mmc"
+UBOOT_A20_MMC_FIXED_MACHID="stage/a20-mmc-fixed-machid"
+UBOOT_A20_NAND="stage/a20-nand"
 
 LINUX_REPO="${CWD}/linux-sunxi"
 LINUX_REPO_A10="${CWD}/linux-sunxi-a10"
@@ -172,6 +175,10 @@ git submodule update
 
 buildUBoot() {
 if [ "$1" == "$UBOOT_REPO_A20_MMC" ];then
+CROSS_COMPILER=arm-none-linux-gnueabi-
+make -C $1 distclean CROSS_COMPILE=$CROSS_COMPILER
+make -C $1 cubieboard2 CROSS_COMPILE=$CROSS_COMPILER
+elif [ "$1" == "$UBOOT_REPO_A20_MMC_FIXED_MACHID" ];then
 CROSS_COMPILER=arm-none-linux-gnueabi-
 make -C $1 distclean CROSS_COMPILE=$CROSS_COMPILER
 make -C $1 cubieboard2 CROSS_COMPILE=$CROSS_COMPILER
@@ -509,27 +516,28 @@ show_menu(){
     echo ""
     echo "${NORMAL}    A10${NORMAL}"
     echo ""
-    echo "${MENU}${NUMBER} 101)${MENU} Build u-boot for A10 ${NORMAL}"
-    echo "${MENU}${NUMBER} 102)${MENU} Build Linux kernel(3.4.43) for A10 ${NORMAL}"
-    echo "${MENU}${NUMBER} 103)${MENU} Install UBoot & kernel & modules${NORMAL}"
-    echo "${MENU}${NUMBER} 104)${MENU} Install to device ${SD_PATH} ${NORMAL}"
-    echo "${MENU}${NUMBER} 105)${MENU} Make disk image A10"
+    echo "${MENU}${NUMBER} 101)${MENU} Build Linux kernel(3.4.43) for A10 ${NORMAL}"
+    echo "${MENU}${NUMBER} 102)${MENU} Install UBoot & kernel & modules${NORMAL}"
+    echo "${MENU}${NUMBER} 103)${MENU} Install to device ${SD_PATH} ${NORMAL}"
+    echo "${MENU}${NUMBER} 104)${MENU} Make disk image A10"
 
     echo ""
     echo "${NORMAL}    A20${NORMAL}"
-    echo "${MENU}${NUMBER} 201)${MENU} Build u-boot for A20 MMC${NORMAL}"
-    echo "${MENU}${NUMBER} 202)${MENU} Build Linux kernel 3.3 for A20 ${NORMAL}"
-    echo "${MENU}${NUMBER} 203)${MENU} Build Linux kernel 3.4(inComplete) for A20 ${NORMAL}"
-    echo "${MENU}${NUMBER} 204)${MENU} Install UBoot & kernel & modules${NORMAL}"
-    echo "${MENU}${NUMBER} 205)${MENU} Install to device ${SD_PATH} ${NORMAL}"
-    echo "${MENU}${NUMBER} 206)${MENU} Make disk image A20"
+    echo "${MENU}${NUMBER} 201)${MENU} Build Linux kernel 3.3 for A20 ${NORMAL}"
+    echo "${MENU}${NUMBER} 202)${MENU} Build Linux kernel 3.4(inComplete) for A20 ${NORMAL}"
+    echo "${MENU}${NUMBER} 203)${MENU} Install UBoot & kernel & modules${NORMAL}"
+    echo "${MENU}${NUMBER} 204)${MENU} Install to device ${SD_PATH} ${NORMAL}"
+    echo "${MENU}${NUMBER} 205)${MENU} Make disk image A20"
     echo ""
 
     echo ""
     echo "${NORMAL}    Extra Commands${NORMAL}"
     echo ""
-    echo "${MENU}${NUMBER} 301)${MENU}  Build u-boot for A10 NAND ${NORMAL}"
-    echo "${MENU}${NUMBER} 302)${MENU}  Build u-boot for A20 NAND ${NORMAL}"
+    echo "${MENU}${NUMBER} 301)${MENU}  Build u-boot for A10 MMC ${NORMAL}"
+    echo "${MENU}${NUMBER} 302)${MENU}  Build u-boot for A10 NAND ${NORMAL}"
+    echo "${MENU}${NUMBER} 303)${MENU}  Build u-boot for A20 MMC ${NORMAL}"
+    echo "${MENU}${NUMBER} 304)${MENU}  Build u-boot for A20 NAND ${NORMAL}"
+    echo "${MENU}${NUMBER} 305)${MENU}  Build u-boot for A20 MMMC FIXED MACHID ${NORMAL}"
     echo ""
     echo ""
     echo "${NORMAL}    Extra Commands${NORMAL}"
@@ -722,23 +730,6 @@ while [ ! -z "$opt" ];do
         show_menu
         ;;
 
-    101) clear;
-        echoRed "Start build u-boot";
-        gitOpt="--git-dir=${UBOOT_REPO_A10_MMC}/.git --work-tree=${UBOOT_REPO_A10_MMC}"
-        if [ ! -d $UBOOT_REPO_A10_MMC ];then
-            git clone $UBOOT_REPO $UBOOT_REPO_A10_MMC
-        fi
-        branchName=$(git $gitOpt rev-parse --abbrev-ref HEAD)
-        if [ $branchName != $UBOOT_A10_MMC ]; then
-            git $gitOpt checkout .
-            git $gitOpt clean -df
-            git $gitOpt checkout $UBOOT_A10_MMC
-        fi
-        git $gitOpt pull
-        buildUBoot $UBOOT_REPO_A10_MMC
-        echoRed "Done";
-        show_menu
-        ;;
     102) clear;
         echoRed "Build Linux kernel";
         gitOpt="--git-dir=${LINUX_REPO_A10}/.git --work-tree=${LINUX_REPO_A10}/"
@@ -848,24 +839,6 @@ while [ ! -z "$opt" ];do
         ;;
 
     201) clear;
-        echoRed "Start build u-boot for A20 MMC";
-        gitOpt="--git-dir=${UBOOT_REPO_A20_MMC}/.git --work-tree=${UBOOT_REPO_A20_MMC}/"
-        if [ ! -d $UBOOT_REPO_A20_MMC ];then
-            git clone $UBOOT_REPO $UBOOT_REPO_A20_MMC
-        fi
-        branchName=$(git $gitOpt rev-parse --abbrev-ref HEAD)
-        if [ $branchName != $UBOOT_A20_MMC ]; then
-            echoRed "Switch branch to A20"
-            git $gitOpt checkout .
-            git $gitOpt clean -df
-            git $gitOpt checkout $UBOOT_A20_MMC
-        fi
-        git $gitOpt pull
-        buildUBoot $UBOOT_REPO_A20_MMC
-        echoRed "Done";
-        show_menu
-        ;;
-    202) clear;
         echoRed "Build Linux kernel 3.3 for A20";
         gitOpt="--git-dir=${LINUX_REPO_A20_3_3}/.git --work-tree=${LINUX_REPO_A20_3_3}/"
         if [ ! -d $LINUX_REPO_A20_3_3 ];then
@@ -888,7 +861,7 @@ while [ ! -z "$opt" ];do
         echoRed "Done";
         show_menu
         ;;
-    203) clear;
+    202) clear;
         echoRed "Build Linux kernel 3.4 for A20";
         gitOpt="--git-dir=${LINUX_REPO_A20_3_4}/.git --work-tree=${LINUX_REPO_A20_3_4}/"
         if [ ! -d $LINUX_REPO_A20_3_4 ];then
@@ -912,7 +885,7 @@ while [ ! -z "$opt" ];do
         echoRed "Done";
         show_menu
         ;;
-    204) clear;
+    203) clear;
         if [ -d ${ROOTFS_DIR} ];then
             echoRed "Install UBoot";
             if [ -f "${ROOTFS_DIR}/boot/boot.scr" ] && [ -f "${ROOTFS_DIR}/boot/script.bin" ];then
@@ -945,7 +918,7 @@ while [ ! -z "$opt" ];do
         echoRed "Done";
         show_menu
         ;;
-    205) clear;
+    204) clear;
         echoRed "Install to your device ${SD_PATH}"
         echoRed "Device info"
         fdisk -l | grep ${SD_PATH}
@@ -967,7 +940,7 @@ while [ ! -z "$opt" ];do
         fi
         show_menu
         ;;
-    206) clear;
+    205) clear;
         echoRed "make disk image 1GB"
         IMAGE_FILE="${CWD}/${DEB_HOSTNAME}-base-r${RELEASE_VERSION_A20}-arm-a20.img"
         IMAGE_FILESIZE=1024
@@ -995,6 +968,23 @@ while [ ! -z "$opt" ];do
         show_menu
         ;;
     301) clear;
+        echoRed "Start build u-boot for A10 MMC";
+        gitOpt="--git-dir=${UBOOT_REPO_A10_MMC}/.git --work-tree=${UBOOT_REPO_A10_MMC}"
+        if [ ! -d $UBOOT_REPO_A10_MMC ];then
+            git clone $UBOOT_REPO $UBOOT_REPO_A10_MMC
+        fi
+        branchName=$(git $gitOpt rev-parse --abbrev-ref HEAD)
+        if [ $branchName != $UBOOT_A10_MMC ]; then
+            git $gitOpt checkout .
+            git $gitOpt clean -df
+            git $gitOpt checkout $UBOOT_A10_MMC
+        fi
+        git $gitOpt pull
+        buildUBoot $UBOOT_REPO_A10_MMC
+        echoRed "Done";
+        show_menu
+        ;;
+    302) clear;
         echoRed "Start build u-boot for A10 NAND";
         gitOpt="--git-dir=${UBOOT_REPO_A10_NAND}/.git --work-tree=${UBOOT_REPO_A10_NAND}/"
         if [ ! -d $UBOOT_REPO_A10_NAND ];then
@@ -1012,7 +1002,25 @@ while [ ! -z "$opt" ];do
         echoRed "Done";
         show_menu
         ;;
-    302) clear;
+    303) clear;
+		echoRed "Start build u-boot for A20 MMC";
+        gitOpt="--git-dir=${UBOOT_REPO_A20_MMC}/.git --work-tree=${UBOOT_REPO_A20_MMC}/"
+        if [ ! -d $UBOOT_REPO_A20_MMC ];then
+            git clone $UBOOT_REPO $UBOOT_REPO_A20_MMC
+        fi
+        branchName=$(git $gitOpt rev-parse --abbrev-ref HEAD)
+        if [ $branchName != $UBOOT_A20_MMC ]; then
+            echoRed "Switch branch to A20"
+            git $gitOpt checkout .
+            git $gitOpt clean -df
+            git $gitOpt checkout $UBOOT_A20_MMC
+        fi
+        git $gitOpt pull
+        buildUBoot $UBOOT_REPO_A20_MMC
+        echoRed "Done";
+        show_menu
+        ;;
+    304) clear;
         echoRed "Start build u-boot for A20 NAND";
         gitOpt="--git-dir=${UBOOT_REPO_A20_NAND}/.git --work-tree=${UBOOT_REPO_A20_NAND}/"
         if [ ! -d $UBOOT_REPO_A20_NAND ];then
@@ -1027,6 +1035,24 @@ while [ ! -z "$opt" ];do
         fi
         git $gitOpt pull
         buildUBoot $UBOOT_REPO_A20_NAND
+        echoRed "Done";
+        show_menu
+        ;;
+    305) clear;
+		echoRed "Start build u-boot for A20 MMC FIXED MACHID";
+        gitOpt="--git-dir=${UBOOT_REPO_A20_MMC_FIXED_MACHID}/.git --work-tree=${UBOOT_REPO_A20_MMC_FIXED_MACHID}/"
+        if [ ! -d $UBOOT_REPO_A20_MMC_FIXED_MACHID ];then
+            git clone $UBOOT_REPO $UBOOT_REPO_A20_MMC_FIXED_MACHID
+        fi
+        branchName=$(git $gitOpt rev-parse --abbrev-ref HEAD)
+        if [ $branchName != $UBOOT_A20_MMC_FIXED_MACHID ]; then
+            echoRed "Switch branch to A20 FIXED MACHID"
+            git $gitOpt checkout .
+            git $gitOpt clean -df
+            git $gitOpt checkout $UBOOT_A20_MMC_FIXED_MACHID
+        fi
+        git $gitOpt pull
+        buildUBoot $UBOOT_REPO_A20_MMC_FIXED_MACHID
         echoRed "Done";
         show_menu
         ;;
