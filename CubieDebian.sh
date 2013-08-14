@@ -18,6 +18,7 @@ UBOOT_REPO_A10_NAND="${CWD}/u-boot-sunxi-a10-nand"
 UBOOT_REPO_A20_MMC="${CWD}/u-boot-sunxi-a20-mmc"
 UBOOT_REPO_A20_MMC_FIXED_MACHID="${CWD}/u-boot-sunxi-a20-mmc-fixed-machid"
 UBOOT_REPO_A20_NAND="${CWD}/u-boot-sunxi-a20-nand"
+UBOOT_REPO_A20_NAND_FIXED_MACHID="${CWD}/u-boot-sunxi-a20-nand-fixed-machid"
 
 UBOOT_A10_MMC="stage/a10-mmc"
 UBOOT_A10_NAND="stage/a10-nand"
@@ -25,6 +26,7 @@ UBOOT_A10_NAND="stage/a10-nand"
 UBOOT_A20_MMC="stage/a20-mmc"
 UBOOT_A20_MMC_FIXED_MACHID="stage/a20-mmc-fixed-machid"
 UBOOT_A20_NAND="stage/a20-nand"
+UBOOT_A20_NAND_FIXED_MACHID="stage/a20-nand-fixed-machid"
 
 LINUX_REPO="${CWD}/linux-sunxi"
 LINUX_REPO_A10="${CWD}/linux-sunxi-a10"
@@ -183,6 +185,10 @@ CROSS_COMPILER=arm-none-linux-gnueabi-
 make -C $1 distclean CROSS_COMPILE=$CROSS_COMPILER
 make -C $1 cubieboard2 CROSS_COMPILE=$CROSS_COMPILER
 elif [ "$1" == "$UBOOT_REPO_A20_NAND" ];then
+CROSS_COMPILER=arm-none-linux-gnueabi-
+make -C $1 distclean CROSS_COMPILE=$CROSS_COMPILER
+make -C $1 sun7i CROSS_COMPILE=$CROSS_COMPILER
+elif [ "$1" == "$UBOOT_REPO_A20_NAND_FIXED_MACHID" ];then
 CROSS_COMPILER=arm-none-linux-gnueabi-
 make -C $1 distclean CROSS_COMPILE=$CROSS_COMPILER
 make -C $1 sun7i CROSS_COMPILE=$CROSS_COMPILER
@@ -531,13 +537,14 @@ show_menu(){
     echo ""
 
     echo ""
-    echo "${NORMAL}    Extra Commands${NORMAL}"
+    echo "${NORMAL}    Build U-Boot${NORMAL}"
     echo ""
     echo "${MENU}${NUMBER} 301)${MENU}  Build u-boot for A10 MMC ${NORMAL}"
     echo "${MENU}${NUMBER} 302)${MENU}  Build u-boot for A10 NAND ${NORMAL}"
     echo "${MENU}${NUMBER} 303)${MENU}  Build u-boot for A20 MMC ${NORMAL}"
     echo "${MENU}${NUMBER} 304)${MENU}  Build u-boot for A20 NAND ${NORMAL}"
     echo "${MENU}${NUMBER} 305)${MENU}  Build u-boot for A20 MMMC FIXED MACHID ${NORMAL}"
+    echo "${MENU}${NUMBER} 306)${MENU}  Build u-boot for A20 NAND FIXED MACHID ${NORMAL}"
     echo ""
     echo ""
     echo "${NORMAL}    Extra Commands${NORMAL}"
@@ -931,7 +938,11 @@ while [ ! -z "$opt" ];do
             echoRed "Done";
             echoRed "Transferring data, it may take a while, please be patient, DO NOT UNPLUG YOUR DEVICE, it will be removed automaticlly when finished";
             installRoot
-            CURRENT_UBOOT="$UBOOT_REPO_A20_MMC"
+			if [[ CURRENT_KERNEL="$LINUX_REPO_A20_3_3" ]];then
+            	CURRENT_UBOOT="$UBOOT_REPO_A20_MMC_FIXED_MACHID"
+			elif [[ CURRENT_KERNEL="$LINUX_REPO_A20_3_4" ]];then
+            	CURRENT_UBOOT="$UBOOT_REPO_A20_MMC"
+			fi
             installMBR
             removeSD
             echoRed "Done";
@@ -1053,6 +1064,24 @@ while [ ! -z "$opt" ];do
         fi
         git $gitOpt pull
         buildUBoot $UBOOT_REPO_A20_MMC_FIXED_MACHID
+        echoRed "Done";
+        show_menu
+        ;;
+    306) clear;
+        echoRed "Start build u-boot for A20 NAND FIXED MACHID";
+        gitOpt="--git-dir=${UBOOT_REPO_A20_NAND_FIXED_MACHID}/.git --work-tree=${UBOOT_REPO_A20_NAND_FIXED_MACHID}/"
+        if [ ! -d $UBOOT_REPO_A20_NAND_FIXED_MACHID ];then
+            git clone $UBOOT_REPO $UBOOT_REPO_A20_NAND_FIXED_MACHID
+        fi
+        branchName=$(git $gitOpt rev-parse --abbrev-ref HEAD)
+        if [ $branchName != $UBOOT_A20_NAND_FIXED_MACHID ]; then
+            echoRed "Switch branch to A20 NAND FIXED MACHID"
+            git $gitOpt checkout .
+            git $gitOpt clean -df
+            git $gitOpt checkout $UBOOT_A20_NAND_FIXED_MACHID
+        fi
+        git $gitOpt pull
+        buildUBoot $UBOOT_REPO_A20_NAND_FIXED_MACHID
         echoRed "Done";
         show_menu
         ;;

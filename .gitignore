@@ -2,6 +2,7 @@ rootfs/
 rootfs-a10/
 rootfs-a20/
 rootfs-a20-3.4/
+rootfs-a20-3.3/
 
 toolchain-linaro/
 
@@ -15,6 +16,7 @@ u-boot-sunxi-a10-mmc/
 u-boot-sunxi-a20-nand/
 u-boot-sunxi-a20-mmc/
 u-boot-sunxi-a20-mmc-fixed-machid/
+u-boot-sunxi-a20-nand-fixed-machid/
 
 fsupdatebase/
 
