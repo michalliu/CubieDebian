@@ -48,6 +48,9 @@ LINUX_CONFIG_BASE_SUN7I_3_3="${CWD}/kernel-config/config-cubian-base-sun7i-3.3"
 FS_UPDATE_REPO="${CWD}/fsupdate"
 FS_UPDATE_REPO_BASE="${CWD}/fsupdatebase"
 
+SUNXI_TOOLS_REPO="${CWD}/sunxi-tools"
+SUNXI_TOOLS_REPO_ARM="${CWD}/sunxi-tools-arm"
+
 FS_UPDATE_BASE="base"
 
 # This is the script verion
@@ -59,7 +62,7 @@ DEVELOPMENT_CODE="argon"
 FEX_SUN4I="${CWD}/sunxi-boards/sys_config/a10/cubieboard_${DEVELOPMENT_CODE}.fex"
 FEX_SUN7I="${CWD}/sunxi-boards/sys_config/a20/cubieboard2_${DEVELOPMENT_CODE}.fex"
 
-FEX2BIN="${CWD}/sunxi-tools/fex2bin"
+FEX2BIN="${SUNXI_TOOLS_REPO}/fex2bin"
 
 # This will be the hostname of the cubieboard
 DEB_HOSTNAME="Cubian"
@@ -200,14 +203,8 @@ fi
 }
 
 buildTools() {
-make -C ${CWD}/sunxi-tools/ clean
-make -C ${CWD}/sunxi-tools/ all
-}
-
-crossCompileSunxiTools(){
-make -C ${CWD}/sunxi-tools/ clean
-make -C ${CWD}/sunxi-tools/ CC=arm-none-linux-gnueabi-gcc CFLAGS='-Wall -static -Iinclude/' nand-part
-make -C ${CWD}/sunxi-tools/ CC=arm-none-linux-gnueabi-gcc CFLAGS='-Wall -static -Iinclude/' nand-part2
+make -C ${SUNXI_TOOLS_REPO} clean
+make -C ${SUNXI_TOOLS_REPO} all
 }
 
 prepareEnv() {
@@ -492,24 +489,28 @@ show_menu(){
     RED_TEXT=`echo -e "\033[31m"`
     ENTER_LINE=`echo -e "\033[33m"`
     #echo "${MENU}    Debian Builder ${SCRIPT_VERSION}     ${NORMAL}"
+
     #echo ""
     echo "${NORMAL}    General options${NORMAL}"
     echo ""
+
     echo "${MENU}${NUMBER} 1)${MENU} Setup enviroment ${NORMAL}"
     echo "${MENU}${NUMBER} 2)${MENU} Download or Update source ${NORMAL}"
-    echo "${MENU}${NUMBER} 3)${MENU} Build sunxi-tools ${NORMAL}"
+
     echo ""
     echo "${NORMAL}    Root file system${NORMAL}"
     echo ""
-    echo "${MENU}${NUMBER} 4)${MENU} Download rootfs ${NORMAL}"
-    echo "${MENU}${NUMBER} 5)${MENU} Install base system ${NORMAL}"
-    echo "${MENU}${NUMBER} 6)${MENU} Install packages ${NORMAL}"
-    echo "${MENU}${NUMBER} 7)${MENU} Config Network & Locale & Timezone ${NORMAL}"
-    echo "${MENU}${NUMBER} 8)${MENU} Final config ${NORMAL}"
+
+    echo "${MENU}${NUMBER} 10)${MENU} Download rootfs ${NORMAL}"
+    echo "${MENU}${NUMBER} 11)${MENU} Install base system ${NORMAL}"
+    echo "${MENU}${NUMBER} 12)${MENU} Install packages ${NORMAL}"
+    echo "${MENU}${NUMBER} 13)${MENU} Config Network & Locale & Timezone ${NORMAL}"
+    echo "${MENU}${NUMBER} 14)${MENU} Config Users & Apply fsupdate${NORMAL}"
 
     echo ""
     echo "${NORMAL}    A10${NORMAL}"
     echo ""
+
     echo "${MENU}${NUMBER} 101)${MENU} Build Linux kernel(3.4.43) for A10 ${NORMAL}"
     echo "${MENU}${NUMBER} 102)${MENU} Install UBoot & kernel & modules${NORMAL}"
     echo "${MENU}${NUMBER} 103)${MENU} Install to device ${SD_PATH} ${NORMAL}"
@@ -517,30 +518,41 @@ show_menu(){
 
     echo ""
     echo "${NORMAL}    A20${NORMAL}"
+    echo ""
+
     echo "${MENU}${NUMBER} 201)${MENU} Build Linux kernel 3.3 for A20 ${NORMAL}"
     echo "${MENU}${NUMBER} 202)${MENU} Build Linux kernel 3.4 for A20 ${NORMAL}"
     echo "${MENU}${NUMBER} 203)${MENU} Install UBoot & kernel & modules${NORMAL}"
     echo "${MENU}${NUMBER} 204)${MENU} Install to device ${SD_PATH} ${NORMAL}"
     echo "${MENU}${NUMBER} 205)${MENU} Make disk image A20"
-    echo ""
 
     echo ""
     echo "${NORMAL}    Build U-Boot${NORMAL}"
     echo ""
+
     echo "${MENU}${NUMBER} 301)${MENU}  Build u-boot for A10 MMC ${NORMAL}"
     echo "${MENU}${NUMBER} 302)${MENU}  Build u-boot for A10 NAND ${NORMAL}"
     echo "${MENU}${NUMBER} 303)${MENU}  Build u-boot for A20 MMC ${NORMAL}"
     echo "${MENU}${NUMBER} 304)${MENU}  Build u-boot for A20 NAND ${NORMAL}"
     echo "${MENU}${NUMBER} 305)${MENU}  Build u-boot for A20 MMMC FIXED MACHID ${NORMAL}"
     echo "${MENU}${NUMBER} 306)${MENU}  Build u-boot for A20 NAND FIXED MACHID ${NORMAL}"
+
     echo ""
+    echo "${NORMAL}    Build sunxi-tools${NORMAL}"
     echo ""
-    echo "${NORMAL}    Extra Commands${NORMAL}"
+
+    echo "${MENU}${NUMBER} 401)${MENU} Build sunxi-tools ${NORMAL}"
+    echo "${MENU}${NUMBER} 402)${MENU} Build sunxi-tolls for arm ${NORMAL}"
+
     echo ""
-    echo "${MENU}${NUMBER} 401)${MENU}  Create linux-headers-3.3.0 ${NORMAL}"
-    echo "${MENU}${NUMBER} 402)${MENU}  Create linux-headers-3.4.43 ${NORMAL}"
+    echo "${NORMAL}    Misc Commands${NORMAL}"
+    echo ""
+
+    echo "${MENU}${NUMBER} 501)${MENU}  Create linux-headers-3.4.43 ${NORMAL}"
+
     echo ""
     echo "${ENTER_LINE}Please enter the option and enter or ${RED_TEXT}enter to exit. ${NORMAL}"
+
     if [ ! -z "$1" ]
     then
         echo $1;
@@ -568,13 +580,7 @@ while [ ! -z "$opt" ];do
         echoRed "Done";
         show_menu
         ;;
-    3) clear;
-        echoRed "Start build sunxi-tools";
-        buildTools
-        echoRed "Done";
-        show_menu
-        ;;
-    4) clear;
+    10) clear;
         echoRed "Download rootfs";
         if [ -d ${ROOTFS_DIR} ];then
            if promptyn "The rootfs exists, do you want delete it?"; then
@@ -605,7 +611,7 @@ while [ ! -z "$opt" ];do
         echoRed "Done";
         show_menu
         ;;
-    5) clear;
+    11) clear;
         echoRed "Install base system";
         if [ -f ${BASESYS_BACKUP} ];then
            if promptyn "Found a backup of base system, restore from it?"; then
@@ -636,7 +642,7 @@ while [ ! -z "$opt" ];do
         echoRed "Done";
         show_menu
         ;;
-    6) clear;
+    12) clear;
         echoRed "Install packages";
         if [ -f ${BASESYS_PKG_BACKUP} ];then
            if promptyn "Found a backup of base system with packages, restore from it?"; then
@@ -665,7 +671,7 @@ while [ ! -z "$opt" ];do
         echoRed "Done";
         show_menu
         ;;
-    7) clear;
+    13) clear;
         if [ -f ${BASESYS_CONFIG_BACKUP} ];then
            if promptyn "Found a backup of standard configed system, restore from it?"; then
                if [ -d ${ROOTFS_DIR} ];then
@@ -697,7 +703,7 @@ while [ ! -z "$opt" ];do
         echoRed "Done";
         show_menu
         ;;
-    8) clear;
+    14) clear;
         if [ -f ${BASESYS_FINAL_BACKUP} ];then
            if promptyn "Found a backup of final configed system, restore from it?"; then
                if [ -d ${ROOTFS_DIR} ];then
@@ -1067,18 +1073,34 @@ while [ ! -z "$opt" ];do
         echoRed "Done";
         show_menu
         ;;
-	401) clear;
+    401) clear;
+        echoRed "Start build sunxi-tools";
+        buildTools
+        echoRed "Done";
+        show_menu
+        ;;
+	402) clear;
+        if [ ! -d $SUNXI_TOOLS_REPO_ARM ];then
+            git clone $SUNXI_TOOLS_REPO $SUNXI_TOOLS_REPO_ARM
+        fi
+		make -C $SUNXI_TOOLS_REPO_ARM clean
+		#make -C $SUNXI_TOOLS_REPO_ARM CC=arm-none-linux-gnueabi-gcc CFLAGS='-Wall -static -Iinclude/' nand-part nand-part2
+		make -C $SUNXI_TOOLS_REPO_ARM CC=arm-none-linux-gnueabi-gcc CFLAGS='-Wall -std=gnu99 -static -Iinclude/' fexc bin2fex fex2bin nand-part nand-part2
+        show_menu
+        ;;
+	501) clear;
 		if [[ ! -d $LINUX_HEADER_A10_3_3 ]];then
 			mkdir -p $LINUX_HEADER_A10_3_3
 		fi
 		for file in $($CWD/utilities/createFileList.sh /usr/src/linux-headers-3.5.0-23); do
+			echo $file
 			linux_header_src="${LINUX_REPO_A20_3_3}/${file}"
 			linux_header_dst="${LINUX_HEADER_A10_3_3}/${file}"
 			mkdir -p $(dirname $linux_header_dst)
 			if [[ -f ${linux_header_src} ]];then
 				cp $linux_header_src $linux_header_dst
 			else
-				echo "!$linux_header_src" >> 1.txt
+				echo "!$linux_header_src" >> header_missing.txt
 			fi
 		done
         #show_menu
