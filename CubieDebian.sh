@@ -464,7 +464,7 @@ parted ${SD_PATH} --script -- mkpart primary 1 $1
 
 installRoot() {
 partprobe
-mkfs.ext4 -O ^has_journal ${SD_PATH}1
+mkfs.ext4 ${SD_PATH}1
 e2label ${SD_PATH}1 cubieboard
 sync
 
@@ -530,7 +530,7 @@ show_menu(){
     echo ""
     echo "${NORMAL}    A20${NORMAL}"
     echo "${MENU}${NUMBER} 201)${MENU} Build Linux kernel 3.3 for A20 ${NORMAL}"
-    echo "${MENU}${NUMBER} 202)${MENU} Build Linux kernel 3.4(inComplete) for A20 ${NORMAL}"
+    echo "${MENU}${NUMBER} 202)${MENU} Build Linux kernel 3.4 for A20 ${NORMAL}"
     echo "${MENU}${NUMBER} 203)${MENU} Install UBoot & kernel & modules${NORMAL}"
     echo "${MENU}${NUMBER} 204)${MENU} Install to device ${SD_PATH} ${NORMAL}"
     echo "${MENU}${NUMBER} 205)${MENU} Make disk image A20"
@@ -737,7 +737,7 @@ while [ ! -z "$opt" ];do
         show_menu
         ;;
 
-    102) clear;
+    101) clear;
         echoRed "Build Linux kernel";
         gitOpt="--git-dir=${LINUX_REPO_A10}/.git --work-tree=${LINUX_REPO_A10}/"
         if [ ! -d $LINUX_REPO_A10 ];then
@@ -761,7 +761,7 @@ while [ ! -z "$opt" ];do
         echoRed "Done";
         show_menu
         ;;
-    103) clear;
+    102) clear;
         if [ -d ${ROOTFS_DIR} ];then
             echoRed "Install UBoot";
             if [ -f "${ROOTFS_DIR}/boot/boot.scr" ] && [ -f "${ROOTFS_DIR}/boot/script.bin" ];then
@@ -795,7 +795,7 @@ while [ ! -z "$opt" ];do
         echoRed "Done";
         show_menu
         ;;
-    104) clear;
+    103) clear;
         echoRed "Install to your device ${SD_PATH}"
         echoRed "Device info"
         fdisk -l | grep ${SD_PATH}
@@ -817,7 +817,7 @@ while [ ! -z "$opt" ];do
         fi
         show_menu
         ;;
-    105) clear;
+    104) clear;
         echoRed "make disk image 1GB"
         IMAGE_FILE="${CWD}/${DEB_HOSTNAME}-base-r${RELEASE_VERSION_A10}-arm-a10.img"
         IMAGE_FILESIZE=1024
