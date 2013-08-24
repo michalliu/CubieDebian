@@ -50,10 +50,6 @@ FS_UPDATE_REPO_BASE="${CWD}/fsupdatebase"
 
 FS_UPDATE_BASE="base"
 
-NAND_INSTALL_REPO="${CWD}/nandinstall"
-NAND_INSTALL_A10="$A10"
-NAND_INSTALL_A20="$A20"
-
 # This is the script verion
 SCRIPT_VERSION="1.0"
 RELEASE_VERSION_A10="4"
@@ -271,14 +267,6 @@ scriptSrc="${ROOTFS_DIR}/boot/script.fex"
 scriptBinary="${ROOTFS_DIR}/boot/script.bin"
 cp $1 $scriptSrc
 $FEX2BIN $scriptSrc $scriptBinary
-}
-
-installNandScript(){
-gitOpt="--git-dir=${NAND_INSTALL_REPO}/.git --work-tree=${NAND_INSTALL_REPO}/"
-nandInstallDir="${ROOTFS_DIR}/home/${DEFAULT_USERNAME}/nandinstall"
-mkdir -p $nandInstallDir
-git $gitOpt checkout $1
-git $gitOpt archive $1 | tar -x -C $nandInstallDir
 }
 
 installKernel() {
@@ -783,9 +771,6 @@ while [ ! -z "$opt" ];do
                 installKernel
             fi
             echoRed "Kernel installed";
-            echoRed "install nand installation helper script"
-            installNandScript $NAND_INSTALL_A10
-            echoRed "nand installation helper script installed"
             echoRed "Patch rootfs for A10"
             patchRootfs $A10
         else
@@ -914,9 +899,6 @@ while [ ! -z "$opt" ];do
                 installKernel
             fi
             echoRed "Kernel installed";
-            echoRed "install nand installation helper script"
-            installNandScript $NAND_INSTALL_A20
-            echoRed "nand installation helper script installed"
             echoRed "Patch rootfs for A20"
             patchRootfs $A20
         else
