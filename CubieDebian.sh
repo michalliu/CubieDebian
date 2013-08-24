@@ -49,7 +49,11 @@ FS_UPDATE_REPO="${CWD}/fsupdate"
 FS_UPDATE_REPO_BASE="${CWD}/fsupdatebase"
 
 SUNXI_TOOLS_REPO="${CWD}/sunxi-tools"
-SUNXI_TOOLS_REPO_ARM="${CWD}/sunxi-tools-arm"
+SUNXI_TOOLS_REPO_ARM_A10="${CWD}/sunxi-tools-arm-a10"
+SUNXI_TOOLS_REPO_ARM_A20="${CWD}/sunxi-tools-arm-a20"
+
+SUNXI_TOOLS_A10="master"
+SUNXI_TOOLS_A20="a20/mbr411"
 
 FS_UPDATE_BASE="base"
 
@@ -541,8 +545,9 @@ show_menu(){
     echo "${NORMAL}    Build sunxi-tools${NORMAL}"
     echo ""
 
-    echo "${MENU}${NUMBER} 401)${MENU} Build sunxi-tools ${NORMAL}"
-    echo "${MENU}${NUMBER} 402)${MENU} Build sunxi-tolls for arm ${NORMAL}"
+    echo "${MENU}${NUMBER} 401)${MENU} Build sunxi-tools x86 ${NORMAL}"
+	echo "${MENU}${NUMBER} 402)${MENU} Build sunxi-tolls arm a10(mbr311)${NORMAL}"
+	echo "${MENU}${NUMBER} 403)${MENU} Build sunxi-tolls arm a20(mbr411)${NORMAL}"
 
     echo ""
     echo "${NORMAL}    Misc Commands${NORMAL}"
@@ -1080,12 +1085,39 @@ while [ ! -z "$opt" ];do
         show_menu
         ;;
 	402) clear;
-        if [ ! -d $SUNXI_TOOLS_REPO_ARM ];then
-            git clone $SUNXI_TOOLS_REPO $SUNXI_TOOLS_REPO_ARM
+        gitOpt="--git-dir=${SUNXI_TOOLS_REPO_ARM_A10}/.git --work-tree=${SUNXI_TOOLS_REPO_ARM_A10}/"
+        if [ ! -d $SUNXI_TOOLS_REPO_ARM_A10 ];then
+            git clone $SUNXI_TOOLS_REPO $SUNXI_TOOLS_REPO_ARM_A10
         fi
-		make -C $SUNXI_TOOLS_REPO_ARM clean
-		#make -C $SUNXI_TOOLS_REPO_ARM CC=arm-none-linux-gnueabi-gcc CFLAGS='-Wall -static -Iinclude/' nand-part nand-part2
-		make -C $SUNXI_TOOLS_REPO_ARM CC=arm-none-linux-gnueabi-gcc CFLAGS='-Wall -std=gnu99 -static -Iinclude/' fexc bin2fex fex2bin nand-part nand-part2
+        branchName=$(git $gitOpt rev-parse --abbrev-ref HEAD)
+        if [ $branchName != $SUNXI_TOOLS_A10 ]; then
+            echoRed "Switch branch to A20 NAND FIXED MACHID"
+            git $gitOpt checkout .
+            git $gitOpt clean -df
+            git $gitOpt checkout $SUNXI_TOOLS_A10
+        fi
+        git $gitOpt pull
+		make -C $SUNXI_TOOLS_REPO_ARM_A10 clean
+		#make -C $SUNXI_TOOLS_REPO_ARM_A10 CC=arm-none-linux-gnueabi-gcc CFLAGS='-Wall -static -Iinclude/' nand-part nand-part2
+		make -C $SUNXI_TOOLS_REPO_ARM_A10 CC=arm-none-linux-gnueabi-gcc CFLAGS='-Wall -std=gnu99 -static -Iinclude/' fexc bin2fex fex2bin nand-part nand-part2
+        show_menu
+        ;;
+	403) clear;
+        gitOpt="--git-dir=${SUNXI_TOOLS_REPO_ARM_A20}/.git --work-tree=${SUNXI_TOOLS_REPO_ARM_A20}/"
+        if [ ! -d $SUNXI_TOOLS_REPO_ARM_A20 ];then
+            git clone $SUNXI_TOOLS_REPO $SUNXI_TOOLS_REPO_ARM_A20
+        fi
+        branchName=$(git $gitOpt rev-parse --abbrev-ref HEAD)
+        if [ $branchName != $SUNXI_TOOLS_A20 ]; then
+            echoRed "Switch branch to A20 NAND FIXED MACHID"
+            git $gitOpt checkout .
+            git $gitOpt clean -df
+            git $gitOpt checkout $SUNXI_TOOLS_A20
+        fi
+        git $gitOpt pull
+		make -C $SUNXI_TOOLS_REPO_ARM_A20 clean
+		#make -C $SUNXI_TOOLS_REPO_ARM_A20 CC=arm-none-linux-gnueabi-gcc CFLAGS='-Wall -static -Iinclude/' nand-part nand-part2
+		make -C $SUNXI_TOOLS_REPO_ARM_A20 CC=arm-none-linux-gnueabi-gcc CFLAGS='-Wall -std=gnu99 -static -Iinclude/' fexc bin2fex fex2bin nand-part nand-part2
         show_menu
         ;;
 	501) clear;

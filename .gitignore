@@ -19,7 +19,8 @@ u-boot-sunxi-a20-mmc/
 u-boot-sunxi-a20-mmc-fixed-machid/
 u-boot-sunxi-a20-nand-fixed-machid/
 
-sunxi-tools-arm/
+sunxi-tools-arm-a10/
+sunxi-tools-arm-a20/
 
 fsupdatebase/
 
