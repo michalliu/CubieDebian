@@ -395,6 +395,7 @@ find ${FS_UPDATE_REPO_BASE}/common/ -type f -name "*.patch" | while read patch; 
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} update-rc.d "cubian-bootled" defaults
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} update-rc.d "cubian-blinknetworkled" defaults
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} update-rc.d "cubian-local" defaults
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} update-rc.d "cubian-fixrandomemac" start 10 2 3 4 5 . stop
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} update-rc.d "cubian-ondemandcpufreq" start 80 2 3 4 5 . stop
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} update-rc.d "cubian-gpiopermission" start 80 2 3 4 5 . stop
 
