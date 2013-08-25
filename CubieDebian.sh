@@ -234,9 +234,11 @@ prepareEnv
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} /debootstrap/debootstrap --second-stage
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} dpkg --configure -a
 cp /etc/resolv.conf ${ROOTFS_DIR}/etc/
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} wget -O - http://packages.cubian.org/cubian.gpg.key | apt-key add -
 cat > ${ROOTFS_DIR}/etc/apt/sources.list <<END
 deb http://http.debian.net/debian/ wheezy main contrib non-free
 deb http://security.debian.org/ wheezy/updates main contrib non-free
+deb http://packages.cubian.org/ wheezy main
 END
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get update
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get upgrade
