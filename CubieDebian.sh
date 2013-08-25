@@ -77,7 +77,7 @@ DEB_HOSTNAME="Cubian"
 DEB_WIRELESS_TOOLS="wireless-tools wpasupplicant"
 DEB_TEXT_EDITORS="nvi vim"
 DEB_TEXT_UTILITIES="locales ssh expect sudo"
-DEB_ADMIN_UTILITIES="inotify-tools ifplugd ntpdate rsync parted lsof psmisc dosfstools"
+DEB_ADMIN_UTILITIES="inotify-tools ifplugd ntpdate rsync parted lsof psmisc dosfstools at"
 DEB_CPU_UTILITIES="cpufrequtils sysfsutils"
 DEB_SOUND="alsa-base alsa-utils"
 DEB_EXTRAPACKAGES="${DEB_TEXT_EDITORS} ${DEB_TEXT_UTILITIES} ${DEB_WIRELESS_TOOLS} ${DEB_ADMIN_UTILITIES} ${DEB_CPU_UTILITIES} ${DEB_SOUND}" 
@@ -555,6 +555,7 @@ show_menu(){
     echo ""
 
     echo "${MENU}${NUMBER} 501)${MENU}  Create linux-headers-3.4.43 ${NORMAL}"
+    echo "${MENU}${NUMBER} 502)${MENU}  Add default installed package ${NORMAL}"
 
     echo ""
     echo "${ENTER_LINE}Please enter the option and enter or ${RED_TEXT}enter to exit. ${NORMAL}"
@@ -1136,9 +1137,48 @@ while [ ! -z "$opt" ];do
 				echo "!$linux_header_src" >> header_missing.txt
 			fi
 		done
-        #show_menu
+        show_menu
 		exit
         ;;
+	502) clear;
+        echoRed "Install packages";
+        if [ ! -f ${BASESYS_PKG_BACKUP} ];then
+			echoRed "file not found ${BASESYS_PKG_BACKUP}"
+            show_menu
+		    exit
+		fi
+
+        if [ -d ${ROOTFS_DIR} ];then
+            rm -rf ${ROOTFS_DIR}
+        fi
+        echoRed "Restore basesystem with packages, please wait";
+        tar -xzPf ${BASESYS_PKG_BACKUP}
+        echoRed "Base System with packages Restored";
+
+		while true;do
+			read -p "type package name." extra_packagenames
+			if [[ -n $extra_packagenames ]];then
+				break
+			fi
+		done
+
+		echoRed "About to install $extra_packagenames" 
+		LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get update
+		LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get install ${extra_packagenames}
+
+        if [ -d ${ROOTFS_DIR} ];then
+            echoRed "Package ${extra_packagenames} installed to the system";
+            echoRed "Make a backup of the system";
+            if [ -f ${BASESYS_PKG_BACKUP} ];then
+                rm ${BASESYS_PKG_BACKUP}
+            fi
+            tar -czPf ${BASESYS_PKG_BACKUP} ${ROOTFS_DIR}
+        else
+            echo "[E] rootfs is not existed at ${ROOTFS_DIR}"
+        fi
+        show_menu
+		exit
+		;;
     *) clear;
         show_menu "$opt is invalid. please enter a number from menu."
         ;;
