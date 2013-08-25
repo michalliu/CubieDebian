@@ -11,6 +11,8 @@ A20="a20"
 
 source ${CWD}/fns.sh
 
+HTTP_PROXY="http://127.0.0.1:8087"
+
 UBOOT_REPO="${CWD}/u-boot-sunxi"
 UBOOT_REPO_A10_MMC="${CWD}/u-boot-sunxi-a10-mmc"
 UBOOT_REPO_A10_NAND="${CWD}/u-boot-sunxi-a10-nand"
@@ -76,11 +78,12 @@ DEB_HOSTNAME="Cubian"
 # Currently ntp module triggers an error when install
 DEB_WIRELESS_TOOLS="wireless-tools wpasupplicant"
 DEB_TEXT_EDITORS="nvi vim"
+DEB_PROGRAMMING_LANGUAGES="python"
 DEB_TEXT_UTILITIES="locales ssh expect sudo"
 DEB_ADMIN_UTILITIES="inotify-tools ifplugd ntpdate rsync parted lsof psmisc dosfstools at"
 DEB_CPU_UTILITIES="cpufrequtils sysfsutils"
 DEB_SOUND="alsa-base alsa-utils"
-DEB_EXTRAPACKAGES="${DEB_TEXT_EDITORS} ${DEB_TEXT_UTILITIES} ${DEB_WIRELESS_TOOLS} ${DEB_ADMIN_UTILITIES} ${DEB_CPU_UTILITIES} ${DEB_SOUND}" 
+DEB_EXTRAPACKAGES="${DEB_TEXT_EDITORS} ${DEB_PROGRAMMING_LANGUAGES} ${DEB_TEXT_UTILITIES} ${DEB_WIRELESS_TOOLS} ${DEB_ADMIN_UTILITIES} ${DEB_CPU_UTILITIES} ${DEB_SOUND}" 
 # Not all packages can (or should be) reconfigured this way.
 DPKG_RECONFIG="locales tzdata"
 
@@ -229,29 +232,55 @@ mkdir --parents ${ROOTFS_DIR}
 debootstrap --foreign --verbose --arch armhf wheezy ${ROOTFS_DIR}/ http://http.debian.net/debian/
 }
 
+mountPseudoFs(){
+mount --bind /dev     ${ROOTFS_DIR}/dev
+mount --bind /proc    ${ROOTFS_DIR}/proc
+mount --bind /sys     ${ROOTFS_DIR}/sys
+}
+
+umountPseudoFs(){
+sync
+umount -l ${ROOTFS_DIR}/dev
+umount -l ${ROOTFS_DIR}/proc
+umount -l ${ROOTFS_DIR}/sys
+}
+
 installBaseSys(){
 prepareEnv
+mountPseudoFs
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} /debootstrap/debootstrap --second-stage
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} dpkg --configure -a
 cp /etc/resolv.conf ${ROOTFS_DIR}/etc/
-LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} wget -O - http://packages.cubian.org/cubian.gpg.key | apt-key add -
+cat > ${ROOTFS_DIR}/tmp/addgpgkey.sh <<END
+#!/bin/bash
+# add cubian gpg key
+wget -O - http://packages.cubian.org/cubian.gpg.key | apt-key add -
+END
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} chmod +x /tmp/addgpgkey.sh
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} /tmp/addgpgkey.sh
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} rm /tmp/addgpgkey.sh
 cat > ${ROOTFS_DIR}/etc/apt/sources.list <<END
 deb http://http.debian.net/debian/ wheezy main contrib non-free
 deb http://security.debian.org/ wheezy/updates main contrib non-free
 deb http://packages.cubian.org/ wheezy main
 END
-LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get update
-LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get upgrade
+mountPseudoFs
+LC_ALL=C LANGUAGE=C LANG=C http_proxy="$HTTP_PROXY" chroot ${ROOTFS_DIR} apt-get update
+LC_ALL=C LANGUAGE=C LANG=C http_proxy="$HTTP_PROXY" chroot ${ROOTFS_DIR} apt-get -y upgrade
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get clean
+umountPseudoFs
 }
 
 installPackages(){
 prepareEnv
+mountPseudoFs
 # install extra modules
 if [ -n "${DEB_EXTRAPACKAGES}" ]; then
-LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get update
-LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get -y install ${DEB_EXTRAPACKAGES}
+LC_ALL=C LANGUAGE=C LANG=C http_proxy="$HTTP_PROXY" chroot ${ROOTFS_DIR} apt-get update
+LC_ALL=C LANGUAGE=C LANG=C http_proxy="$HTTP_PROXY" chroot ${ROOTFS_DIR} apt-get -y upgrade
+LC_ALL=C LANGUAGE=C LANG=C http_proxy="$HTTP_PROXY" chroot ${ROOTFS_DIR} apt-get -y install ${DEB_EXTRAPACKAGES}
 fi
+umountPseudoFs
 }
 
 installBootscr() {
@@ -320,13 +349,14 @@ fi
 
 configSys(){
 prepareEnv
-
+mountPseudoFs
 # prompt to config local and timezone
 if promptyn "Configure locale and timezone data?"; then
     if [ -n "${DPKG_RECONFIG}" ]; then
     LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} dpkg-reconfigure ${DPKG_RECONFIG}
     fi
 fi
+umountPseudoFs
 }
 
 restoreFile() {
@@ -360,7 +390,7 @@ patch "${ROOTFS_DIR}/${2:${#1}:-6}" < "$2"
 
 finalConfig(){
 prepareEnv
-
+mountPseudoFs
 echo ${DEB_HOSTNAME} > ${ROOTFS_DIR}/etc/hostname
 
 cat >> ${ROOTFS_DIR}/etc/hosts <<END
@@ -407,6 +437,7 @@ LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get clean
 if promptyn "Install Personal Stuff?"; then
     installPersonalStuff
 fi
+umountPseudoFs
 }
 
 patchRootfs(){
@@ -1165,9 +1196,10 @@ while [ ! -z "$opt" ];do
 		done
 
 		echoRed "About to install $extra_packagenames" 
-		LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get update
+		mountPseudoFs
+		LC_ALL=C LANGUAGE=C LANG=C http_proxy="$HTTP_PROXY" chroot ${ROOTFS_DIR} apt-get update
 		LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get install ${extra_packagenames}
-
+		umountPseudoFs
         if [ -d ${ROOTFS_DIR} ];then
             echoRed "Package ${extra_packagenames} installed to the system";
             echoRed "Make a backup of the system";
