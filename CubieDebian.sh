@@ -504,6 +504,7 @@ tar --exclude=qemu-arm-static \
 	--exclude=ssh_host_* \
 	-cf - . | tar -C ${SD_MNT_POINT} -xvf -
 touch ${SD_MNT_POINT}/root/.firstRun
+cp -vR ${CWD}/cubian-update ${SD_MNT_POINT}/root/.cubian-update
 umount ${SD_MNT_POINT} >>/dev/null 2>&1
 cd ${PWD}
 }

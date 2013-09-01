@@ -91,3 +91,6 @@
 [submodule "fsupdate"]
 	path = fsupdate
 	url = git@github.com:mmplayer/fsupdate.git
+[submodule "cubian-update"]
+	path = cubian-update
+	url = git@github.com:cubieplayer/cubian-update.git
