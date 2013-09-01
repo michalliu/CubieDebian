@@ -438,6 +438,7 @@ LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} update-rc.d "cubian-ondemandcpuf
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} update-rc.d "cubian-gpiopermission" start 80 2 3 4 5 . stop
 
 # clean cache
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get update
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} apt-get clean
 
 if promptyn "Install Personal Stuff?"; then
