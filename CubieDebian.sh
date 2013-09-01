@@ -494,7 +494,10 @@ sync
 
 mountRoot
 cd ${ROOTFS_DIR}
-tar --exclude=qemu-arm-static --exclude=resolv.conf -cf - . | tar -C ${SD_MNT_POINT} -xvf -
+tar --exclude=qemu-arm-static \
+	--exclude=resolv.conf \
+	--exclude=ssh_host_* \
+	-cf - . | tar -C ${SD_MNT_POINT} -xvf -
 umount ${SD_MNT_POINT} >>/dev/null 2>&1
 cd ${PWD}
 }
