@@ -122,6 +122,11 @@ BASESYS_FINAL_BACKUP="${DEVELOPMENT_CODE}.basesys.final.tar.gz"
 DEFAULT_USERNAME="cubie"
 DEFAULT_PASSWD="cubie"
 
+# Cubina image Size
+# 1G minus 100MB
+IMAGE_SIZE=$(expr 1024 - 100)
+IMAGE_ROOT_SIZE=$(expr $IMAGE_SIZE - 100)
+
 # If you want a static IP, use the following
 #ETH0_MODE="static"
 #ETH0_IP="192.168.0.100"
@@ -840,7 +845,7 @@ while [ ! -z "$opt" ];do
             umountSDSafe
             echoRed "Done";
             echoRed "Formating"
-            formatSD 1024
+            formatSD $IMAGE_SIZE
             echoRed "Done";
             echoRed "Transferring data, it may take a while, please be patient, DO NOT UNPLUG YOUR DEVICE, it will be removed automaticlly when finished";
             installRoot
@@ -856,7 +861,7 @@ while [ ! -z "$opt" ];do
     104) clear;
         echoRed "make disk image 1GB"
         IMAGE_FILE="${CWD}/${DEB_HOSTNAME}-base-r${RELEASE_VERSION_A10}-arm-a10.img"
-        IMAGE_FILESIZE=1024
+        IMAGE_FILESIZE=$IMAGE_SIZE
         echo "create disk file ${IMAGE_FILE}"
         dd if=/dev/zero of=$IMAGE_FILE bs=1M count=$IMAGE_FILESIZE
         SD_PATH_OLD=${SD_PATH}
@@ -864,7 +869,7 @@ while [ ! -z "$opt" ];do
         echo "create device ${SD_PATH_RAW}"
         SD_PATH=${SD_PATH_RAW}
         echo "format device"
-        formatSD 1001
+        formatSD $IMAGE_ROOT_SIZE
         SD_PATH="${SD_PATH}p"
         echo "Transferring system"
         installRoot
@@ -967,7 +972,7 @@ while [ ! -z "$opt" ];do
             umountSDSafe
             echoRed "Done";
             echoRed "Formating"
-            formatSD 1024
+            formatSD $IMAGE_SIZE
             echoRed "Done";
             echoRed "Transferring data, it may take a while, please be patient, DO NOT UNPLUG YOUR DEVICE, it will be removed automaticlly when finished";
             installRoot
@@ -987,7 +992,7 @@ while [ ! -z "$opt" ];do
     205) clear;
         echoRed "make disk image 1GB"
         IMAGE_FILE="${CWD}/${DEB_HOSTNAME}-base-r${RELEASE_VERSION_A20}-arm-a20.img"
-        IMAGE_FILESIZE=1024
+        IMAGE_FILESIZE=$IMAGE_SIZE
         echo "create disk file ${IMAGE_FILE}"
         dd if=/dev/zero of=$IMAGE_FILE bs=1M count=$IMAGE_FILESIZE
         SD_PATH_OLD=${SD_PATH}
@@ -995,7 +1000,7 @@ while [ ! -z "$opt" ];do
         echo "create device ${SD_PATH_RAW}"
         SD_PATH=${SD_PATH_RAW}
         echo "format device"
-        formatSD 1001
+        formatSD $IMAGE_ROOT_SIZE
         SD_PATH="${SD_PATH}p"
         echo "Transferring system"
         installRoot
