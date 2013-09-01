@@ -61,8 +61,8 @@ FS_UPDATE_BASE="base"
 
 # This is the script verion
 SCRIPT_VERSION="1.0"
-RELEASE_VERSION_A10="4"
-RELEASE_VERSION_A20="1"
+RELEASE_VERSION_A10="5"
+RELEASE_VERSION_A20="2"
 DEVELOPMENT_CODE="argon"
 
 FEX_SUN4I="${CWD}/sunxi-boards/sys_config/a10/cubieboard_${DEVELOPMENT_CODE}.fex"
