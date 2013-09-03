@@ -124,7 +124,7 @@ DEFAULT_PASSWD="cubie"
 
 # Cubina image Size
 # 1G minus 100MB
-IMAGE_SIZE=$(expr 1024 + 512 - 100)
+IMAGE_SIZE=$(expr 1024 - 100)
 IMAGE_ROOT_SIZE=$(expr $IMAGE_SIZE - 100)
 
 # If you want a static IP, use the following
