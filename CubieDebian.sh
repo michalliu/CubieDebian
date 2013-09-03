@@ -308,7 +308,7 @@ $FEX2BIN $scriptSrc $scriptBinary
 
 installKernel() {
 cp ${CURRENT_KERNEL}/arch/arm/boot/uImage ${ROOTFS_DIR}/boot
-make -C ${CURRENT_KERNEL} INSTALL_MOD_PATH=${ROOTFS_DIR} ARCH=arm modules_install
+make -C ${CURRENT_KERNEL} STRIP=arm-none-linux-gnueabi-strip INSTALL_MOD_PATH=${ROOTFS_DIR} ARCH=arm INSTALL_MOD_STRIP=1 modules_install
 if [ "$CURRENT_KERNEL" = "$LINUX_REPO_A10" ];then
 kernelVersion="3.4.43+"
 elif [ "$CURRENT_KERNEL" = "$LINUX_REPO_A20_3_3" ];then
