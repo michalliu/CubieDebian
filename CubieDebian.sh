@@ -11,6 +11,9 @@ A20="a20"
 
 source ${CWD}/fns.sh
 
+# SD Card mount point
+SD_MNT_POINT="${CWD}/mnt"
+
 HTTP_PROXY="http://127.0.0.1:8087"
 
 UBOOT_REPO="${CWD}/u-boot-sunxi"
@@ -49,6 +52,10 @@ LINUX_CONFIG_BASE_SUN7I_3_3="${CWD}/kernel-config/config-cubian-base-sun7i-3.3"
 
 FS_UPDATE_REPO="${CWD}/fsupdate"
 FS_UPDATE_REPO_BASE="${CWD}/fsupdatebase"
+
+CUBIAN_UPDATE_REPO_LOCAL="${SD_MNT_POINT}/root/.cubian-updates"
+CUBIAN_UPDATE_REPO="https://github.com/cubieplayer/cubian-updates.git"
+CUBIAN_UPDATE_GIT_CMD="git --git-dir=\"${CUBIAN_UPDATE_REPO_LOCAL}/.git\" --work-tree=\"${CUBIAN_UPDATE_REPO_LOCAL}\""
 
 SUNXI_TOOLS_REPO="${CWD}/sunxi-tools"
 SUNXI_TOOLS_REPO_ARM_A10="${CWD}/sunxi-tools-arm-a10"
@@ -89,9 +96,6 @@ DPKG_RECONFIG="locales tzdata"
 
 # Make sure this is valid and is really your SD..
 SD_PATH="/dev/sdb"
-
-# SD Card mount point
-SD_MNT_POINT="${CWD}/mnt"
 
 # MAC will be encoded in script.bin
 #MAC_ADDRESS="0DEADBEEFBAD"
@@ -505,7 +509,8 @@ tar --exclude=qemu-arm-static \
 	--exclude=ssh_host_* \
 	-cf - . | tar -C ${SD_MNT_POINT} -xvf -
 touch ${SD_MNT_POINT}/root/.firstRun
-git clone ${CWD}/cubian-update ${SD_MNT_POINT}/root/.cubian-update
+git clone ${CWD}/cubian-updates $CUBIAN_UPDATE_REPO_LOCAL
+eval ${CUBIAN_UPDATE_GIT_CMD} remote -v set-url origin $CUBIAN_UPDATE_REPO
 umount ${SD_MNT_POINT} >>/dev/null 2>&1
 cd ${PWD}
 }
