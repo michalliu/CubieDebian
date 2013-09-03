@@ -889,7 +889,7 @@ while [ ! -z "$opt" ];do
         losetup -d ${SD_PATH}
         SD_PATH=${SD_PATH_OLD}
         echo  "compressing image"
-        #7z a -mx=9 ${IMAGE_FILE}.7z $IMAGE_FILE
+        7z a -mx=9 ${IMAGE_FILE}.7z $IMAGE_FILE
         show_menu
         ;;
 
@@ -983,9 +983,9 @@ while [ ! -z "$opt" ];do
             echoRed "Done";
             echoRed "Transferring data, it may take a while, please be patient, DO NOT UNPLUG YOUR DEVICE, it will be removed automaticlly when finished";
             installRoot
-			if [[ CURRENT_KERNEL="$LINUX_REPO_A20_3_3" ]];then
+			if [[ "$CURRENT_KERNEL" = "$LINUX_REPO_A20_3_3" ]];then
             	CURRENT_UBOOT="$UBOOT_REPO_A20_MMC_FIXED_MACHID"
-			elif [[ CURRENT_KERNEL="$LINUX_REPO_A20_3_4" ]];then
+			elif [[ "$CURRENT_KERNEL" = "$LINUX_REPO_A20_3_4" ]];then
             	CURRENT_UBOOT="$UBOOT_REPO_A20_MMC"
 			fi
             installMBR
@@ -1013,14 +1013,18 @@ while [ ! -z "$opt" ];do
         installRoot
         SD_PATH=${SD_PATH_RAW}
         echo "Install MBR"
-        CURRENT_UBOOT="$UBOOT_REPO_A20_MMC"
+		if [[ "$CURRENT_KERNEL" = "$LINUX_REPO_A20_3_3" ]];then
+        	CURRENT_UBOOT="$UBOOT_REPO_A20_MMC_FIXED_MACHID"
+		elif [[ "$CURRENT_KERNEL" = "$LINUX_REPO_A20_3_4" ]];then
+        	CURRENT_UBOOT="$UBOOT_REPO_A20_MMC"
+		fi
         installMBR
         echo "umount device ${SD_PATH}"
         umountSDSafe
         losetup -d ${SD_PATH}
         SD_PATH=${SD_PATH_OLD}
         echo  "compressing image"
-        #7z a -mx=9 ${IMAGE_FILE}.7z $IMAGE_FILE
+        7z a -mx=9 ${IMAGE_FILE}.7z $IMAGE_FILE
         show_menu
         ;;
     301) clear;
