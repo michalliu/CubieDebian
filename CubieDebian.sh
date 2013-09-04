@@ -318,7 +318,7 @@ kernelVersion="3.4.43+"
 elif [ "$CURRENT_KERNEL" = "$LINUX_REPO_A20_3_3" ];then
 kernelVersion="3.3.0+"
 elif [ "$CURRENT_KERNEL" = "$LINUX_REPO_A20_3_4" ];then
-kernelVersion="3.4.43.sun7i+"
+kernelVersion="3.4.43+"
 fi
 kernelSourceLocation="/usr/src/linux-headers-${kernelVersion}"
 kernelSourcePointer1="${ROOTFS_DIR}/lib/modules/${kernelVersion}/build"
