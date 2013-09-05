@@ -90,7 +90,8 @@ DEB_TEXT_UTILITIES="locales ssh expect sudo"
 DEB_ADMIN_UTILITIES="inotify-tools ifplugd ntpdate rsync parted lsof psmisc dosfstools at"
 DEB_CPU_UTILITIES="cpufrequtils sysfsutils"
 DEB_SOUND="alsa-base alsa-utils"
-DEB_EXTRAPACKAGES="${DEB_TEXT_EDITORS} ${DEB_PROGRAMMING_LANGUAGES} ${DEB_TEXT_UTILITIES} ${DEB_WIRELESS_TOOLS} ${DEB_ADMIN_UTILITIES} ${DEB_CPU_UTILITIES} ${DEB_SOUND}" 
+DEB_FIRMWARES="firmware-ralink"
+DEB_EXTRAPACKAGES="${DEB_TEXT_EDITORS} ${DEB_PROGRAMMING_LANGUAGES} ${DEB_TEXT_UTILITIES} ${DEB_WIRELESS_TOOLS} ${DEB_ADMIN_UTILITIES} ${DEB_CPU_UTILITIES} ${DEB_SOUND} ${DEB_FIRMWARES}" 
 # Not all packages can (or should be) reconfigured this way.
 DPKG_RECONFIG="locales tzdata"
 
@@ -269,7 +270,8 @@ LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} chmod +x /tmp/addgpgkey.sh
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} /tmp/addgpgkey.sh
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS_DIR} rm /tmp/addgpgkey.sh
 cat > ${ROOTFS_DIR}/etc/apt/sources.list <<END
-deb http://http.debian.net/debian/ wheezy main contrib non-free
+deb http://ftp.debian.org/debian/ wheezy main contrib non-free
+deb-src http://ftp.debian.org/debian/ wheezy main contrib non-free
 deb http://security.debian.org/ wheezy/updates main contrib non-free
 deb http://packages.cubian.org/ wheezy main
 END
