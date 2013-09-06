@@ -6,10 +6,11 @@
 PWD="`pwd`"
 CWD=$(cd "$(dirname "$0")"; pwd)
 CPU_CORES=$(grep -m1 cpu\ cores /proc/cpuinfo | cut -d : -f 2)
-A10="a10"
-A20="a20"
 
 source ${CWD}/fns.sh
+
+A10="a10"
+A20="a20"
 
 # SD Card mount point
 SD_MNT_POINT="${CWD}/mnt"
@@ -165,7 +166,7 @@ fi
 branchName=$(git $gitOpt rev-parse --abbrev-ref HEAD)
 if [ "$branchName" != "$LINARO_BRANCH" ]; then
     echoRed "Switch branch to ${LINARO_BRANCH}"
-    git $gitOpt checkout .
+    git $gitOpt reset --hard
     git $gitOpt clean -df
     git $gitOpt checkout ${LINARO_BRANCH}
 fi
@@ -179,7 +180,7 @@ fi
 branchName=$(git $gitOpt rev-parse --abbrev-ref HEAD)
 if [ "$branchName" != "$FS_UPDATE_BASE" ]; then
     echoRed "Switch branch to ${FS_UPDATE_BASE}"
-    git $gitOpt checkout .
+    git $gitOpt reset --hard
     git $gitOpt clean -df
     git $gitOpt checkout ${FS_UPDATE_BASE}
 fi
@@ -799,7 +800,7 @@ while [ ! -z "$opt" ];do
         gitOpt="--git-dir=${LINUX_REPO_A10}/.git --work-tree=${LINUX_REPO_A10}/"
         branchName=$(git $gitOpt rev-parse --abbrev-ref HEAD)
         if [ $branchName != $LINUX_A10 ]; then
-            git $gitOpt checkout .
+            git $gitOpt reset --hard
             git $gitOpt clean -df
             git $gitOpt checkout $LINUX_A10
         fi
@@ -903,7 +904,7 @@ while [ ! -z "$opt" ];do
         fi
         branchName=$(git $gitOpt rev-parse --abbrev-ref HEAD)
         if [ $branchName != $LINUX_A20_3_3 ]; then
-            git $gitOpt checkout .
+            git $gitOpt reset --hard
             git $gitOpt clean -df
             git $gitOpt checkout $LINUX_A20_3_3
         fi
@@ -926,7 +927,7 @@ while [ ! -z "$opt" ];do
         fi
         branchName=$(git $gitOpt rev-parse --abbrev-ref HEAD)
         if [ $branchName != $LINUX_A20_3_4 ]; then
-            git $gitOpt checkout .
+            git $gitOpt reset --hard
             git $gitOpt clean -df
             git $gitOpt checkout $LINUX_A20_3_4
         fi
@@ -1037,7 +1038,7 @@ while [ ! -z "$opt" ];do
         fi
         branchName=$(git $gitOpt rev-parse --abbrev-ref HEAD)
         if [ $branchName != $UBOOT_A10_MMC ]; then
-            git $gitOpt checkout .
+            git $gitOpt reset --hard
             git $gitOpt clean -df
             git $gitOpt checkout $UBOOT_A10_MMC
         fi
@@ -1055,7 +1056,7 @@ while [ ! -z "$opt" ];do
         branchName=$(git $gitOpt rev-parse --abbrev-ref HEAD)
         if [ $branchName != $UBOOT_A10_NAND ]; then
             echoRed "Switch branch to A10 NAND"
-            git $gitOpt checkout .
+            git $gitOpt reset --hard
             git $gitOpt clean -df
             git $gitOpt checkout $UBOOT_A10_NAND
         fi
@@ -1073,7 +1074,7 @@ while [ ! -z "$opt" ];do
         branchName=$(git $gitOpt rev-parse --abbrev-ref HEAD)
         if [ $branchName != $UBOOT_A20_MMC ]; then
             echoRed "Switch branch to A20"
-            git $gitOpt checkout .
+            git $gitOpt reset --hard
             git $gitOpt clean -df
             git $gitOpt checkout $UBOOT_A20_MMC
         fi
@@ -1091,7 +1092,7 @@ while [ ! -z "$opt" ];do
         branchName=$(git $gitOpt rev-parse --abbrev-ref HEAD)
         if [ $branchName != $UBOOT_A20_NAND ]; then
             echoRed "Switch branch to A20 NAND"
-            git $gitOpt checkout .
+            git $gitOpt reset --hard
             git $gitOpt clean -df
             git $gitOpt checkout $UBOOT_A20_NAND
         fi
@@ -1109,7 +1110,7 @@ while [ ! -z "$opt" ];do
         branchName=$(git $gitOpt rev-parse --abbrev-ref HEAD)
         if [ $branchName != $UBOOT_A20_MMC_FIXED_MACHID ]; then
             echoRed "Switch branch to A20 FIXED MACHID"
-            git $gitOpt checkout .
+            git $gitOpt reset --hard
             git $gitOpt clean -df
             git $gitOpt checkout $UBOOT_A20_MMC_FIXED_MACHID
         fi
@@ -1127,7 +1128,7 @@ while [ ! -z "$opt" ];do
         branchName=$(git $gitOpt rev-parse --abbrev-ref HEAD)
         if [ $branchName != $UBOOT_A20_NAND_FIXED_MACHID ]; then
             echoRed "Switch branch to A20 NAND FIXED MACHID"
-            git $gitOpt checkout .
+            git $gitOpt reset --hard
             git $gitOpt clean -df
             git $gitOpt checkout $UBOOT_A20_NAND_FIXED_MACHID
         fi
@@ -1150,7 +1151,7 @@ while [ ! -z "$opt" ];do
         branchName=$(git $gitOpt rev-parse --abbrev-ref HEAD)
         if [ $branchName != $SUNXI_TOOLS_A10 ]; then
             echoRed "Switch branch to A20 NAND FIXED MACHID"
-            git $gitOpt checkout .
+            git $gitOpt reset --hard
             git $gitOpt clean -df
             git $gitOpt checkout $SUNXI_TOOLS_A10
         fi
@@ -1168,7 +1169,7 @@ while [ ! -z "$opt" ];do
         branchName=$(git $gitOpt rev-parse --abbrev-ref HEAD)
         if [ $branchName != $SUNXI_TOOLS_A20 ]; then
             echoRed "Switch branch to A20 NAND FIXED MACHID"
-            git $gitOpt checkout .
+            git $gitOpt reset --hard
             git $gitOpt clean -df
             git $gitOpt checkout $SUNXI_TOOLS_A20
         fi
